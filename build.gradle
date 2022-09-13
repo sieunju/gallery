@@ -4,6 +4,7 @@ buildscript {
     dependencies {
         classpath deps.androidPlugin
         classpath deps.kotlinPlugin
+        classpath "com.google.dagger:hilt-android-gradle-plugin:2.38.1"
         classpath "com.github.dcendents:android-maven-gradle-plugin:2.1"
     }
 }
