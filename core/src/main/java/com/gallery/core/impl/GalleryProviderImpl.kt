@@ -10,14 +10,15 @@ import android.net.Uri
 import android.provider.MediaStore
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
-import javax.inject.Inject
+import com.gallery.core.model.GalleryQueryParameter
+import timber.log.Timber
 
 /**
  * Description : Gallery Provider 구현체 클래스
  *
  * Created by juhongmin on 2022/09/13
  */
-class GalleryProviderImpl @Inject constructor(
+internal class GalleryProviderImpl constructor(
     private val context: Context
 ) : GalleryProvider {
 
@@ -48,7 +49,8 @@ class GalleryProviderImpl @Inject constructor(
     }
 
     @SuppressLint("Recycle")
-    override fun fetchDirectory(): List<GalleryFilterData> {
+    override fun fetchDirectories(): List<GalleryFilterData> {
+        // Permissions Check
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("'android.permission.READ_EXTERNAL_STORAGE' is not Granted! ")
         val dataList = mutableListOf<GalleryFilterData>()
         val projection = arrayOf(
@@ -73,11 +75,12 @@ class GalleryProviderImpl @Inject constructor(
                     sort
                 ) ?: break@loop
 
+                Timber.d("Directories ${Thread.currentThread()}")
                 if (cursor.moveToLast()) {
-                    val contentId = cursor.getString(cursor.getColumnIndexOrThrow(ID))
-                    val photoUri = Uri.withAppendedPath(CONTENT_URI, contentId).toString()
-                    val bucketId = cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_ID))
-                    val bucketName = cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_NAME))
+                    val contentId = getContentsId(cursor)
+                    val photoUri = getPhotoUri(contentId)
+                    val bucketId = getBucketId(cursor)
+                    val bucketName = getBucketName(cursor)
                     val count = cursor.count
 
                     if (!cursor.isClosed) {
@@ -150,17 +153,53 @@ class GalleryProviderImpl @Inject constructor(
         }
     }
 
-    @SuppressLint("Recycle")
-    override fun fetchGallery(filterId: String): Cursor {
+    override fun fetchGallery(params: GalleryQueryParameter): Cursor {
         val projection = arrayOf(ID)
-        val sort = "$ID DESC"
+        val order = "$ID ${params.order}"
         val selection = "$BUCKET_ID ==?"
 
-        val isAll: Boolean = filterId == DEFAULT_GALLERY_FILTER_ID
         return contentResolver.query(
-            CONTENT_URI, projection, if (isAll) null else selection,
-            if (isAll) null else arrayOf(filterId),
-            sort
+            CONTENT_URI,
+            projection,
+            if (params.isAll) null else selection,
+            params.selectionArgs,
+            order
         ) ?: throw NullPointerException("Cursor NullPointerException")
+    }
+
+    override fun fetchGallery(): Cursor {
+        return fetchGallery(GalleryQueryParameter())
+    }
+
+    private fun getContentsId(cursor: Cursor): String {
+        return try {
+            cursor.getString(cursor.getColumnIndexOrThrow(ID))
+        } catch (ex: Exception) {
+            ""
+        }
+    }
+
+    private fun getPhotoUri(id: String): String {
+        return try {
+            Uri.withAppendedPath(CONTENT_URI, id).toString()
+        } catch (ex: NullPointerException) {
+            ""
+        }
+    }
+
+    private fun getBucketId(cursor: Cursor): String {
+        return try {
+            cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_ID))
+        } catch (ex: Exception) {
+            ""
+        }
+    }
+
+    private fun getBucketName(cursor: Cursor): String {
+        return try {
+            cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_NAME))
+        } catch (ex: Exception) {
+            ""
+        }
     }
 }

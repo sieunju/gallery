@@ -45,9 +45,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":edit"))
     implementation(project(":ui"))
-
-    implementation(deps.javax.inject)
-
+    
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)
     implementation(deps.androidx.constraintLayout)

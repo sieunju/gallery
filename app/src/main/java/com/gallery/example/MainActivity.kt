@@ -1,10 +1,11 @@
 package com.gallery.example
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import timber.log.Timber
@@ -23,14 +24,20 @@ class MainActivity : AppCompatActivity() {
         fetchGalleryDirectory()
     }
 
-    private fun fetchGalleryDirectory() {
-        Single.create<List<GalleryFilterData>> { emitter ->
+    private fun fetchDirectoriesRx(): Single<List<GalleryFilterData>> {
+        return Single.create<List<GalleryFilterData>> {
             try {
-                emitter.onSuccess(galleryProvider.fetchDirectory())
+                val list = galleryProvider.fetchDirectories()
+                it.onSuccess(list)
             } catch (ex: Exception) {
-                emitter.onError(ex)
+                it.onError(ex)
             }
         }.subscribeOn(Schedulers.io())
+    }
+
+    private fun fetchGalleryDirectory() {
+        fetchDirectoriesRx()
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 Timber.d("SUCC GalleryDirectory List $it")
             }, {

@@ -1,8 +1,8 @@
 package com.gallery.example
 
 import android.content.Context
+import com.gallery.core.Builder
 import com.gallery.core.GalleryProvider
-import com.gallery.core.impl.GalleryProviderImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,5 +22,5 @@ internal class CoreModule {
     @Provides
     fun provideGalleryCore(
         @ApplicationContext context: Context
-    ): GalleryProvider = GalleryProviderImpl(context)
+    ): GalleryProvider = Builder.build(context)
 }

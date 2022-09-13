@@ -34,7 +34,8 @@ android {
 dependencies {
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)
-    implementation 'javax.inject:javax.inject:1'
+    implementation(deps.javax.inject)
+    implementation(deps.timber)
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
