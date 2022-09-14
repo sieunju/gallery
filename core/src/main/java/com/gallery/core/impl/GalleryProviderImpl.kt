@@ -22,6 +22,7 @@ import okio.IOException
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -278,6 +279,15 @@ internal class GalleryProviderImpl constructor(
     }
 
     /**
+     * Copy Bitmap to File
+     * @param bitmap Source Bitmap
+     * @param fos FileStream
+     */
+    override fun copyBitmapToFile(bitmap: Bitmap, fos: FileOutputStream) {
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+    }
+
+    /**
      * Delete File
      *
      * @param path File Path
@@ -292,6 +302,27 @@ internal class GalleryProviderImpl constructor(
                 false
             }
         } else {
+            false
+        }
+    }
+
+    /**
+     * Delete Cache Directory
+     */
+    override fun deleteCacheDirectory(): Boolean {
+        return try {
+            val dir = context.getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES
+            ) ?: return false
+            val iterator = dir.listFiles()?.iterator() ?: return false
+            while (iterator.hasNext()) {
+                try {
+                    iterator.next().delete()
+                } catch (ex: Exception) {
+                }
+            }
+            true
+        } catch (ex: Exception) {
             false
         }
     }

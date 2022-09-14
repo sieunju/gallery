@@ -2,12 +2,12 @@ package com.gallery.core
 
 import android.database.Cursor
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.annotation.DrawableRes
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import okhttp3.MultipartBody
 import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Description : 갤러리 사진 데이터들 가져오는 Interface
@@ -36,7 +36,7 @@ interface GalleryProvider {
      * Converter Current Cursor -> Images Local Uri content://
      * @param cursor Current Cursor
      */
-    fun cursorToPhotoUri(cursor: Cursor) : String?
+    fun cursorToPhotoUri(cursor: Cursor): String?
 
     /**
      * Converter Local Path -> Bitmap
@@ -73,12 +73,24 @@ interface GalleryProvider {
     ): MultipartBody.Part
 
     /**
+     * Copy Bitmap to File
+     * @param bitmap Source Bitmap
+     * @param fos FileStream
+     */
+    fun copyBitmapToFile(
+        bitmap: Bitmap,
+        fos: FileOutputStream
+    )
+
+    /**
      * Delete File
      *
      * @param path File Path
      * @return true -> Delete Success, false -> Delete Fail
      */
     fun deleteFile(path: String?): Boolean
+
+    fun deleteCacheDirectory(): Boolean
 
     /**
      * 비율에 맞게 비트맵 리사이징 하는 함수.

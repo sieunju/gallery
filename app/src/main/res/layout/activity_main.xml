@@ -1,55 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:weightSum="3">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/bCore"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_weight="1"
+            android:background="#0288D1"
+            android:text="CORE" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/llButtons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toTopOf="parent">
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/bEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#0288D1"
+            android:text="EDIT" />
 
-                <Button
-                    android:id="@+id/bDirectory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="디렉토리 조회" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/bUi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#0288D1"
+            android:text="ui" />
 
-                <Button
-                    android:id="@+id/bCacheFile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="임시 파일 생성" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <Button
-                    android:id="@+id/bRandomGallery"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="랜덤 갤러리 가져오기" />
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/ivThumb"
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:scaleType="fitCenter" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.core.widget.NestedScrollView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>
