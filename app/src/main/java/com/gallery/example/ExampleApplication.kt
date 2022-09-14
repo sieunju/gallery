@@ -67,7 +67,7 @@ class ExampleApplication : MultiDexApplication() {
     private fun initTimber() {
         Timber.plant(object : Timber.DebugTree() {
             override fun createStackElementTag(element: StackTraceElement): String {
-                return "Timber_${element.className}:${element.methodName}"
+                return "JLOGGER ${element.className}:${element.methodName}"
                 // return super.createStackElementTag(element)
             }
 

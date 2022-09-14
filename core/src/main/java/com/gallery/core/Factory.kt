@@ -4,16 +4,16 @@ import android.content.Context
 import com.gallery.core.impl.GalleryProviderImpl
 
 /**
- * Gallery Provider Builder Class
+ * Gallery Provider Factory Class
  */
-class Builder {
+class Factory {
     companion object {
 
         /**
          * Do not Activity Context!
          * @param context Application Context
          */
-        fun build(context: Context): GalleryProvider {
+        fun create(context: Context): GalleryProvider {
             return GalleryProviderImpl(context)
         }
     }

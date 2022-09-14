@@ -6,12 +6,24 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.graphics.*
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
+import androidx.exifinterface.media.ExifInterface
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okio.IOException
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Description : Gallery Provider 구현체 클래스
@@ -38,17 +50,9 @@ internal class GalleryProviderImpl constructor(
     }
 
     /**
-     * 저장소 읽기 권한 체크
-     * @return true 읽기 권한 허용, false 읽기 권한 거부 상태
+     * Fetch Gallery Directory
+     * 갤러리 조회 함수
      */
-    private fun isReadStoragePermissionsGranted(): Boolean {
-        return context.packageManager.checkPermission(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            context.packageName
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    @SuppressLint("Recycle")
     override fun fetchDirectories(): List<GalleryFilterData> {
         // Permissions Check
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("'android.permission.READ_EXTERNAL_STORAGE' is not Granted! ")
@@ -153,6 +157,10 @@ internal class GalleryProviderImpl constructor(
         }
     }
 
+    /**
+     * Fetch Selected FilterId Gallery
+     * @param params QueryParameter
+     */
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
         val projection = arrayOf(ID)
         val order = "$ID ${params.order}"
@@ -167,8 +175,191 @@ internal class GalleryProviderImpl constructor(
         ) ?: throw NullPointerException("Cursor NullPointerException")
     }
 
+    /**
+     * Fetch All Gallery
+     */
     override fun fetchGallery(): Cursor {
         return fetchGallery(GalleryQueryParameter())
+    }
+
+    /**
+     * Converter Current Cursor -> Images Local Uri content://
+     * @param cursor Current Cursor
+     */
+    override fun cursorToPhotoUri(cursor: Cursor): String? {
+        return try {
+            getPhotoUri(getContentsId(cursor))
+        } catch (ex: Exception) {
+            Timber.d("ERROR cursorToPhotoUri $ex")
+            null
+        }
+    }
+
+    /**
+     * Converter Local Path -> Bitmap
+     * @param path Local Path content://...
+     */
+    override fun pathToBitmap(path: String, limitWidth: Int): Bitmap {
+        val uri = Uri.parse(path)
+        var bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
+        } else {
+            BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
+        }
+
+        val matrix = Matrix()
+        // 이미지 회전 이슈 처리.
+        contentResolver.openInputStream(uri)?.let {
+            val exif = ExifInterface(it)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            setRotate(
+                orientation = orientation,
+                matrix = matrix
+            )
+
+            it.close()
+        }
+
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+        // 이미지 리사이징 처리 필요에 따라 사용할지 말지 정의.
+        if (limitWidth < bitmap.width) {
+            // 비율에 맞게 높이값 계산
+            val height = limitWidth * bitmap.height / bitmap.width
+            bitmap = Bitmap.createScaledBitmap(bitmap, limitWidth, height, true)
+        }
+
+        return bitmap
+    }
+
+    /**
+     * DrawableRes to Bitmap
+     * @param redId Drawable Resource Id
+     */
+    override fun pathToBitmap(redId: Int): Bitmap {
+        return BitmapFactory.decodeResource(context.resources, redId)
+    }
+
+    /**
+     * Converter Bitmap to OkHttp.MultipartBody
+     * .jpg Compress Type
+     * @param bitmap Source Bitmap
+     * @param name MultipartBody key Name
+     */
+    override fun bitmapToMultipart(bitmap: Bitmap, name: String): MultipartBody.Part {
+        return bitmapToMultipart(bitmap, name, "${System.currentTimeMillis()}.jpg", ".jpg")
+    }
+
+    /**
+     * Converter Bitmap to OkHttp.MultipartBody
+     * @param bitmap Source Bitmap
+     * @param name MultipartBody key Name
+     * @param filename MultipartBody FileName
+     * @param suffix ex.) .jpg, .png..
+     */
+    override fun bitmapToMultipart(
+        bitmap: Bitmap,
+        name: String,
+        filename: String,
+        suffix: String
+    ): MultipartBody.Part {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(toCompressFormat(suffix), 100, stream)
+        return MultipartBody.Part.createFormData(
+            name = name,
+            filename = "${filename}$suffix",
+            body = stream.toByteArray().toRequestBody(
+                contentType = suffix.toMediaTypeOrNull()
+            )
+        )
+    }
+
+    /**
+     * Delete File
+     *
+     * @param path File Path
+     * @return true -> Delete Success, false -> Delete Fail
+     */
+    override fun deleteFile(path: String?): Boolean {
+        return if (path != null) {
+            try {
+                contentResolver.delete(Uri.parse(path), null, null)
+                true
+            } catch (ex: Exception) {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    /**
+     * 비율에 맞게 비트맵 리사이징 하는 함수.
+     * @param bitmap Source Bitmap
+     * @param width 리사이징 하고 싶은 너비
+     * @param height 리사이징 하고 싶은 높이
+     *
+     * @return Resize Bitmap..
+     */
+    override fun ratioResizeBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap {
+        val xScale: Float = width.toFloat() / bitmap.width.toFloat()
+        val yScale: Float = height.toFloat() / bitmap.height.toFloat()
+        // 가장 큰 비율 가져옴.
+        val maxScale = Math.max(xScale, yScale)
+
+        val scaledWidth: Float = maxScale * bitmap.width.toFloat()
+        val scaledHeight: Float = maxScale * bitmap.height.toFloat()
+
+        val left: Float = (width - scaledWidth) / 2
+        val right: Float = left + scaledWidth
+        val top: Float = (height - scaledHeight) / 2
+        val bottom: Float = top + scaledHeight
+
+        val rect = RectF(left, top, right, bottom)
+
+        val dest = Bitmap.createBitmap(width, height, bitmap.config)
+        val canvas = Canvas(dest)
+        canvas.drawBitmap(bitmap, null, rect, null)
+        return dest
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    override fun createTempFile(): File? {
+        return createFile("${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_", ".jpg")
+    }
+
+    override fun createFile(name: String, suffix: String): File? {
+        return try {
+            File.createTempFile(
+                name,
+                suffix,
+                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            )
+        } catch (ex: IOException) {
+            null
+        }
+    }
+
+    private fun toCompressFormat(suffix: String): Bitmap.CompressFormat {
+        return if (suffix == ".png") {
+            Bitmap.CompressFormat.PNG
+        } else {
+            Bitmap.CompressFormat.JPEG
+        }
+    }
+
+    /**
+     * 저장소 읽기 권한 체크
+     * @return true 읽기 권한 허용, false 읽기 권한 거부 상태
+     */
+    private fun isReadStoragePermissionsGranted(): Boolean {
+        return context.packageManager.checkPermission(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            context.packageName
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun getContentsId(cursor: Cursor): String {
@@ -200,6 +391,30 @@ internal class GalleryProviderImpl constructor(
             cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_NAME))
         } catch (ex: Exception) {
             ""
+        }
+    }
+
+    /**
+     * set Image Rotate Func.
+     * @param orientation ExifInterface Orientation
+     * @param matrix Image Matrix
+     *
+     */
+    private fun setRotate(orientation: Int, matrix: Matrix): Boolean {
+        return when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> {
+                matrix.postRotate(0F)
+                true
+            }
+            ExifInterface.ORIENTATION_ROTATE_180 -> {
+                matrix.postRotate(180f)
+                true
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> {
+                matrix.postRotate(270f)
+                true
+            }
+            else -> false
         }
     }
 }
