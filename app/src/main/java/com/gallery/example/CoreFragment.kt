@@ -38,27 +38,34 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
         super.onViewCreated(view, savedInstanceState)
         ivThumb = view.findViewById(R.id.ivThumb)
 
-        view.findViewById<Button>(R.id.bDirectory).setOnClickListener {
-            performFetchDirectories()
-        }
+        with(view) {
 
-        view.findViewById<Button>(R.id.bCacheFile).setOnClickListener {
-            performCreateCacheFile()
-        }
+            findViewById<Button>(R.id.bDirectory).setOnClickListener {
+                performFetchDirectories()
+            }
 
-        view.findViewById<Button>(R.id.bRandomGallery).setOnClickListener {
-            performRandomGalleryBitmap()
-        }
+            findViewById<Button>(R.id.bCacheFile).setOnClickListener {
+                performCreateCacheFile()
+            }
 
-        view.findViewById<Button>(R.id.bPermissions).setOnClickListener {
-            SimplePermissions(requireActivity())
-                .requestPermissions(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-                .build { b, strings ->
+            findViewById<Button>(R.id.bRandomGallery).setOnClickListener {
+                performRandomGalleryBitmap()
+            }
 
-                }
+            findViewById<Button>(R.id.bPermissions).setOnClickListener {
+                SimplePermissions(requireActivity())
+                    .requestPermissions(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                    .build { b, strings ->
+
+                    }
+            }
+
+            findViewById<Button>(R.id.bRandomGallery2).setOnClickListener {
+                performRandomGalleryBitmap2()
+            }
         }
     }
 
@@ -156,6 +163,34 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
                 Timber.d("SUCC GalleryDirectory List $it")
             }, {
                 Timber.d("ERROR GalleryDirectory $it")
+            }).addTo(disposable)
+    }
+
+    /**
+     * 갤러리를 랜덤으로 가져와 Bitmap 으로 변환 하는 함수
+     */
+    private fun performRandomGalleryBitmap2() {
+        Single.create<Bitmap> {
+            try {
+                val allCursor = galleryProvider.fetchGallery()
+                val ranPos = Random.nextInt(0, allCursor.count)
+                Timber.d("Count ${allCursor.count} RanPos $ranPos")
+                allCursor.moveToPosition(ranPos)
+                val photoUri = galleryProvider.cursorToPhotoUri(allCursor)
+                if (photoUri != null) {
+                    Timber.d("Photo Uri $photoUri")
+                    it.onSuccess(galleryProvider.pathToBitmap(photoUri, ivThumb.width))
+                }
+            } catch (ex: Exception) {
+                it.onError(ex)
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Timber.d("SUCC ")
+                ivThumb.setImageBitmap(it)
+            }, {
+                Timber.d("ERROR $it")
             }).addTo(disposable)
     }
 }

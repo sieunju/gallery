@@ -86,10 +86,16 @@ interface GalleryProvider {
      * Delete File
      *
      * @param path File Path
+     *
      * @return true -> Delete Success, false -> Delete Fail
      */
     fun deleteFile(path: String?): Boolean
 
+    /**
+     * Delete CacheDirectory
+     *
+     * @return true -> Delete Success, false -> Delete Fail
+     */
     fun deleteCacheDirectory(): Boolean
 
     /**

@@ -191,7 +191,6 @@ internal class GalleryProviderImpl constructor(
         return try {
             getPhotoUri(getContentsId(cursor))
         } catch (ex: Exception) {
-            Timber.d("ERROR cursorToPhotoUri $ex")
             null
         }
     }
@@ -318,7 +317,7 @@ internal class GalleryProviderImpl constructor(
             while (iterator.hasNext()) {
                 try {
                     iterator.next().delete()
-                } catch (ex: Exception) {
+                } catch (_: Exception) {
                 }
             }
             true
