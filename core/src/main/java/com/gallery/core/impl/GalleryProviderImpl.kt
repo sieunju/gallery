@@ -199,6 +199,14 @@ internal class GalleryProviderImpl constructor(
      * Converter Local Path -> Bitmap
      * @param path Local Path content://...
      */
+    override fun pathToBitmap(path: String): Bitmap {
+        return pathToBitmap(path, -1)
+    }
+
+    /**
+     * Converter Local Path -> Bitmap
+     * @param path Local Path content://...
+     */
     override fun pathToBitmap(path: String, limitWidth: Int): Bitmap {
         val uri = Uri.parse(path)
         var bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -226,7 +234,7 @@ internal class GalleryProviderImpl constructor(
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
         // 이미지 리사이징 처리 필요에 따라 사용할지 말지 정의.
-        if (limitWidth < bitmap.width) {
+        if (limitWidth != -1 && limitWidth < bitmap.width) {
             // 비율에 맞게 높이값 계산
             val height = limitWidth * bitmap.height / bitmap.width
             bitmap = Bitmap.createScaledBitmap(bitmap, limitWidth, height, true)

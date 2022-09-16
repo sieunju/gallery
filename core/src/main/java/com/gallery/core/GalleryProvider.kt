@@ -42,6 +42,13 @@ interface GalleryProvider {
      * Converter Local Path -> Bitmap
      * @param path Local Path content://...
      */
+    fun pathToBitmap(path: String): Bitmap
+
+    /**
+     * Converter Local Path -> Bitmap
+     * @param path Local Path content://...
+     * @param limitWidth Image Limit Resize Width
+     */
     fun pathToBitmap(path: String, limitWidth: Int): Bitmap
 
     /**

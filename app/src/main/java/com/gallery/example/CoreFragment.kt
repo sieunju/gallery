@@ -2,6 +2,7 @@ package com.gallery.example
 
 import android.Manifest
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
+import com.gallery.core.pathToMultipart
 import com.gallery.core.toPhotoUri
 import com.google.android.material.snackbar.Snackbar
 import com.hmju.permissions.SimplePermissions
@@ -19,8 +21,10 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
 import io.reactivex.rxjava3.schedulers.Schedulers
+import okhttp3.MultipartBody
 import timber.log.Timber
 import java.io.FileOutputStream
+import java.net.URL
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -32,11 +36,18 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
     @Inject
     lateinit var galleryProvider: GalleryProvider
 
-    private lateinit var ivThumb: AppCompatImageView
+    @Inject
+    lateinit var apiService: CoreApiService
+
+    private lateinit var ivThumb1: AppCompatImageView
+
+    private lateinit var ivThumb2: AppCompatImageView
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ivThumb = view.findViewById(R.id.ivThumb)
+        ivThumb1 = view.findViewById(R.id.ivThumb1)
+        ivThumb2 = view.findViewById(R.id.ivThumb2)
 
         with(view) {
 
@@ -66,6 +77,10 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
             findViewById<Button>(R.id.bRandomGallery2).setOnClickListener {
                 performRandomGalleryBitmap2()
             }
+
+            findViewById<Button>(R.id.bUpload1).setOnClickListener {
+                performSingleUpload()
+            }
         }
     }
 
@@ -94,7 +109,7 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
                 val photoUri = allCursor.toPhotoUri()
                 if (photoUri != null) {
                     Timber.d("Photo Uri $photoUri")
-                    it.onSuccess(galleryProvider.pathToBitmap(photoUri, ivThumb.width))
+                    it.onSuccess(galleryProvider.pathToBitmap(photoUri, ivThumb1.width))
                 }
             } catch (ex: Exception) {
                 it.onError(ex)
@@ -103,7 +118,7 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 Timber.d("SUCC ")
-                ivThumb.setImageBitmap(it)
+                ivThumb1.setImageBitmap(it)
             }, {
                 Timber.d("ERROR $it")
             }).addTo(disposable)
@@ -179,7 +194,7 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
                 val photoUri = galleryProvider.cursorToPhotoUri(allCursor)
                 if (photoUri != null) {
                     Timber.d("Photo Uri $photoUri")
-                    it.onSuccess(galleryProvider.pathToBitmap(photoUri, ivThumb.width))
+                    it.onSuccess(galleryProvider.pathToBitmap(photoUri, ivThumb1.width))
                 }
             } catch (ex: Exception) {
                 it.onError(ex)
@@ -188,7 +203,46 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 Timber.d("SUCC ")
-                ivThumb.setImageBitmap(it)
+                ivThumb1.setImageBitmap(it)
+            }, {
+                Timber.d("ERROR $it")
+            }).addTo(disposable)
+    }
+
+    private fun performSingleUpload() {
+
+        Single.create<MultipartBody.Part> {
+            try {
+                val allCursor = galleryProvider.fetchGallery()
+                val ranPos = Random.nextInt(0, allCursor.count)
+                Timber.d("Count ${allCursor.count} RanPos $ranPos")
+                allCursor.moveToPosition(ranPos)
+                val photoUri = galleryProvider.cursorToPhotoUri(allCursor)
+                if (photoUri != null) {
+                    val part = galleryProvider.pathToMultipart(photoUri, "files", 500)
+                        ?: return@create it.onError(NullPointerException("Part is Null"))
+                    it.onSuccess(part)
+                }
+            } catch (ex: Exception) {
+                it.onError(ex)
+            }
+        }.flatMap {
+            apiService.uploads(listOf(it))
+        }
+            .map {
+                it.asJsonObject
+                    .get("pathList")
+                    .asJsonArray[0]
+                    .asJsonObject
+                    .get("path")
+                    .asString
+            }
+            .map { URL("https://cdn.qtzz.synology.me/$it").readBytes() }
+            .map { BitmapFactory.decodeByteArray(it, 0, it.size) }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                ivThumb2.setImageBitmap(it)
             }, {
                 Timber.d("ERROR $it")
             }).addTo(disposable)
