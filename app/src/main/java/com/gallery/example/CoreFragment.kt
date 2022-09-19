@@ -46,10 +46,12 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ivThumb1 = view.findViewById(R.id.ivThumb1)
-        ivThumb2 = view.findViewById(R.id.ivThumb2)
+
 
         with(view) {
+
+            ivThumb1 = findViewById(R.id.ivThumb1)
+            ivThumb2 = findViewById(R.id.ivThumb2)
 
             findViewById<Button>(R.id.bDirectory).setOnClickListener {
                 performFetchDirectories()

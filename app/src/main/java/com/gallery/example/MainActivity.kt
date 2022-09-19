@@ -16,6 +16,10 @@ class MainActivity : AppCompatActivity() {
             moveToFragment(CoreFragment())
         }
 
+        findViewById<Button>(R.id.bEdit).setOnClickListener {
+            moveToFragment(EditFragment())
+        }
+
         moveToFragment(CoreFragment())
     }
 
