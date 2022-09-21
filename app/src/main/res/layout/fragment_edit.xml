@@ -64,11 +64,10 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <com.gallery.edit.GalleryEditView
         android:id="@+id/gev"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="600dp"
         android:visibility="gone" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -2,8 +2,10 @@ package com.gallery.edit
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.util.AttributeSet
 import android.widget.ImageView
+import android.widget.ImageView.ScaleType
 import androidx.annotation.MainThread
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -32,7 +34,7 @@ class GalleryEditView @JvmOverloads constructor(
                 bottomToBottom = this@GalleryEditView.id
             }
             adjustViewBounds = true
-            scaleType = ImageView.ScaleType.FIT_CENTER
+            scaleType = ImageView.ScaleType.MATRIX
         }
         addView(imgView)
     }
@@ -42,5 +44,16 @@ class GalleryEditView @JvmOverloads constructor(
         if (bitmap == null) return
 
         imgView.setImageBitmap(bitmap)
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        if(canvas == null) return
+
+        drawGuidLine(canvas)
+    }
+
+    private fun drawGuidLine(canvas: Canvas){
+
     }
 }
