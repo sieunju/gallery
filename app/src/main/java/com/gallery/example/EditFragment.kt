@@ -4,9 +4,11 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.gallery.core.GalleryProvider
 import com.gallery.core.toPhotoUri
+import com.gallery.edit.FlexibleImageView
 import com.gallery.edit.GalleryEditView
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -32,14 +34,38 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
 
     private lateinit var editView: GalleryEditView
 
+    private lateinit var ivFlexible: FlexibleImageView
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         with(view) {
             editView = findViewById(R.id.gev)
+            ivFlexible = findViewById(R.id.fiv)
+            val clFlexible = findViewById<ConstraintLayout>(R.id.clFlexible)
+
+            findViewById<Button>(R.id.bChange).setOnClickListener {
+                if (editView.visibility == View.VISIBLE) {
+                    editView.visibility = View.GONE
+                    clFlexible.visibility = View.VISIBLE
+                    ivFlexible.visibility = View.VISIBLE
+                } else {
+                    editView.visibility = View.VISIBLE
+                    clFlexible.visibility = View.GONE
+                    ivFlexible.visibility = View.GONE
+                }
+            }
 
             findViewById<Button>(R.id.bRandomGallery).setOnClickListener {
                 performRandomGalleryBitmap()
+            }
+
+            findViewById<Button>(R.id.bCenterCrop).setOnClickListener {
+                ivFlexible.centerCrop()
+            }
+
+            findViewById<Button>(R.id.bFitCenter).setOnClickListener {
+                ivFlexible.fitCenter()
             }
         }
     }
@@ -65,7 +91,12 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
         }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                editView.setImageBitmap(it)
+                if (editView.visibility == View.VISIBLE) {
+                    editView.setImageBitmap(it)
+                } else if (ivFlexible.visibility == View.VISIBLE) {
+                    ivFlexible.loadBitmap(it)
+                }
+
             }, {
                 Timber.d("ERROR $it")
             }).addTo(disposable)

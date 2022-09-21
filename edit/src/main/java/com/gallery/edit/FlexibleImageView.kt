@@ -16,8 +16,10 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
+import timber.log.Timber
 import kotlin.math.*
 
 /**
@@ -97,7 +99,11 @@ class FlexibleImageView @JvmOverloads constructor(
         // 애니메이션 처리 유무 검사
         if (stateItem.imgWidth == 0 || stateItem.imgHeight == 0 ||
             stateItem.scale == stateItem.startScale
-        ) return
+        ) {
+            return
+        }
+
+        Timber.d("centerCrop $stateItem")
 
         ObjectAnimator.ofPropertyValuesHolder(
             this,
@@ -107,7 +113,7 @@ class FlexibleImageView @JvmOverloads constructor(
             PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0F)
         ).apply {
             duration = 200
-            interpolator = AccelerateDecelerateInterpolator()
+            interpolator = FastOutSlowInInterpolator()
             addListener(
                 onStart = {
                     isTouchLock = true
@@ -131,7 +137,11 @@ class FlexibleImageView @JvmOverloads constructor(
     @MainThread
     fun fitCenter() {
         // 애니메이션 처리 유무 검사
-        if (stateItem.imgWidth == 0 || stateItem.imgHeight == 0 || stateItem.scale == stateItem.minScale) return
+        if (stateItem.imgWidth == 0 || stateItem.imgHeight == 0 ||
+            stateItem.scale == stateItem.minScale
+        ) {
+            return
+        }
 
         ObjectAnimator.ofPropertyValuesHolder(
             this,
@@ -141,7 +151,7 @@ class FlexibleImageView @JvmOverloads constructor(
             PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0F)
         ).apply {
             duration = 200
-            interpolator = AccelerateDecelerateInterpolator()
+            interpolator = FastOutSlowInInterpolator()
             addListener(
                 onStart = {
                     isTouchLock = true

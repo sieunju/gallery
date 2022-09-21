@@ -35,6 +35,7 @@ dependencies {
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)
     implementation(deps.androidx.constraintLayout)
+    implementation(deps.timber)
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

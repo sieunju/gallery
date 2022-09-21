@@ -2,9 +2,10 @@ package com.gallery.edit
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.util.AttributeSet
+import android.widget.ImageView
 import androidx.annotation.MainThread
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 
 /**
@@ -18,24 +19,28 @@ class GalleryEditView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(ctx, attrs, defStyleAttr) {
 
-    private val ivFlexible: FlexibleImageView
+    private val imgView: AppCompatImageView
 
     init {
         // ImageView 추가
-        ivFlexible = FlexibleImageView(ctx).apply {
-            layoutParams =
-                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-                    topToTop = this@GalleryEditView.id
-                    bottomToBottom = this@GalleryEditView.id
-                }
+        imgView = AppCompatImageView(ctx).apply {
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            ).apply {
+                topToTop = this@GalleryEditView.id
+                bottomToBottom = this@GalleryEditView.id
+            }
             adjustViewBounds = true
-            setBackgroundColor(Color.BLACK)
+            scaleType = ImageView.ScaleType.FIT_CENTER
         }
-        addView(ivFlexible)
+        addView(imgView)
     }
 
     @MainThread
     fun setImageBitmap(bitmap: Bitmap?) {
-        ivFlexible.loadBitmap(bitmap)
+        if (bitmap == null) return
+
+        imgView.setImageBitmap(bitmap)
     }
 }

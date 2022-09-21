@@ -1,18 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <Button
-        android:id="@id/bRandomGallery"
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="랜덤으로 갤러리 가져오기" />
+        android:scrollbars="horizontal">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/bChange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="편집창 바꾸기" />
+
+            <Button
+                android:id="@+id/bRandomGallery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="갤러리에서 데이터 가져오기" />
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/bCenterCrop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="이미지뷰 CenterCrop" />
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/bFitCenter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="이미지뷰 FitCenter" />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </HorizontalScrollView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clFlexible"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:visibility="visible">
+
+        <com.gallery.edit.FlexibleImageView
+            android:id="@+id/fiv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <com.gallery.edit.GalleryEditView
         android:id="@+id/gev"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="300dp"
+        android:visibility="gone" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>
