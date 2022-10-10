@@ -2,4 +2,4 @@
 
 ---
 
-Reference https://github.com/CanHub/Android-Image-Cropper
+Reference https://github.com/ArthurHub/Android-Image-Cropper
