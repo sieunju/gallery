@@ -9,6 +9,7 @@ import android.widget.ImageView.ScaleType
 import androidx.annotation.MainThread
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
+import timber.log.Timber
 
 /**
  * Description : Gallery Edit Root Layout
@@ -22,6 +23,7 @@ class GalleryEditView @JvmOverloads constructor(
 ) : ConstraintLayout(ctx, attrs, defStyleAttr) {
 
     private val imgView: AppCompatImageView
+    private val guideLineView : GalleryGuideLineView
 
     init {
         // ImageView 추가
@@ -34,9 +36,26 @@ class GalleryEditView @JvmOverloads constructor(
                 bottomToBottom = this@GalleryEditView.id
             }
             adjustViewBounds = true
-            scaleType = ImageView.ScaleType.MATRIX
+            scaleType = ScaleType.MATRIX
         }
+
+        // GuidLine 추가
+        val halfWidth = context.resources.displayMetrics.widthPixels / 2
+        Timber.d("HalfWidth $halfWidth")
+        guideLineView = GalleryGuideLineView(ctx).apply {
+            layoutParams = LayoutParams(
+                halfWidth,
+                halfWidth
+            ).apply {
+                rightToRight = this@GalleryEditView.id
+                leftToLeft = this@GalleryEditView.id
+                topToTop = this@GalleryEditView.id
+                bottomToBottom = this@GalleryEditView.id
+            }
+        }
+
         addView(imgView)
+        addView(guideLineView)
     }
 
     @MainThread

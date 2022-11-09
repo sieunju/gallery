@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -54,7 +56,7 @@
         android:id="@+id/clFlexible"
         android:layout_width="match_parent"
         android:layout_height="400dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <com.gallery.edit.FlexibleImageView
             android:id="@+id/fiv"
@@ -64,10 +66,12 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.gallery.edit.GalleryEditView
-        android:id="@+id/gev"
+    <com.gallery.edit.CropImageView
+        android:id="@+id/ivCrop"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
-        android:visibility="gone" />
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        app:cropScaleType="center"
+        tools:visibility="visible" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

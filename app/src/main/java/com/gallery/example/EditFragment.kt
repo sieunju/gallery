@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.gallery.core.GalleryProvider
 import com.gallery.core.toPhotoUri
+import com.gallery.edit.CropImageView
 import com.gallery.edit.FlexibleImageView
 import com.gallery.edit.GalleryEditView
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,7 +34,7 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
     @Inject
     lateinit var apiService: CoreApiService
 
-    private lateinit var editView: GalleryEditView
+    private lateinit var ivCrop: CropImageView
 
     private lateinit var ivFlexible: FlexibleImageView
 
@@ -41,17 +42,17 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
         super.onViewCreated(view, savedInstanceState)
 
         with(view) {
-            editView = findViewById(R.id.gev)
+            ivCrop = findViewById(R.id.ivCrop)
             ivFlexible = findViewById(R.id.fiv)
             val clFlexible = findViewById<ConstraintLayout>(R.id.clFlexible)
 
             findViewById<Button>(R.id.bChange).setOnClickListener {
-                if (editView.visibility == View.VISIBLE) {
-                    editView.visibility = View.GONE
+                if (ivCrop.visibility == View.VISIBLE) {
+                    ivCrop.visibility = View.GONE
                     clFlexible.visibility = View.VISIBLE
                     ivFlexible.visibility = View.VISIBLE
                 } else {
-                    editView.visibility = View.VISIBLE
+                    ivCrop.visibility = View.VISIBLE
                     clFlexible.visibility = View.GONE
                     ivFlexible.visibility = View.GONE
                 }
@@ -92,8 +93,8 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
         }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                if (editView.visibility == View.VISIBLE) {
-                    editView.setImageBitmap(it)
+                if (ivCrop.visibility == View.VISIBLE) {
+                    ivCrop.setImageBitmap(it)
                 } else if (ivFlexible.visibility == View.VISIBLE) {
                     ivFlexible.loadBitmap(it)
                 }
