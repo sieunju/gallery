@@ -110,7 +110,6 @@ class BitmapCroppingWorkerJob(
             if (isActive) {
                 cropImageViewReference.get()?.let {
                     completeCalled = true
-                    it.onImageCroppingAsyncComplete(result)
                 }
             }
             if (!completeCalled && result.bitmap != null) {

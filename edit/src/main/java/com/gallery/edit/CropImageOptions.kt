@@ -10,6 +10,8 @@ import android.os.Parcelable
 import android.text.TextUtils
 import android.util.TypedValue
 import androidx.annotation.ColorInt
+import com.gallery.edit.CropImageView.*
+
 
 private val COLOR_PURPLE = Color.rgb(153, 51, 153)
 
@@ -39,7 +41,7 @@ open class CropImageOptions : Parcelable {
 
     /** The shape of the cropping window.  */
     @JvmField
-    var cropShape: CropImageView.CropShape
+    var cropShape: CropShape
 
     /**
      * The shape of cropper corners
@@ -71,7 +73,7 @@ open class CropImageOptions : Parcelable {
 
     /** whether the guidelines should be on, off, or only showing when resizing.  */
     @JvmField
-    var guidelines: CropImageView.Guidelines
+    var guidelines: Guidelines
 
     /** The initial scale type of the image in the crop image view  */
     @JvmField
@@ -90,6 +92,13 @@ open class CropImageOptions : Parcelable {
      */
     @JvmField
     var showCropLabel: Boolean
+
+    /**
+     * if to show progress bar when image async loading/cropping is in progress.<br></br>
+     * default: true, disable to provide custom progress bar UI.
+     */
+    @JvmField
+    var showProgressBar: Boolean
 
     /** The color of the progress bar. Only works on API level 21 and upwards. */
     @JvmField
@@ -255,7 +264,7 @@ open class CropImageOptions : Parcelable {
 
     /** the resize method to use on the cropped bitmap (see options documentation)  */
     @JvmField
-    var outputRequestSizeOptions: CropImageView.RequestSizeOptions
+    var outputRequestSizeOptions: RequestSizeOptions
 
     /** if the result of crop image activity should not save the cropped image bitmap  */
     @JvmField
@@ -328,6 +337,10 @@ open class CropImageOptions : Parcelable {
     @JvmField
     var intentChooserPriorityList: List<String>?
 
+    /** The initial text size of cropper label **/
+    @JvmField
+    var cropperLabelTextSize: Float
+
     /** The default cropper label text color **/
     @JvmField
     @ColorInt
@@ -362,15 +375,16 @@ open class CropImageOptions : Parcelable {
         val dm = Resources.getSystem().displayMetrics
         imageSourceIncludeCamera = true
         imageSourceIncludeGallery = true
-        cropShape = CropImageView.CropShape.RECTANGLE
+        cropShape = CropShape.RECTANGLE
         cornerShape = CropImageView.CropCornerShape.RECTANGLE
         circleCornerFillColorHexValue = Color.WHITE
         cropCornerRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, dm)
         snapRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, dm)
         touchRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, dm)
-        guidelines = CropImageView.Guidelines.ON_TOUCH
+        guidelines = Guidelines.ON_TOUCH
         scaleType = CropImageView.ScaleType.FIT_CENTER
         showCropOverlay = true
+        showProgressBar = true
         progressBarColor = COLOR_PURPLE
         autoZoomEnabled = true
         multiTouchEnabled = false
@@ -420,6 +434,7 @@ open class CropImageOptions : Parcelable {
         showIntentChooser = false
         intentChooserTitle = null
         intentChooserPriorityList = listOf()
+        cropperLabelTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, dm)
         cropperLabelTextColor = Color.WHITE
         showCropLabel = false
         activityBackgroundColor = Color.WHITE
@@ -430,7 +445,7 @@ open class CropImageOptions : Parcelable {
     }
 
     /** Create object from parcel.  */
-    protected constructor(parcel: Parcel) : this() {
+    protected constructor(parcel: Parcel) {
         imageSourceIncludeCamera = parcel.readByte().toInt() != 0
         imageSourceIncludeGallery = parcel.readByte().toInt() != 0
         cropShape = CropImageView.CropShape.values()[parcel.readInt()]
@@ -438,9 +453,10 @@ open class CropImageOptions : Parcelable {
         cropCornerRadius = parcel.readFloat()
         snapRadius = parcel.readFloat()
         touchRadius = parcel.readFloat()
-        guidelines = CropImageView.Guidelines.values()[parcel.readInt()]
+        guidelines = Guidelines.values()[parcel.readInt()]
         scaleType = CropImageView.ScaleType.values()[parcel.readInt()]
         showCropOverlay = parcel.readByte().toInt() != 0
+        showProgressBar = parcel.readByte().toInt() != 0
         progressBarColor = parcel.readInt()
         autoZoomEnabled = parcel.readByte().toInt() != 0
         multiTouchEnabled = parcel.readByte().toInt() != 0
@@ -474,7 +490,7 @@ open class CropImageOptions : Parcelable {
         outputCompressQuality = parcel.readInt()
         outputRequestWidth = parcel.readInt()
         outputRequestHeight = parcel.readInt()
-        outputRequestSizeOptions = CropImageView.RequestSizeOptions.values()[parcel.readInt()]
+        outputRequestSizeOptions = RequestSizeOptions.values()[parcel.readInt()]
         noOutputImage = parcel.readByte().toInt() != 0
         initialCropWindowRectangle = parcel.readParcelable(Rect::class.java.classLoader)
         initialRotation = parcel.readInt()
@@ -490,6 +506,7 @@ open class CropImageOptions : Parcelable {
         showIntentChooser = parcel.readByte().toInt() != 0
         intentChooserTitle = parcel.readString()
         intentChooserPriorityList = parcel.createStringArrayList()
+        cropperLabelTextSize = parcel.readFloat()
         cropperLabelTextColor = parcel.readInt()
         cropperLabelText = parcel.readString()!!
         showCropLabel = parcel.readByte().toInt() != 0
@@ -511,6 +528,7 @@ open class CropImageOptions : Parcelable {
         dest.writeInt(guidelines.ordinal)
         dest.writeInt(scaleType.ordinal)
         dest.writeByte((if (showCropOverlay) 1 else 0).toByte())
+        dest.writeByte((if (showProgressBar) 1 else 0).toByte())
         dest.writeInt(progressBarColor)
         dest.writeByte((if (autoZoomEnabled) 1 else 0).toByte())
         dest.writeByte((if (multiTouchEnabled) 1 else 0).toByte())
@@ -560,6 +578,7 @@ open class CropImageOptions : Parcelable {
         dest.writeByte((if (showIntentChooser) 1 else 0).toByte())
         dest.writeString(intentChooserTitle)
         dest.writeStringList(intentChooserPriorityList)
+        dest.writeFloat(cropperLabelTextSize)
         dest.writeInt(cropperLabelTextColor)
         dest.writeString(cropperLabelText)
         dest.writeByte((if (showCropLabel) 1 else 0).toByte())

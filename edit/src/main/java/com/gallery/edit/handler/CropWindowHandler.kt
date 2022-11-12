@@ -66,6 +66,7 @@ class CropWindowHandler {
     /** Get the left/top/right/bottom coordinates of the crop window.  */
     fun getRect(): RectF {
         mGetEdges.set(mEdges)
+        Timber.d("SetRect $mEdges")
         return mGetEdges
     }
 
@@ -137,6 +138,7 @@ class CropWindowHandler {
 
     /** Set the left/top/right/bottom coordinates of the crop window.  */
     fun setRect(rect: RectF) {
+        Timber.d("GuideLine $rect")
         mEdges.set(rect)
     }
 
@@ -169,18 +171,8 @@ class CropWindowHandler {
         val type: CropWindowMoveHandler.Type? = when (cropShape) {
             RECTANGLE -> getRectanglePressedMoveType(x, y, targetRadius, isCenterMoveEnabled)
             OVAL -> getOvalPressedMoveType(x, y, isCenterMoveEnabled)
-            RECTANGLE_VERTICAL_ONLY -> getRectangleVerticalOnlyPressedMoveType(
-                x,
-                y,
-                targetRadius,
-                isCenterMoveEnabled
-            )
-            RECTANGLE_HORIZONTAL_ONLY -> getRectangleHorizontalOnlyPressedMoveType(
-                x,
-                y,
-                targetRadius,
-                isCenterMoveEnabled
-            )
+            RECTANGLE_VERTICAL_ONLY -> getRectangleVerticalOnlyPressedMoveType(x, y, targetRadius, isCenterMoveEnabled)
+            RECTANGLE_HORIZONTAL_ONLY -> getRectangleHorizontalOnlyPressedMoveType(x, y, targetRadius, isCenterMoveEnabled)
         }
 
         return if (type != null) CropWindowMoveHandler(type, this, x, y) else null
@@ -220,28 +212,14 @@ class CropWindowHandler {
                 CropWindowMoveHandler.Type.BOTTOM_RIGHT
             }
             isCenterMoveEnabled &&
-                    isInCenterTargetZone(
-                        x,
-                        y,
-                        mEdges.left,
-                        mEdges.top,
-                        mEdges.right,
-                        mEdges.bottom
-                    ) &&
+                    isInCenterTargetZone(x, y, mEdges.left, mEdges.top, mEdges.right, mEdges.bottom) &&
                     focusCenter() -> {
                 CropWindowMoveHandler.Type.CENTER
             }
             isInHorizontalTargetZone(x, y, mEdges.left, mEdges.right, mEdges.top, targetRadius) -> {
                 CropWindowMoveHandler.Type.TOP
             }
-            isInHorizontalTargetZone(
-                x,
-                y,
-                mEdges.left,
-                mEdges.right,
-                mEdges.bottom,
-                targetRadius
-            ) -> {
+            isInHorizontalTargetZone(x, y, mEdges.left, mEdges.right, mEdges.bottom, targetRadius) -> {
                 CropWindowMoveHandler.Type.BOTTOM
             }
             isInVerticalTargetZone(x, y, mEdges.left, mEdges.top, mEdges.bottom, targetRadius) -> {
@@ -251,14 +229,7 @@ class CropWindowHandler {
                 CropWindowMoveHandler.Type.RIGHT
             }
             isCenterMoveEnabled &&
-                    isInCenterTargetZone(
-                        x,
-                        y,
-                        mEdges.left,
-                        mEdges.top,
-                        mEdges.right,
-                        mEdges.bottom
-                    ) &&
+                    isInCenterTargetZone(x, y, mEdges.left, mEdges.top, mEdges.right, mEdges.bottom) &&
                     !focusCenter() -> {
                 CropWindowMoveHandler.Type.CENTER
             }
@@ -353,14 +324,7 @@ class CropWindowHandler {
                 CropWindowMoveHandler.Type.BOTTOM
             }
             isCenterMoveEnabled &&
-                    isInCenterTargetZone(
-                        x,
-                        y,
-                        mEdges.left,
-                        mEdges.top,
-                        mEdges.right,
-                        mEdges.bottom
-                    ) -> {
+                    isInCenterTargetZone(x, y, mEdges.left, mEdges.top, mEdges.right, mEdges.bottom) -> {
                 CropWindowMoveHandler.Type.CENTER
             }
             else -> null
@@ -395,14 +359,7 @@ class CropWindowHandler {
                 CropWindowMoveHandler.Type.RIGHT
             }
             isCenterMoveEnabled &&
-                    isInCenterTargetZone(
-                        x,
-                        y,
-                        mEdges.left,
-                        mEdges.top,
-                        mEdges.right,
-                        mEdges.bottom
-                    ) -> {
+                    isInCenterTargetZone(x, y, mEdges.left, mEdges.top, mEdges.right, mEdges.bottom) -> {
                 CropWindowMoveHandler.Type.CENTER
             }
             else -> null

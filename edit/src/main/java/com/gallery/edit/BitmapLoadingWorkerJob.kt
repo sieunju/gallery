@@ -65,7 +65,6 @@ class BitmapLoadingWorkerJob internal constructor(
             if (isActive) {
                 cropImageViewReference.get()?.let {
                     completeCalled = true
-                    it.onSetImageUriAsyncComplete(result)
                 }
             }
             if (!completeCalled && result.bitmap != null) {

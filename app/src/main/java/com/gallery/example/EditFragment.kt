@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.gallery.core.GalleryProvider
@@ -38,12 +39,15 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
 
     private lateinit var ivFlexible: FlexibleImageView
 
+    private lateinit var ivCapture: AppCompatImageView
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         with(view) {
             ivCrop = findViewById(R.id.ivCrop)
             ivFlexible = findViewById(R.id.fiv)
+            ivCapture = findViewById(R.id.ivCapture)
             val clFlexible = findViewById<ConstraintLayout>(R.id.clFlexible)
 
             findViewById<Button>(R.id.bChange).setOnClickListener {
@@ -60,6 +64,30 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
 
             findViewById<Button>(R.id.bRandomGallery).setOnClickListener {
                 performRandomGalleryBitmap()
+            }
+
+            findViewById<Button>(R.id.bCapture).setOnClickListener {
+                if (ivCrop.visibility == View.VISIBLE) {
+                    Single.create<Bitmap> { emitter ->
+                        try {
+                            val bitmap = ivCrop.captureImageBitmap()
+                            if (bitmap != null) {
+                                emitter.onSuccess(bitmap)
+                            }
+                        } catch (ex: Exception) {
+                            emitter.onError(ex)
+                        }
+                    }
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            ivCapture.setImageBitmap(it)
+                        }, {
+                            Timber.d("ERROR $it")
+                        })
+                } else {
+
+                }
             }
 
             findViewById<Button>(R.id.bCenterCrop).setOnClickListener {

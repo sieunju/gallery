@@ -210,7 +210,15 @@ internal class GalleryProviderImpl constructor(
     override fun pathToBitmap(path: String, limitWidth: Int): Bitmap {
         val uri = Uri.parse(path)
         var bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
+            ImageDecoder.decodeBitmap(
+                ImageDecoder.createSource(
+                    contentResolver,
+                    uri
+                )
+            ) { decoder: ImageDecoder, _: ImageDecoder.ImageInfo?, _: ImageDecoder.Source? ->
+                decoder.isMutableRequired = true
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
         } else {
             BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
         }
