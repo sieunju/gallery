@@ -1,38 +1,28 @@
 package com.gallery.edit
 
 import android.content.Context
-import android.content.res.Resources
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.Rect
-import android.graphics.RectF
-import android.graphics.Region
+import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
-import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import androidx.annotation.RequiresApi
-import com.gallery.edit.CropImageView.*
+import com.gallery.edit.enums.CropCornerShape
+import com.gallery.edit.enums.CropShape
+import com.gallery.edit.enums.Guidelines
 import com.gallery.edit.handler.CropWindowHandler
 import com.gallery.edit.handler.CropWindowMoveHandler
-import java.util.Arrays
-import kotlin.math.abs
-import kotlin.math.acos
-import kotlin.math.asin
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sin
+import java.util.*
+import kotlin.math.*
 
 /** A custom View representing the crop window and the shaded background outside the crop window.  */
-class CropOverlayView
-@JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null) : View(context, attrs) {
+internal class CropOverlayView @JvmOverloads constructor(
+    context: Context?,
+    attrs: AttributeSet? = null
+) : View(context, attrs) {
 
     companion object {
 
@@ -93,7 +83,7 @@ class CropOverlayView
     private var mCropWindowChangeListener: CropWindowChangeListener? = null
 
     /** Rectangle used for drawing  */
-    private val mDrawRect = RectF()
+    private val mDrawRect: RectF by lazy { RectF() }
 
     /** The Paint used to draw the white rectangle around the crop area.  */
     private var mBorderPaint: Paint? = null
@@ -171,15 +161,15 @@ class CropOverlayView
     /** Instance variables for customizable attributes  */
     var guidelines: Guidelines? = null
         private set
+
     /** The shape of the cropping area - rectangle/circular.  */
-    /** The shape of the cropping area - rectangle/circular.  */
-    var cropShape: CropShape? = null
+    var cropShape: CropShape = CropShape.RECTANGLE
         private set
 
     /**
      * The shape of the crop corner
      */
-    var cornerShape: CropImageView.CropCornerShape? = null
+    var cornerShape: CropCornerShape = CropCornerShape.RECTANGLE
         private set
 
     /** To show the text label over crop overlay **/
@@ -195,27 +185,20 @@ class CropOverlayView
     private var cropLabelTextColor = Color.WHITE
 
     /** the initial crop window rectangle to set  */
-    private val mInitialCropWindowRect = Rect()
+    private val mInitialCropWindowRect: Rect by lazy { Rect() }
 
     /** Whether the Crop View has been initialized for the first time  */
     private var initializedCropWindow = false
 
-    /** Used to set back LayerType after changing to software.  */
-    private var mOriginalLayerType: Int? = null
-
     /** The maximum vertical gesture exclusion allowed by Android (200dp) in px. **/
-    private val maxVerticalGestureExclusion = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP,
-        200f,
-        Resources.getSystem().displayMetrics
-    )
+    private val maxVerticalGestureExclusion: Float by lazy { 200f.dp }
 
     /** Set the crop window change listener.  */
     fun setCropWindowChangeListener(listener: CropWindowChangeListener?) {
         mCropWindowChangeListener = listener
     }
+
     /** Get the left/top/right/bottom coordinates of the crop window.  */
-    /** Set the left/top/right/bottom coordinates of the crop window.  */
     var cropWindowRect: RectF
         get() = mCropWindowHandler.getRect()
         set(rect) {
@@ -269,7 +252,7 @@ class CropOverlayView
     /**
      * The shape of cropper corners (rectangle / oval)
      */
-    fun setCropCornerShape(cropCornerShape: CropImageView.CropCornerShape) {
+    fun setCropCornerShape(cropCornerShape: CropCornerShape) {
         if (this.cornerShape != cropCornerShape) {
             this.cornerShape = cropCornerShape
             invalidate()
@@ -863,7 +846,7 @@ class CropOverlayView
             val rect = mCropWindowHandler.getRect()
             rect.inset(w, w)
             drawCornerBasedOnShape(canvas, rect, cornerOffset, cornerExtension)
-            if (cornerShape == CropImageView.CropCornerShape.OVAL) {
+            if (cornerShape == CropCornerShape.OVAL) {
                 // To draw fill color updated paint object is needed and the corners to be redrawn
                 mBorderCornerPaint = mCircleCornerFillColor?.let { getNewPaintWithFill(it) }
                 drawCornerBasedOnShape(canvas, rect, cornerOffset, cornerExtension)
@@ -1011,10 +994,10 @@ class CropOverlayView
         radius: Float
     ) {
         when (cornerShape) {
-            CropImageView.CropCornerShape.OVAL -> {
+            CropCornerShape.OVAL -> {
                 drawCircleShape(canvas, rect, cornerOffset, cornerExtension, radius)
             }
-            CropImageView.CropCornerShape.RECTANGLE -> drawLineShape(
+            CropCornerShape.RECTANGLE -> drawLineShape(
                 canvas,
                 rect,
                 cornerOffset,

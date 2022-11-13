@@ -4,15 +4,13 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.gallery.core.GalleryProvider
 import com.gallery.core.toPhotoUri
-import com.gallery.edit.CropImageView
+import com.gallery.edit.CropImageEditView
 import com.gallery.edit.FlexibleImageView
-import com.gallery.edit.GalleryEditView
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
@@ -35,7 +33,7 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
     @Inject
     lateinit var apiService: CoreApiService
 
-    private lateinit var ivCrop: CropImageView
+    private lateinit var ivCrop: CropImageEditView
 
     private lateinit var ivFlexible: FlexibleImageView
 
@@ -70,7 +68,7 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
                 if (ivCrop.visibility == View.VISIBLE) {
                     Single.create<Bitmap> { emitter ->
                         try {
-                            val bitmap = ivCrop.captureImageBitmap()
+                            val bitmap = ivCrop.croppedImage
                             if (bitmap != null) {
                                 emitter.onSuccess(bitmap)
                             }

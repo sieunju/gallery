@@ -27,7 +27,7 @@ import java.util.*
  * the cache from time to time,
  */
 
-const val authority = ".cropper.fileprovider"
+const val authority = ".edit.fileprovider"
 const val CROP_LIB_CACHE = "CROP_LIB_CACHE"
 
 internal fun getFilePathFromUri(context: Context, uri: Uri, uniqueName: Boolean): String =

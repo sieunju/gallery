@@ -10,10 +10,8 @@ import android.os.Parcelable
 import android.text.TextUtils
 import android.util.TypedValue
 import androidx.annotation.ColorInt
-import com.gallery.edit.CropImageView.*
+import com.gallery.edit.enums.*
 
-
-private val COLOR_PURPLE = Color.rgb(153, 51, 153)
 
 /**
  * All the possible options that can be set to customize crop image.<br></br>
@@ -47,7 +45,7 @@ open class CropImageOptions : Parcelable {
      * The shape of cropper corners
      */
     @JvmField
-    var cornerShape: CropImageView.CropCornerShape
+    var cornerShape: CropCornerShape
 
     /**
      * The radius of the circular crop corner
@@ -77,7 +75,7 @@ open class CropImageOptions : Parcelable {
 
     /** The initial scale type of the image in the crop image view  */
     @JvmField
-    var scaleType: CropImageView.ScaleType
+    var scaleType: ScaleType
 
     /**
      * if to show crop overlay UI what contains the crop window UI surrounded by background over the
@@ -92,18 +90,6 @@ open class CropImageOptions : Parcelable {
      */
     @JvmField
     var showCropLabel: Boolean
-
-    /**
-     * if to show progress bar when image async loading/cropping is in progress.<br></br>
-     * default: true, disable to provide custom progress bar UI.
-     */
-    @JvmField
-    var showProgressBar: Boolean
-
-    /** The color of the progress bar. Only works on API level 21 and upwards. */
-    @JvmField
-    @ColorInt
-    var progressBarColor: Int
 
     /**
      * if auto-zoom functionality is enabled.<br></br>
@@ -227,10 +213,6 @@ open class CropImageOptions : Parcelable {
      */
     @JvmField
     var maxCropResultHeight: Int
-
-    /** the title of the [CropImageActivity]  */
-    @JvmField
-    var activityTitle: CharSequence
 
     /** the color to use for action bar items icons  */
     @JvmField
@@ -376,16 +358,14 @@ open class CropImageOptions : Parcelable {
         imageSourceIncludeCamera = true
         imageSourceIncludeGallery = true
         cropShape = CropShape.RECTANGLE
-        cornerShape = CropImageView.CropCornerShape.RECTANGLE
+        cornerShape = CropCornerShape.RECTANGLE
         circleCornerFillColorHexValue = Color.WHITE
         cropCornerRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, dm)
         snapRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, dm)
         touchRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, dm)
         guidelines = Guidelines.ON_TOUCH
-        scaleType = CropImageView.ScaleType.FIT_CENTER
+        scaleType = ScaleType.FIT_CENTER
         showCropOverlay = true
-        showProgressBar = true
-        progressBarColor = COLOR_PURPLE
         autoZoomEnabled = true
         multiTouchEnabled = false
         centerMoveEnabled = true
@@ -403,14 +383,12 @@ open class CropImageOptions : Parcelable {
         guidelinesThickness = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, dm)
         guidelinesColor = Color.argb(170, 255, 255, 255)
         backgroundColor = Color.argb(119, 0, 0, 0)
-        minCropWindowWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 42f, dm).toInt()
-        minCropWindowHeight =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 42f, dm).toInt()
+        minCropWindowWidth = 42.dp
+        minCropWindowHeight = 42.dp
         minCropResultWidth = 40
         minCropResultHeight = 40
         maxCropResultWidth = 99999
         maxCropResultHeight = 99999
-        activityTitle = ""
         activityMenuIconColor = 0
         activityMenuTextColor = null
         customOutputUri = null
@@ -418,7 +396,7 @@ open class CropImageOptions : Parcelable {
         outputCompressQuality = 90
         outputRequestWidth = 0
         outputRequestHeight = 0
-        outputRequestSizeOptions = CropImageView.RequestSizeOptions.NONE
+        outputRequestSizeOptions = RequestSizeOptions.NONE
         noOutputImage = false
         initialCropWindowRectangle = null
         initialRotation = -1
@@ -448,16 +426,14 @@ open class CropImageOptions : Parcelable {
     protected constructor(parcel: Parcel) {
         imageSourceIncludeCamera = parcel.readByte().toInt() != 0
         imageSourceIncludeGallery = parcel.readByte().toInt() != 0
-        cropShape = CropImageView.CropShape.values()[parcel.readInt()]
-        cornerShape = CropImageView.CropCornerShape.values()[parcel.readInt()]
+        cropShape = CropShape.values()[parcel.readInt()]
+        cornerShape = CropCornerShape.values()[parcel.readInt()]
         cropCornerRadius = parcel.readFloat()
         snapRadius = parcel.readFloat()
         touchRadius = parcel.readFloat()
         guidelines = Guidelines.values()[parcel.readInt()]
-        scaleType = CropImageView.ScaleType.values()[parcel.readInt()]
+        scaleType = ScaleType.values()[parcel.readInt()]
         showCropOverlay = parcel.readByte().toInt() != 0
-        showProgressBar = parcel.readByte().toInt() != 0
-        progressBarColor = parcel.readInt()
         autoZoomEnabled = parcel.readByte().toInt() != 0
         multiTouchEnabled = parcel.readByte().toInt() != 0
         centerMoveEnabled = parcel.readByte().toInt() != 0
@@ -482,7 +458,6 @@ open class CropImageOptions : Parcelable {
         minCropResultHeight = parcel.readInt()
         maxCropResultWidth = parcel.readInt()
         maxCropResultHeight = parcel.readInt()
-        activityTitle = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(parcel)
         activityMenuIconColor = parcel.readInt()
         activityMenuTextColor = parcel.readValue(Int::class.java.classLoader) as Int?
         customOutputUri = parcel.readParcelable(Uri::class.java.classLoader)
@@ -528,8 +503,6 @@ open class CropImageOptions : Parcelable {
         dest.writeInt(guidelines.ordinal)
         dest.writeInt(scaleType.ordinal)
         dest.writeByte((if (showCropOverlay) 1 else 0).toByte())
-        dest.writeByte((if (showProgressBar) 1 else 0).toByte())
-        dest.writeInt(progressBarColor)
         dest.writeByte((if (autoZoomEnabled) 1 else 0).toByte())
         dest.writeByte((if (multiTouchEnabled) 1 else 0).toByte())
         dest.writeByte((if (centerMoveEnabled) 1 else 0).toByte())
@@ -554,7 +527,6 @@ open class CropImageOptions : Parcelable {
         dest.writeInt(minCropResultHeight)
         dest.writeInt(maxCropResultWidth)
         dest.writeInt(maxCropResultHeight)
-        TextUtils.writeToParcel(activityTitle, dest, flags)
         dest.writeInt(activityMenuIconColor)
         dest.writeValue(activityMenuTextColor)
         dest.writeParcelable(customOutputUri, flags)

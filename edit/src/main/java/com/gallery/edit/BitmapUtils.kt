@@ -7,9 +7,9 @@ import android.graphics.Bitmap.CompressFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.util.Pair
 import androidx.exifinterface.media.ExifInterface
+import com.gallery.edit.enums.RequestSizeOptions
 import java.io.*
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGL10
@@ -392,11 +392,6 @@ internal object BitmapUtils {
                 customOutputUri = customOutputUri
             )
         } catch (e: Exception) {
-            Log.w(
-                "AIC",
-                "Failed to write bitmap to temp file for image-cropper save instance state",
-                e
-            )
             null
         }
 
@@ -443,7 +438,6 @@ internal object BitmapUtils {
                     )
                     getUriForFile(context, file)
                 } catch (e: Exception) {
-                    Log.e("AIC", "${e.message}")
                     val file = File.createTempFile("cropped", ext, context.cacheDir)
                     getUriForFile(context, file)
                 }
@@ -459,23 +453,23 @@ internal object BitmapUtils {
         bitmap: Bitmap?,
         reqWidth: Int,
         reqHeight: Int,
-        options: CropImageView.RequestSizeOptions
+        options: RequestSizeOptions
     ): Bitmap {
         try {
             if (reqWidth > 0 &&
                 reqHeight > 0 &&
-                (options === CropImageView.RequestSizeOptions.RESIZE_FIT ||
-                        options === CropImageView.RequestSizeOptions.RESIZE_INSIDE ||
-                        options === CropImageView.RequestSizeOptions.RESIZE_EXACT)
+                (options === RequestSizeOptions.RESIZE_FIT ||
+                        options === RequestSizeOptions.RESIZE_INSIDE ||
+                        options === RequestSizeOptions.RESIZE_EXACT)
             ) {
                 var resized: Bitmap? = null
-                if (options === CropImageView.RequestSizeOptions.RESIZE_EXACT) {
+                if (options === RequestSizeOptions.RESIZE_EXACT) {
                     resized = Bitmap.createScaledBitmap(bitmap!!, reqWidth, reqHeight, false)
                 } else {
                     val width = bitmap!!.width
                     val height = bitmap.height
                     val scale = max(width / reqWidth.toFloat(), height / reqHeight.toFloat())
-                    if (scale > 1 || options === CropImageView.RequestSizeOptions.RESIZE_FIT) {
+                    if (scale > 1 || options === RequestSizeOptions.RESIZE_FIT) {
                         resized = Bitmap.createScaledBitmap(
                             bitmap, (width / scale).toInt(), (height / scale).toInt(), false
                         )
@@ -489,7 +483,6 @@ internal object BitmapUtils {
                 }
             }
         } catch (e: Exception) {
-            Log.w("AIC", "Failed to resize cropped image, return bitmap before resize", e)
         }
         return bitmap!!
     }

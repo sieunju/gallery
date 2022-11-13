@@ -9,19 +9,19 @@ import kotlin.coroutines.CoroutineContext
 
 class BitmapLoadingWorkerJob internal constructor(
     private val context: Context,
-    cropImageView: CropImageView,
+    cropImageEditView: CropImageEditView,
     val uri: Uri
 ) : CoroutineScope {
 
     private val width: Int
     private val height: Int
-    private val cropImageViewReference = WeakReference(cropImageView)
+    private val cropImageViewReference = WeakReference(cropImageEditView)
     private var currentJob: Job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + currentJob
 
     init {
-        val metrics = cropImageView.resources.displayMetrics
+        val metrics = cropImageEditView.resources.displayMetrics
         val densityAdj: Double = if (metrics.density > 1) (1.0 / metrics.density) else 1.0
         width = (metrics.widthPixels * densityAdj).toInt()
         height = (metrics.heightPixels * densityAdj).toInt()
@@ -114,8 +114,10 @@ class BitmapLoadingWorkerJob internal constructor(
          * @param uniqueName If true, make each image cropped have a different file name, this could
          * cause memory issues, use wisely. [Default: false]
          */
-        fun getUriFilePath(context: Context, uniqueName: Boolean = false): String =
-            getFilePathFromUri(context, uriContent, uniqueName)
+        fun getUriFilePath(context: Context, uniqueName: Boolean = false): String {
+            return ""
+            // sreturn getFilePathFromUri(context, uriContent, uniqueName)
+        }
 
         internal constructor(
             uri: Uri,

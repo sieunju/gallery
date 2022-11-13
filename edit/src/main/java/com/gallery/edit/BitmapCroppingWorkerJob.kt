@@ -3,6 +3,7 @@ package com.gallery.edit
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import com.gallery.edit.enums.RequestSizeOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,7 +15,7 @@ import kotlin.coroutines.CoroutineContext
 
 class BitmapCroppingWorkerJob(
     private val context: Context,
-    private val cropImageViewReference: WeakReference<CropImageView>,
+    private val cropImageEditViewReference: WeakReference<CropImageEditView>,
     val uri: Uri?,
     private val bitmap: Bitmap?,
     private val cropPoints: FloatArray,
@@ -28,7 +29,7 @@ class BitmapCroppingWorkerJob(
     private val reqHeight: Int,
     private val flipHorizontally: Boolean,
     private val flipVertically: Boolean,
-    private val options: CropImageView.RequestSizeOptions,
+    private val options: RequestSizeOptions,
     private val saveCompressFormat: Bitmap.CompressFormat,
     private val saveCompressQuality: Int,
     private val customOutputUri: Uri?,
@@ -108,7 +109,7 @@ class BitmapCroppingWorkerJob(
         withContext(Dispatchers.Main) {
             var completeCalled = false
             if (isActive) {
-                cropImageViewReference.get()?.let {
+                cropImageEditViewReference.get()?.let {
                     completeCalled = true
                 }
             }
