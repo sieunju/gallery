@@ -1,6 +1,7 @@
 package com.gallery.example.edit
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -17,6 +18,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.net.URL
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -69,10 +72,21 @@ internal class FlexibleFragment : Fragment(R.layout.f_flexible) {
 
     private fun performRandomGallery() {
         lifecycleScope.launch(Dispatchers.Main) {
-            val bitmap = getRandomGalleryBitmap()
+            // val bitmap = getRandomGalleryBitmap()
+            val bitmap = getSampleBitmap()
             if (bitmap != null) {
                 ivFlexible.loadBitmap(bitmap)
             }
+        }
+    }
+
+    private suspend fun getSampleBitmap(): Bitmap? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val bytes = URL("https://image.zdnet.co.kr/2021/08/27/48a2291e7cbed1be50aa28880b58477e.jpg")
+                .readBytes()
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } catch (ex: IOException) {
+            null
         }
     }
 
