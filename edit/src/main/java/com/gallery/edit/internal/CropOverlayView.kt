@@ -1,15 +1,15 @@
-package com.gallery.edit
+package com.gallery.edit.internal
 
 import android.content.Context
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import androidx.annotation.RequiresApi
+import com.gallery.edit.*
 import com.gallery.edit.enums.CropCornerShape
 import com.gallery.edit.enums.CropShape
 import com.gallery.edit.enums.Guidelines
@@ -235,7 +235,7 @@ internal class CropOverlayView @JvmOverloads constructor(
     /** Resets the crop overlay view.  */
     fun resetCropOverlayView() {
         if (initializedCropWindow) {
-            cropWindowRect = BitmapUtils.EMPTY_RECT_F
+            cropWindowRect = EMPTY_RECT_F
             initCropWindow()
             invalidate()
         }
@@ -425,7 +425,7 @@ internal class CropOverlayView @JvmOverloads constructor(
     var initialCropWindowRect: Rect?
         get() = mInitialCropWindowRect
         set(rect) {
-            mInitialCropWindowRect.set(rect ?: BitmapUtils.EMPTY_RECT)
+            mInitialCropWindowRect.set(rect ?: EMPTY_RECT)
             if (initializedCropWindow) {
                 initCropWindow()
                 invalidate()
@@ -481,10 +481,10 @@ internal class CropOverlayView @JvmOverloads constructor(
      * the image being cropped.
      */
     private fun initCropWindow() {
-        val leftLimit = max(BitmapUtils.getRectLeft(mBoundsPoints), 0f)
-        val topLimit = max(BitmapUtils.getRectTop(mBoundsPoints), 0f)
-        val rightLimit = min(BitmapUtils.getRectRight(mBoundsPoints), width.toFloat())
-        val bottomLimit = min(BitmapUtils.getRectBottom(mBoundsPoints), height.toFloat())
+        val leftLimit = max(getRectLeft(mBoundsPoints), 0f)
+        val topLimit = max(getRectTop(mBoundsPoints), 0f)
+        val rightLimit = min(getRectRight(mBoundsPoints), width.toFloat())
+        val bottomLimit = min(getRectBottom(mBoundsPoints), height.toFloat())
         if (rightLimit <= leftLimit || bottomLimit <= topLimit) return
         val rect = RectF()
         // Tells the attribute functions the crop window has already been initialized
@@ -677,10 +677,10 @@ internal class CropOverlayView @JvmOverloads constructor(
     @Suppress("DEPRECATION")
     private fun drawBackground(canvas: Canvas) {
         val rect = mCropWindowHandler.getRect()
-        val left = max(BitmapUtils.getRectLeft(mBoundsPoints), 0f)
-        val top = max(BitmapUtils.getRectTop(mBoundsPoints), 0f)
-        val right = min(BitmapUtils.getRectRight(mBoundsPoints), width.toFloat())
-        val bottom = min(BitmapUtils.getRectBottom(mBoundsPoints), height.toFloat())
+        val left = max(getRectLeft(mBoundsPoints), 0f)
+        val top = max(getRectTop(mBoundsPoints), 0f)
+        val right = min(getRectRight(mBoundsPoints), width.toFloat())
+        val bottom = min(getRectBottom(mBoundsPoints), height.toFloat())
         when (cropShape) {
             CropShape.RECTANGLE,
             CropShape.RECTANGLE_VERTICAL_ONLY,
@@ -1131,10 +1131,10 @@ internal class CropOverlayView @JvmOverloads constructor(
      * @return true - non straight rotation in place, false - otherwise.
      */
     private fun calculateBounds(rect: RectF): Boolean {
-        var left = BitmapUtils.getRectLeft(mBoundsPoints)
-        var top = BitmapUtils.getRectTop(mBoundsPoints)
-        var right = BitmapUtils.getRectRight(mBoundsPoints)
-        var bottom = BitmapUtils.getRectBottom(mBoundsPoints)
+        var left = getRectLeft(mBoundsPoints)
+        var top = getRectTop(mBoundsPoints)
+        var right = getRectRight(mBoundsPoints)
+        var bottom = getRectBottom(mBoundsPoints)
 
         return if (!isNonStraightAngleRotated) {
             mCalcBounds[left, top, right] = bottom
@@ -1223,7 +1223,6 @@ internal class CropOverlayView @JvmOverloads constructor(
         try {
             mCropWindowChangeListener?.onCropWindowChanged(inProgress)
         } catch (e: Exception) {
-            Log.e("AIC", "Exception in crop window changed", e)
         }
     }
 

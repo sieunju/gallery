@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    api(project(":model"))
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)
     implementation(deps.androidx.exif)

@@ -1,4 +1,4 @@
-package com.gallery.edit.enums
+package com.gallery.model
 
 enum class RequestSizeOptions {
 

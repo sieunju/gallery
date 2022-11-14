@@ -68,7 +68,7 @@ class EditFragment : Fragment(R.layout.fragment_edit) {
                 if (ivCrop.visibility == View.VISIBLE) {
                     Single.create<Bitmap> { emitter ->
                         try {
-                            val bitmap = ivCrop.croppedImage
+                            val bitmap = galleryProvider.getCropImageEditToBitmap(ivCrop.getEditInfo())
                             if (bitmap != null) {
                                 emitter.onSuccess(bitmap)
                             }

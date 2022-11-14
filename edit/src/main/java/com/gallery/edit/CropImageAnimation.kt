@@ -7,6 +7,7 @@ import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
 import android.view.animation.Transformation
 import android.widget.ImageView
+import com.gallery.edit.internal.CropOverlayView
 
 /**
  * Animation to handle smooth cropping image matrix transformation change, specifically for
@@ -17,12 +18,12 @@ internal class CropImageAnimation(
     private val cropOverlayView: CropOverlayView
 ) : Animation(), AnimationListener {
 
-    private val startBoundPoints = FloatArray(8)
-    private val endBoundPoints = FloatArray(8)
-    private val startCropWindowRect = RectF()
-    private val endCropWindowRect = RectF()
-    private val startImageMatrix = FloatArray(9)
-    private val endImageMatrix = FloatArray(9)
+    private val startBoundPoints: FloatArray by lazy { FloatArray(8) }
+    private val endBoundPoints: FloatArray by lazy { FloatArray(8) }
+    private val startCropWindowRect: RectF by lazy { RectF() }
+    private val endCropWindowRect: RectF by lazy { RectF() }
+    private val startImageMatrix: FloatArray by lazy { FloatArray(9) }
+    private val endImageMatrix: FloatArray by lazy { FloatArray(9) }
 
     init {
         duration = 300
@@ -47,21 +48,21 @@ internal class CropImageAnimation(
     override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
         val animRect = RectF().apply {
             left = (
-                startCropWindowRect.left +
-                    (endCropWindowRect.left - startCropWindowRect.left) * interpolatedTime
-                )
+                    startCropWindowRect.left +
+                            (endCropWindowRect.left - startCropWindowRect.left) * interpolatedTime
+                    )
             top = (
-                startCropWindowRect.top +
-                    (endCropWindowRect.top - startCropWindowRect.top) * interpolatedTime
-                )
+                    startCropWindowRect.top +
+                            (endCropWindowRect.top - startCropWindowRect.top) * interpolatedTime
+                    )
             right = (
-                startCropWindowRect.right +
-                    (endCropWindowRect.right - startCropWindowRect.right) * interpolatedTime
-                )
+                    startCropWindowRect.right +
+                            (endCropWindowRect.right - startCropWindowRect.right) * interpolatedTime
+                    )
             bottom = (
-                startCropWindowRect.bottom +
-                    (endCropWindowRect.bottom - startCropWindowRect.bottom) * interpolatedTime
-                )
+                    startCropWindowRect.bottom +
+                            (endCropWindowRect.bottom - startCropWindowRect.bottom) * interpolatedTime
+                    )
         }
         val animPoints = FloatArray(8)
         for (i in animPoints.indices) {

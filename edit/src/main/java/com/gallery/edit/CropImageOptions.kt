@@ -11,6 +11,8 @@ import android.text.TextUtils
 import android.util.TypedValue
 import androidx.annotation.ColorInt
 import com.gallery.edit.enums.*
+import com.gallery.edit.internal.dp
+import com.gallery.model.RequestSizeOptions
 
 
 /**
