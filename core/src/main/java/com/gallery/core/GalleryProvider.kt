@@ -2,6 +2,8 @@ package com.gallery.core
 
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.RectF
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
 import com.gallery.core.model.GalleryFilterData
@@ -127,6 +129,38 @@ interface GalleryProvider {
      * Create Temp File
      */
     fun createFile(name: String, suffix: String): File?
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalBitmap FlexibleImageView Bitmap Resource
+     * @param srcRect FlexibleImageView getStateItem
+     * @param width FlexibleImageView Root Layout Width
+     * @param height FlexibleImageView Root Layout Height
+     */
+    fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int
+    ): Bitmap
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalBitmap FlexibleImageView Bitmap Resource
+     * @param srcRect FlexibleImageView getStateItem
+     * @param width FlexibleImageView Root Layout Width
+     * @param height FlexibleImageView Root Layout Height
+     * @param color Color Resource Int
+     */
+    fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int,
+        @ColorInt color: Int
+    ): Bitmap
 
     /**
      * Save Bitmap File Completed File Info Return

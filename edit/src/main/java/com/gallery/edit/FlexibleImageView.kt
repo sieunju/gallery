@@ -73,6 +73,7 @@ class FlexibleImageView @JvmOverloads constructor(
      * Load Bitmap
      * @param bitmap Image Bitmap
      */
+    @MainThread
     fun loadBitmap(bitmap: Bitmap?) {
         if (bitmap == null) return
 

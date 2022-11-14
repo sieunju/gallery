@@ -395,6 +395,42 @@ internal class GalleryProviderImpl constructor(
         }
     }
 
+    override fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int
+    ): Bitmap {
+        return getFlexibleImageToBitmap(
+            originalBitmap,
+            srcRect,
+            width,
+            height,
+            Color.WHITE
+        )
+    }
+
+    override fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int,
+        color: Int
+    ): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val tempBitmap = Bitmap.createScaledBitmap(
+            originalBitmap,
+            srcRect.width().toInt(),
+            srcRect.height().toInt(),
+            true
+        )
+        Canvas(bitmap).apply {
+            drawColor(color)
+            drawBitmap(tempBitmap, null, srcRect, null)
+        }
+        return bitmap
+    }
+
     override fun saveBitmapToFile(bitmap: Bitmap): File? {
         val file = createTempFile()
         val fos = FileOutputStream(file)
