@@ -9,6 +9,7 @@ import android.net.Uri
 import android.util.AttributeSet
 import android.util.Pair
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import com.gallery.edit.enums.CropCornerShape
@@ -1166,6 +1167,10 @@ class CropImageEditView @JvmOverloads constructor(
                     R.styleable.CropImageEditView_cropGuidelinesColor,
                     options.guidelinesColor
                 )
+                options.overlayBackgroundColor = ta.getInteger(
+                    R.styleable.CropImageEditView_cropOverlayBackgroundColor,
+                    options.overlayBackgroundColor
+                )
                 options.backgroundColor = ta.getInteger(
                     R.styleable.CropImageEditView_cropBackgroundColor,
                     options.backgroundColor
@@ -1221,6 +1226,7 @@ class CropImageEditView @JvmOverloads constructor(
 
         val inflater = LayoutInflater.from(context)
         val v = inflater.inflate(R.layout.v_crop_image, this, true)
+        v.findViewById<View>(R.id.vBg).setBackgroundColor(options.backgroundColor)
         imageView = v.findViewById(R.id.iv)
         imageView.scaleType = ImageView.ScaleType.MATRIX
         cropOverlayView = v.findViewById(R.id.overlay)

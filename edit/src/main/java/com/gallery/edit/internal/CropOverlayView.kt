@@ -411,7 +411,7 @@ internal class CropOverlayView @JvmOverloads constructor(
         mBorderCornerPaint =
             getNewPaintOrNull(options.borderCornerThickness, options.borderCornerColor)
         mGuidelinePaint = getNewPaintOrNull(options.guidelinesThickness, options.guidelinesColor)
-        mBackgroundPaint = getNewPaint(options.backgroundColor)
+        mBackgroundPaint = getNewPaint(options.overlayBackgroundColor)
     }
 
     /**

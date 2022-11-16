@@ -73,6 +73,9 @@
         <com.gallery.edit.CropImageEditView
             android:id="@+id/ivEdit"
             android:layout_width="match_parent"
+            app:cropAspectRatioX="100"
+            app:cropAspectRatioY="200"
+            app:cropBackgroundColor="@color/purple_500"
             android:layout_height="match_parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout

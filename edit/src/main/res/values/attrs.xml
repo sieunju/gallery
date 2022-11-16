@@ -39,9 +39,9 @@
         <attr name="cropGuidelinesThickness" format="dimension"/>
         <attr name="cropGuidelinesColor" format="color"/>
         <attr name="cropBackgroundColor" format="color"/>
+        <attr name="cropOverlayBackgroundColor" format="color"/>
         <attr name="cropSnapRadius" format="dimension"/>
         <attr name="cropTouchRadius" format="dimension"/>
-        <attr name="cropSaveBitmapToInstanceState" format="boolean"/>
         <attr name="cropShowCropOverlay" format="boolean"/>
         <attr name="cropMinCropWindowWidth" format="dimension"/>
         <attr name="cropMinCropWindowHeight" format="dimension"/>
