@@ -1,18 +1,16 @@
 package com.gallery.edit
 
 import android.content.res.Resources
-import android.graphics.Bitmap.CompressFormat
 import android.graphics.Color
-import android.graphics.Rect
-import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
-import android.text.TextUtils
 import android.util.TypedValue
 import androidx.annotation.ColorInt
-import com.gallery.edit.enums.*
+import com.gallery.edit.enums.CropCornerShape
+import com.gallery.edit.enums.CropShape
+import com.gallery.edit.enums.Guidelines
+import com.gallery.edit.enums.ScaleType
 import com.gallery.edit.internal.dp
-import com.gallery.model.RequestSizeOptions
 
 
 /**
@@ -20,24 +18,6 @@ import com.gallery.model.RequestSizeOptions
  * Initialized with default values.
  */
 open class CropImageOptions : Parcelable {
-
-    /**
-     * When library picking and image if this value is true user will be prompt with option to
-     * retrieve the image from gallery. The rule used is "image/<*>"
-     *
-     * Default value: true
-     */
-    @JvmField
-    var imageSourceIncludeGallery: Boolean
-
-    /**
-     * When library picking and image if this value is true user will be prompt with option to
-     * retrieve the image from camera(take picture).
-     *
-     * Default value: true
-     */
-    @JvmField
-    var imageSourceIncludeCamera: Boolean
 
     /** The shape of the cropping window.  */
     @JvmField
@@ -86,12 +66,6 @@ open class CropImageOptions : Parcelable {
      */
     @JvmField
     var showCropOverlay: Boolean
-
-    /**
-     * If enabled, show a text label on top of crop overlay UI, which gets moved along with the cropper
-     */
-    @JvmField
-    var showCropLabel: Boolean
 
     /**
      * if auto-zoom functionality is enabled.<br></br>
@@ -216,149 +190,9 @@ open class CropImageOptions : Parcelable {
     @JvmField
     var maxCropResultHeight: Int
 
-    /** the color to use for action bar items icons  */
-    @JvmField
-    @ColorInt
-    var activityMenuIconColor: Int
-
-    /** the color to use for action bar items texts  */
-    @JvmField
-    @ColorInt
-    var activityMenuTextColor: Int? = null
-
-    /** the Android Uri to save the cropped image to  */
-    @JvmField
-    var customOutputUri: Uri?
-
-    /** the compression format to use when writing the image  */
-    @JvmField
-    var outputCompressFormat: CompressFormat
-
-    /** the quality (if applicable) to use when writing the image (0 - 100)  */
-    @JvmField
-    var outputCompressQuality: Int
-
-    /** the width to resize the cropped image to (see options)  */
-    @JvmField
-    var outputRequestWidth: Int
-
-    /** the height to resize the cropped image to (see options)  */
-    @JvmField
-    var outputRequestHeight: Int
-
-    /** the resize method to use on the cropped bitmap (see options documentation)  */
-    @JvmField
-    var outputRequestSizeOptions: RequestSizeOptions
-
-    /** if the result of crop image activity should not save the cropped image bitmap  */
-    @JvmField
-    var noOutputImage: Boolean
-
-    /** the initial rectangle to set on the cropping image after loading  */
-    @JvmField
-    var initialCropWindowRectangle: Rect?
-
-    /** the initial rotation to set on the cropping image after loading (0-360 degrees clockwise)  */
-    @JvmField
-    var initialRotation: Int
-
-    /** if to allow (all) rotation during cropping (activity)  */
-    @JvmField
-    var allowRotation: Boolean
-
-    /** if to allow (all) flipping during cropping (activity)  */
-    @JvmField
-    var allowFlipping: Boolean
-
-    /** if to allow counter-clockwise rotation during cropping (activity)  */
-    @JvmField
-    var allowCounterRotation: Boolean
-
-    /** the amount of degrees to rotate clockwise or counter-clockwise  */
-    @JvmField
-    var rotationDegrees: Int
-
-    /** whether the image should be flipped horizontally  */
-    @JvmField
-    var flipHorizontally: Boolean
-
-    /** whether the image should be flipped vertically  */
-    @JvmField
-    var flipVertically: Boolean
-
-    /** optional, the text of the crop menu crop button  */
-    @JvmField
-    var cropMenuCropButtonTitle: CharSequence?
-
-    /** optional image resource to be used for crop menu crop icon instead of text  */
-    @JvmField
-    var cropMenuCropButtonIcon: Int
-
-    /**
-     * Allows you to skip the editing (cropping, flipping or rotating) option.
-     * This returns the entire selected image directly
-     */
-    @JvmField
-    var skipEditing: Boolean
-
-    /**
-     * Enabling this option replaces the current AlertDialog to choose the image source
-     * with an Intent chooser
-     */
-    @JvmField
-    var showIntentChooser: Boolean
-
-    /**
-     * optional, Sets a custom title for the intent chooser
-     */
-    @JvmField
-    var intentChooserTitle: String?
-
-    /**
-     * optional, reorders intent list displayed with the app package names
-     * passed here in order
-     */
-    @JvmField
-    var intentChooserPriorityList: List<String>?
-
-    /** The initial text size of cropper label **/
-    @JvmField
-    var cropperLabelTextSize: Float
-
-    /** The default cropper label text color **/
-    @JvmField
-    @ColorInt
-    var cropperLabelTextColor: Int
-
-    /** The default cropper label text **/
-    @JvmField
-    var cropperLabelText: String? = ""
-
-    /** Crop Image background color **/
-    @JvmField
-    var activityBackgroundColor: Int
-
-    /** Toolbar color **/
-    @JvmField
-    var toolbarColor: Int? = null
-
-    /** Toolbar color **/
-    @JvmField
-    var toolbarTitleColor: Int? = null
-
-    /** Toolbar color **/
-    @JvmField
-    var toolbarBackButtonColor: Int? = null
-
-    /** Toolbar tint color **/
-    @JvmField
-    var toolbarTintColor: Int? = null
-
     /** Init options with defaults.  */
     constructor() {
         val dm = Resources.getSystem().displayMetrics
-        imageSourceIncludeCamera = true
-        imageSourceIncludeGallery = true
         cropShape = CropShape.RECTANGLE
         cornerShape = CropCornerShape.RECTANGLE
         circleCornerFillColorHexValue = Color.WHITE
@@ -391,43 +225,10 @@ open class CropImageOptions : Parcelable {
         minCropResultHeight = 40
         maxCropResultWidth = 99999
         maxCropResultHeight = 99999
-        activityMenuIconColor = 0
-        activityMenuTextColor = null
-        customOutputUri = null
-        outputCompressFormat = CompressFormat.JPEG
-        outputCompressQuality = 90
-        outputRequestWidth = 0
-        outputRequestHeight = 0
-        outputRequestSizeOptions = RequestSizeOptions.NONE
-        noOutputImage = false
-        initialCropWindowRectangle = null
-        initialRotation = -1
-        allowRotation = true
-        allowFlipping = true
-        allowCounterRotation = false
-        rotationDegrees = 90
-        flipHorizontally = false
-        flipVertically = false
-        cropMenuCropButtonTitle = null
-        cropMenuCropButtonIcon = 0
-        skipEditing = false
-        showIntentChooser = false
-        intentChooserTitle = null
-        intentChooserPriorityList = listOf()
-        cropperLabelTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, dm)
-        cropperLabelTextColor = Color.WHITE
-        showCropLabel = false
-        activityBackgroundColor = Color.WHITE
-        toolbarColor = null
-        toolbarTitleColor = null
-        toolbarBackButtonColor = null
-        toolbarTintColor = null
     }
 
     /** Create object from parcel.  */
     protected constructor(parcel: Parcel) {
-        imageSourceIncludeCamera = parcel.readByte().toInt() != 0
-        imageSourceIncludeGallery = parcel.readByte().toInt() != 0
         cropShape = CropShape.values()[parcel.readInt()]
         cornerShape = CropCornerShape.values()[parcel.readInt()]
         cropCornerRadius = parcel.readFloat()
@@ -460,43 +261,9 @@ open class CropImageOptions : Parcelable {
         minCropResultHeight = parcel.readInt()
         maxCropResultWidth = parcel.readInt()
         maxCropResultHeight = parcel.readInt()
-        activityMenuIconColor = parcel.readInt()
-        activityMenuTextColor = parcel.readValue(Int::class.java.classLoader) as Int?
-        customOutputUri = parcel.readParcelable(Uri::class.java.classLoader)
-        outputCompressFormat = CompressFormat.valueOf(parcel.readString()!!)
-        outputCompressQuality = parcel.readInt()
-        outputRequestWidth = parcel.readInt()
-        outputRequestHeight = parcel.readInt()
-        outputRequestSizeOptions = RequestSizeOptions.values()[parcel.readInt()]
-        noOutputImage = parcel.readByte().toInt() != 0
-        initialCropWindowRectangle = parcel.readParcelable(Rect::class.java.classLoader)
-        initialRotation = parcel.readInt()
-        allowRotation = parcel.readByte().toInt() != 0
-        allowFlipping = parcel.readByte().toInt() != 0
-        allowCounterRotation = parcel.readByte().toInt() != 0
-        rotationDegrees = parcel.readInt()
-        flipHorizontally = parcel.readByte().toInt() != 0
-        flipVertically = parcel.readByte().toInt() != 0
-        cropMenuCropButtonTitle = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(parcel)
-        cropMenuCropButtonIcon = parcel.readInt()
-        skipEditing = parcel.readByte().toInt() != 0
-        showIntentChooser = parcel.readByte().toInt() != 0
-        intentChooserTitle = parcel.readString()
-        intentChooserPriorityList = parcel.createStringArrayList()
-        cropperLabelTextSize = parcel.readFloat()
-        cropperLabelTextColor = parcel.readInt()
-        cropperLabelText = parcel.readString()!!
-        showCropLabel = parcel.readByte().toInt() != 0
-        activityBackgroundColor = parcel.readInt()
-        toolbarColor = parcel.readValue(Int::class.java.classLoader) as Int?
-        toolbarTitleColor = parcel.readValue(Int::class.java.classLoader) as Int?
-        toolbarBackButtonColor = parcel.readValue(Int::class.java.classLoader) as Int?
-        toolbarTintColor = parcel.readValue(Int::class.java.classLoader) as Int?
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeByte((if (imageSourceIncludeCamera) 1 else 0).toByte())
-        dest.writeByte((if (imageSourceIncludeGallery) 1 else 0).toByte())
         dest.writeInt(cropShape.ordinal)
         dest.writeInt(cornerShape.ordinal)
         dest.writeFloat(cropCornerRadius)
@@ -529,38 +296,6 @@ open class CropImageOptions : Parcelable {
         dest.writeInt(minCropResultHeight)
         dest.writeInt(maxCropResultWidth)
         dest.writeInt(maxCropResultHeight)
-        dest.writeInt(activityMenuIconColor)
-        dest.writeValue(activityMenuTextColor)
-        dest.writeParcelable(customOutputUri, flags)
-        dest.writeString(outputCompressFormat.name)
-        dest.writeInt(outputCompressQuality)
-        dest.writeInt(outputRequestWidth)
-        dest.writeInt(outputRequestHeight)
-        dest.writeInt(outputRequestSizeOptions.ordinal)
-        dest.writeInt(if (noOutputImage) 1 else 0)
-        dest.writeParcelable(initialCropWindowRectangle, flags)
-        dest.writeInt(initialRotation)
-        dest.writeByte((if (allowRotation) 1 else 0).toByte())
-        dest.writeByte((if (allowFlipping) 1 else 0).toByte())
-        dest.writeByte((if (allowCounterRotation) 1 else 0).toByte())
-        dest.writeInt(rotationDegrees)
-        dest.writeByte((if (flipHorizontally) 1 else 0).toByte())
-        dest.writeByte((if (flipVertically) 1 else 0).toByte())
-        TextUtils.writeToParcel(cropMenuCropButtonTitle, dest, flags)
-        dest.writeInt(cropMenuCropButtonIcon)
-        dest.writeByte((if (skipEditing) 1 else 0).toByte())
-        dest.writeByte((if (showIntentChooser) 1 else 0).toByte())
-        dest.writeString(intentChooserTitle)
-        dest.writeStringList(intentChooserPriorityList)
-        dest.writeFloat(cropperLabelTextSize)
-        dest.writeInt(cropperLabelTextColor)
-        dest.writeString(cropperLabelText)
-        dest.writeByte((if (showCropLabel) 1 else 0).toByte())
-        dest.writeInt(activityBackgroundColor)
-        dest.writeValue(toolbarColor)
-        dest.writeValue(toolbarTitleColor)
-        dest.writeValue(toolbarBackButtonColor)
-        dest.writeValue(toolbarTintColor)
     }
 
     override fun describeContents(): Int {
@@ -586,14 +321,9 @@ open class CropImageOptions : Parcelable {
         require(minCropResultHeight >= 0) { "Cannot set min crop result height value to a number < 0 " }
         require(maxCropResultWidth >= minCropResultWidth) { "Cannot set max crop result width to smaller value than min crop result width" }
         require(maxCropResultHeight >= minCropResultHeight) { "Cannot set max crop result height to smaller value than min crop result height" }
-        require(outputRequestWidth >= 0) { "Cannot set request width value to a number < 0 " }
-        require(outputRequestHeight >= 0) { "Cannot set request height value to a number < 0 " }
-        require(!(rotationDegrees < 0 || rotationDegrees > DEGREES_360)) { "Cannot set rotation degrees value to a number < 0 or > 360" }
     }
 
     companion object {
-
-        internal const val DEGREES_360 = 360
 
         @JvmField
         val CREATOR: Parcelable.Creator<CropImageOptions?> =

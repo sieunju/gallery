@@ -1,7 +1,10 @@
 package com.gallery.edit
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Pair
@@ -53,10 +56,10 @@ class CropImageEditView @JvmOverloads constructor(
     private var mDegreesRotated = 0
 
     /** if the image flipped horizontally  */
-    private var mFlipHorizontally: Boolean
+    private var mFlipHorizontally: Boolean = false
 
     /** if the image flipped vertically  */
-    private var mFlipVertically: Boolean
+    private var mFlipVertically: Boolean = false
     private var mLayoutWidth = 0
     private var mLayoutHeight = 0
 
@@ -64,42 +67,11 @@ class CropImageEditView @JvmOverloads constructor(
     private var mScaleType: ScaleType
 
     /**
-     * if to save bitmap on save instance state.<br></br>
-     * It is best to avoid it by using URI in setting image for cropping.<br></br>
-     * If false the bitmap is not saved and if restore is required to view will be empty, storing the
-     * bitmap requires saving it to file which can be expensive. default: false.
-     */
-    var isSaveBitmapToInstanceState = false
-
-    /**
      * if to show crop overlay UI what contains the crop window UI surrounded by background over the
      * cropping image.<br></br>
      * default: true, may disable for animation or frame transition.
      */
     private var mShowCropOverlay = true
-
-    /** If true, shows a helper text label over crop overlay UI
-     *  default: false
-     */
-    private var mShowCropLabel = false
-
-    /**
-     * Helper text label over crop overlay UI
-     * default: empty string
-     */
-    private var mCropTextLabel = ""
-
-    /**
-     * Text size for text label over crop overlay UI
-     * default: 20sp
-     */
-    private var mCropLabelTextSize = 20f
-
-    /**
-     * Text color for text label over crop overlay UI
-     * default: White
-     */
-    private var mCropLabelTextColor = Color.WHITE
 
     /**
      * if auto-zoom functionality is enabled.<br></br>
@@ -1230,17 +1202,6 @@ class CropImageEditView @JvmOverloads constructor(
                     R.styleable.CropImageEditView_cropMaxCropResultHeightPX,
                     options.maxCropResultHeight.toFloat()
                 ).toInt()
-                options.flipHorizontally = ta.getBoolean(
-                    R.styleable.CropImageEditView_cropFlipHorizontally, options.flipHorizontally
-                )
-                options.flipVertically = ta.getBoolean(
-                    R.styleable.CropImageEditView_cropFlipHorizontally,
-                    options.flipVertically
-                )
-                isSaveBitmapToInstanceState = ta.getBoolean(
-                    R.styleable.CropImageEditView_cropSaveBitmapToInstanceState,
-                    isSaveBitmapToInstanceState
-                )
                 // if aspect ratio is set then set fixed to true
                 if (ta.hasValue(R.styleable.CropImageEditView_cropAspectRatioX) &&
                     ta.hasValue(R.styleable.CropImageEditView_cropAspectRatioX) &&
@@ -1256,11 +1217,7 @@ class CropImageEditView @JvmOverloads constructor(
         mScaleType = options.scaleType
         mAutoZoomEnabled = options.autoZoomEnabled
         mMaxZoom = options.maxZoom
-        mCropLabelTextSize = options.cropperLabelTextSize
-        mShowCropLabel = options.showCropLabel
         mShowCropOverlay = options.showCropOverlay
-        mFlipHorizontally = options.flipHorizontally
-        mFlipVertically = options.flipVertically
 
         val inflater = LayoutInflater.from(context)
         val v = inflater.inflate(R.layout.v_crop_image, this, true)

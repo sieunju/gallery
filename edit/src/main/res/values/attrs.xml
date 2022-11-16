@@ -49,8 +49,6 @@
         <attr name="cropMinCropResultHeightPX" format="float"/>
         <attr name="cropMaxCropResultWidthPX" format="float"/>
         <attr name="cropMaxCropResultHeightPX" format="float"/>
-        <attr name="cropFlipHorizontally" format="boolean"/>
-        <attr name="cropFlipVertically" format="boolean"/>
         <attr name="cropCornerCircleFillColor" format="color"/>
         <attr name="cropCornerRadius" format="dimension"/>
     </declare-styleable>
