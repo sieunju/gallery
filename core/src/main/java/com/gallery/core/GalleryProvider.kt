@@ -2,9 +2,13 @@ package com.gallery.core
 
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.RectF
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.annotation.WorkerThread
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
+import com.gallery.model.CropImageEditModel
 import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
@@ -125,4 +129,67 @@ interface GalleryProvider {
      * Create Temp File
      */
     fun createFile(name: String, suffix: String): File?
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalBitmap FlexibleImageView Bitmap Resource
+     * @param srcRect FlexibleImageView getStateItem
+     * @param width FlexibleImageView Root Layout Width
+     * @param height FlexibleImageView Root Layout Height
+     */
+    fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int
+    ): Bitmap
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalBitmap FlexibleImageView Bitmap Resource
+     * @param srcRect FlexibleImageView getStateItem
+     * @param width FlexibleImageView Root Layout Width
+     * @param height FlexibleImageView Root Layout Height
+     * @param color Color Resource Int
+     */
+    fun getFlexibleImageToBitmap(
+        originalBitmap: Bitmap,
+        srcRect: RectF,
+        width: Int,
+        height: Int,
+        @ColorInt color: Int
+    ): Bitmap
+
+    /**
+     * Save Bitmap File Completed File Info Return
+     * File Location Cache Directory
+     */
+    fun saveBitmapToFile(bitmap: Bitmap): File?
+
+    /**
+     * CropImageEditView Edit Completed -> Bitmap Return
+     * CropImageEditView 에서 원하는 영역을 지정한후 해당 부분
+     * Bitmap 으로 리턴하고 싶은 경우 해당 함수를 사용합니다.
+     */
+    @WorkerThread
+    fun getCropImageEditToBitmap(editModel: CropImageEditModel): Bitmap?
+
+    /**
+     * CropImageEditView Edit Completed -> Bitmap Return
+     * CropImageEditView 에서 원하는 영역을 지정한후 해당 부분
+     * Bitmap 으로 리턴하고 싶은 경우 해당 함수를 사용합니다.
+     */
+    @WorkerThread
+    fun getCropImageEditToBitmap(
+        originalBitmap: Bitmap?,
+        points: FloatArray,
+        degreesRotated: Int,
+        fixAspectRatio: Boolean,
+        aspectRatioX: Int,
+        aspectRatioY: Int,
+        flipHorizontally: Boolean,
+        flipVertically: Boolean
+    ): Bitmap?
 }

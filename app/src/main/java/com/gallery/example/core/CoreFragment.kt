@@ -1,4 +1,4 @@
-package com.gallery.example
+package com.gallery.example.core
 
 import android.Manifest
 import android.graphics.Bitmap
@@ -13,6 +13,8 @@ import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.core.pathToMultipart
 import com.gallery.core.toPhotoUri
+import com.gallery.example.CoreApiService
+import com.gallery.example.R
 import com.google.android.material.snackbar.Snackbar
 import com.hmju.permissions.SimplePermissions
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,13 +45,14 @@ class CoreFragment : Fragment(R.layout.fragment_core) {
 
     private lateinit var ivThumb2: AppCompatImageView
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ivThumb1 = view.findViewById(R.id.ivThumb1)
-        ivThumb2 = view.findViewById(R.id.ivThumb2)
+
 
         with(view) {
+
+            ivThumb1 = findViewById(R.id.ivThumb1)
+            ivThumb2 = findViewById(R.id.ivThumb2)
 
             findViewById<Button>(R.id.bDirectory).setOnClickListener {
                 performFetchDirectories()

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.gallery.example.core.CoreFragment
+import com.gallery.example.edit.EditFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,6 +18,10 @@ class MainActivity : AppCompatActivity() {
             moveToFragment(CoreFragment())
         }
 
+        findViewById<Button>(R.id.bEdit).setOnClickListener {
+            moveToFragment(EditFragment())
+        }
+
         moveToFragment(CoreFragment())
     }
 
@@ -24,6 +30,14 @@ class MainActivity : AppCompatActivity() {
             replace(R.id.container, fragment)
             addToBackStack(null)
             commit()
+        }
+    }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 1) {
+            supportFragmentManager.popBackStack()
+        } else {
+            finishAffinity()
         }
     }
 }
