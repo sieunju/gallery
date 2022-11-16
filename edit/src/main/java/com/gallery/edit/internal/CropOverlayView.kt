@@ -662,8 +662,8 @@ internal class CropOverlayView @JvmOverloads constructor(
     private fun drawCropLabelText(canvas: Canvas) {
         if (isCropLabelEnabled) {
             val rect = mCropWindowHandler.getRect()
-            var xCoordinate = (rect.left + rect.right) / 2
-            var yCoordinate = rect.top - 50
+            val xCoordinate = (rect.left + rect.right) / 2
+            val yCoordinate = rect.top - 50
             textLabelPaint?.apply {
                 textSize = cropLabelTextSize
                 color = cropLabelTextColor

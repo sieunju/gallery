@@ -67,7 +67,7 @@
             android:layout_height="400dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <com.gallery.edit.FlexibleImageView
+            <com.gallery.edit.FlexibleImageEditView
                 android:id="@+id/ivFlexible"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

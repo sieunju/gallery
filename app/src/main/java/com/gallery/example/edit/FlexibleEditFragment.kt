@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.gallery.core.GalleryProvider
 import com.gallery.core.toPhotoUri
-import com.gallery.edit.FlexibleImageView
+import com.gallery.edit.FlexibleImageEditView
 import com.gallery.example.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +29,12 @@ import kotlin.random.Random
  * Created by juhongmin on 2022/11/14
  */
 @AndroidEntryPoint
-internal class FlexibleFragment : Fragment(R.layout.f_flexible) {
+internal class FlexibleEditFragment : Fragment(R.layout.f_flexible_edit) {
 
     @Inject
     lateinit var galleryProvider: GalleryProvider
 
-    private lateinit var ivFlexible: FlexibleImageView
+    private lateinit var ivFlexible: FlexibleImageEditView
     private lateinit var clCapture: ConstraintLayout
     private lateinit var ivCapture: AppCompatImageView
     private lateinit var fRoot: FrameLayout

@@ -12,18 +12,7 @@ import com.gallery.edit.enums.CropCornerShape
 import com.gallery.edit.enums.CropShape
 import com.gallery.edit.enums.Guidelines
 import com.gallery.edit.enums.ScaleType
-import com.gallery.edit.internal.CropOverlayView
-import com.gallery.edit.internal.POINTS
-import com.gallery.edit.internal.POINTS2
-import com.gallery.edit.internal.RECT
-import com.gallery.edit.internal.getRectBottom
-import com.gallery.edit.internal.getRectCenterX
-import com.gallery.edit.internal.getRectCenterY
-import com.gallery.edit.internal.getRectHeight
-import com.gallery.edit.internal.getRectLeft
-import com.gallery.edit.internal.getRectRight
-import com.gallery.edit.internal.getRectTop
-import com.gallery.edit.internal.getRectWidth
+import com.gallery.edit.internal.*
 import com.gallery.model.CropImageEditModel
 import kotlin.math.*
 
@@ -250,12 +239,16 @@ class CropImageEditView @JvmOverloads constructor(
 
     /**
      * Set / Get the amount of degrees (between 0 and 360) the cropping image is rotated clockwise.<br></br>
+     * 0, 90, 180, 270, 360
      */
     var rotatedDegrees: Int
         get() = mDegreesRotated
-        set(degrees) {
-            if (mDegreesRotated != degrees) {
-                rotateImage(degrees - mDegreesRotated)
+        set(value) {
+            if (value != 0 && value != 90 && value != 180 && value != 270 && value != 360) {
+                throw IllegalArgumentException("RotateDegrees 0, 90, 180, 270, 360")
+            }
+            if (mDegreesRotated != value) {
+                rotateImage(value - mDegreesRotated)
             }
         }
 
@@ -518,7 +511,7 @@ class CropImageEditView @JvmOverloads constructor(
      *
      * @param degrees Integer specifying the number of degrees to rotate.
      */
-    fun rotateImage(degrees: Int) {
+    private fun rotateImage(degrees: Int) {
         if (originalBitmap != null) {
             // Force degrees to be a non-zero value between 0 and 360 (inclusive)
             val newDegrees =

@@ -27,7 +27,7 @@ import kotlin.math.*
  *
  * Created by juhongmin on 2022/09/19
  */
-class FlexibleImageView @JvmOverloads constructor(
+class FlexibleImageEditView @JvmOverloads constructor(
     ctx: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -120,9 +120,9 @@ class FlexibleImageView @JvmOverloads constructor(
                     isTouchLock = true
                 },
                 onEnd = {
-                    stateItem.scale = this@FlexibleImageView.scaleX
-                    stateItem.focusX = this@FlexibleImageView.translationX
-                    stateItem.focusY = this@FlexibleImageView.translationY
+                    stateItem.scale = this@FlexibleImageEditView.scaleX
+                    stateItem.focusX = this@FlexibleImageEditView.translationX
+                    stateItem.focusY = this@FlexibleImageEditView.translationY
                     invalidate()
                     isTouchLock = false
                 }
@@ -158,9 +158,9 @@ class FlexibleImageView @JvmOverloads constructor(
                     isTouchLock = true
                 },
                 onEnd = {
-                    stateItem.scale = this@FlexibleImageView.scaleX
-                    stateItem.focusX = this@FlexibleImageView.translationX
-                    stateItem.focusY = this@FlexibleImageView.translationY
+                    stateItem.scale = this@FlexibleImageEditView.scaleX
+                    stateItem.focusX = this@FlexibleImageEditView.translationX
+                    stateItem.focusY = this@FlexibleImageEditView.translationY
                     invalidate()
                     isTouchLock = false
                 }
@@ -473,13 +473,13 @@ class FlexibleImageView @JvmOverloads constructor(
         // LogD("Ani $targetX $targetY")
         val pvhX = PropertyValuesHolder.ofFloat(View.TRANSLATION_X, targetX)
         val pvhY = PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, targetY)
-        ObjectAnimator.ofPropertyValuesHolder(this@FlexibleImageView, pvhX, pvhY).apply {
+        ObjectAnimator.ofPropertyValuesHolder(this@FlexibleImageEditView, pvhX, pvhY).apply {
             duration = 200
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart { isTouchLock = true }
             doOnEnd {
-                stateItem.focusX = this@FlexibleImageView.translationX
-                stateItem.focusY = this@FlexibleImageView.translationY
+                stateItem.focusX = this@FlexibleImageEditView.translationX
+                stateItem.focusY = this@FlexibleImageEditView.translationY
                 invalidate()
                 isTouchLock = false
             }
