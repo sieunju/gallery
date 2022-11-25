@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GalleryRecyclerView">
+        <attr name="galleryAdapterCameraVisible" format="boolean"/>
+        <attr name="galleryAdapterCameraDrawableRes" format="integer"/>
+        <attr name="galleryMaxSelectedCount" format="integer"/>
+    </declare-styleable>
+
+</resources>

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.gallery.example.core.CoreFragment
 import com.gallery.example.edit.EditFragment
+import com.gallery.example.ui.GalleryRootFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,6 +21,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.bEdit).setOnClickListener {
             moveToFragment(EditFragment())
+        }
+
+        findViewById<Button>(R.id.bUi).setOnClickListener {
+            moveToFragment(GalleryRootFragment())
         }
 
         moveToFragment(CoreFragment())
