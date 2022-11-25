@@ -103,6 +103,8 @@ rxjava.android = "io.reactivex.rxjava3:rxandroid:3.0.0"
 rxjava.kotlin = "io.reactivex.rxjava3:rxkotlin:3.0.1"
 deps.rx = rxjava
 
+deps.coil = "io.coil-kt:coil:2.2.2"
+
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {
