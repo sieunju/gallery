@@ -513,10 +513,8 @@ internal class GalleryProviderImpl constructor(
                 val parcelFile = contentResolver.openFileDescriptor(item, "w", null)
                     ?: return false to "openFileDescriptor Error"
                 val fos = FileOutputStream(parcelFile.fileDescriptor)
-                val stream = ByteArrayOutputStream()
                 val bitmap = pathToBitmap(pictureUri)
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                // fos.write(stream.toByteArray())
                 fos.close()
                 values.clear()
                 values.put(MediaStore.Images.Media.IS_PENDING, 0)

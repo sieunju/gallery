@@ -108,8 +108,10 @@ internal class AddCameraGalleryFragment : Fragment(R.layout.f_add_camera_gallery
             .subscribeOn(Schedulers.io())
             .subscribe({
                 Timber.d("SUCC $it")
+                galleryProvider.deleteCacheDirectory()
             }, {
                 Timber.d("ERROR $it")
+                galleryProvider.deleteCacheDirectory()
             }).addTo(disposable)
     }
 }
