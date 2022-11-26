@@ -1,32 +1,35 @@
 package com.gallery.ui.adapter
 
+import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.doOnAttach
 import androidx.core.view.doOnDetach
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewTreeLifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
-import coil.request.CachePolicy
-import coil.transform.CircleCropTransformation
-import coil.transform.RoundedCornersTransformation
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.model.BaseGalleryItem
 import com.gallery.model.CameraOpenItem
 import com.gallery.model.GalleryItem
 import com.gallery.ui.R
-import timber.log.Timber
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -48,6 +51,10 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     // [s] Attribute Set
     private var isShowCamera = false
     private var cameraDrawableRes: Int = R.drawable.ic_camera
+    private var selectedSize: Int = 30.dp
+    private var selectedBgDrawable: Drawable? = null
+    @ColorInt
+    private var selectedTxtColor: Int = Color.WHITE
     // [e] Attribute Set
 
     private var lastPos = -1
@@ -72,7 +79,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             prevCursor.close()
         }
         photoCursor = newCursor
-        notifyItemRangeChanged(0, itemCount)
+        notifyItemRangeChanged(0, 10)
     }
 
     /**
@@ -96,6 +103,33 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
      */
     fun setSelectedMaxCount(count: Int): GalleryAdapter {
         maxPickerCnt = count
+        return this
+    }
+
+    /**
+     * set Selected Width, Height DP
+     * @param size Dimension 1:1 Ratio Value
+     */
+    fun setSelectedSize(size: Int): GalleryAdapter {
+        selectedSize = size
+        return this
+    }
+
+    /**
+     * set Selected View background drawable
+     * @param drawable Background Drawable
+     */
+    fun setSelectedDrawable(drawable: Drawable): GalleryAdapter {
+        selectedBgDrawable = drawable
+        return this
+    }
+
+    /**
+     * set Selected Text Color
+     * @param color Text Color
+     */
+    fun setSelectedTextColor(@ColorInt color: Int): GalleryAdapter {
+        selectedTxtColor = color
         return this
     }
 
@@ -180,6 +214,13 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
+    private val Int.dp: Int
+        get() = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            Resources.getSystem().displayMetrics
+        ).toInt()
+
     inner class GalleryViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context).inflate(
             R.layout.vh_child_gallery, parent, false
@@ -195,6 +236,14 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
 
         private var lifecycleOwner: LifecycleOwner? = null
+
+        private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
+            DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
+        }
+
+        private val crossFadeTransition: DrawableTransitionOptions by lazy {
+            DrawableTransitionOptions.withCrossFade(crossFadeFactory)
+        }
 
         init {
             itemView.doOnAttach { v ->
@@ -213,12 +262,14 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             if (item == null) return
 
             if (item is GalleryItem) {
-                ivThumb.load(item.imagePath) {
-                    crossfade(500)
-                    diskCachePolicy(CachePolicy.READ_ONLY)
-                    placeholder(placeHolder)
-                    lifecycle(lifecycleOwner)
-                }
+                Glide.with(ivThumb)
+                    .load(item.imagePath)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .thumbnail(0.1F)
+                    .override(300, 300)
+                    .placeholder(placeHolder)
+                    .transition(crossFadeTransition)
+                    .into(ivThumb)
             }
         }
     }
