@@ -12,24 +12,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.doOnAttach
-import androidx.core.view.doOnDetach
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.model.BaseGalleryItem
 import com.gallery.model.CameraOpenItem
 import com.gallery.model.GalleryItem
+import com.gallery.ui.GalleryListener
 import com.gallery.ui.R
+import com.gallery.ui.internal.changeVisible
+import com.gallery.ui.internal.crossFadeTransition
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -46,15 +46,22 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     /**
      * Selected Photo Map
      */
-    private val selectedPhotoMap: MutableMap<String, GalleryItem> by lazy { mutableMapOf() }
+    private val pickerMap: MutableMap<String, GalleryItem> by lazy { mutableMapOf() }
+
+    /**
+     * Selected Listener
+     */
+    var listener: GalleryListener? = null
 
     // [s] Attribute Set
     private var isShowCamera = false
     private var cameraDrawableRes: Int = R.drawable.ic_camera
     private var selectedSize: Int = 30.dp
     private var selectedBgDrawable: Drawable? = null
+
     @ColorInt
     private var selectedTxtColor: Int = Color.WHITE
+    private var requestManager: RequestManager? = null
     // [e] Attribute Set
 
     private var lastPos = -1
@@ -133,10 +140,19 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return this
     }
 
+    /**
+     * set Glide RequestManager
+     * @param manager RequestManager
+     */
+    fun setRequestManager(manager: RequestManager): GalleryAdapter {
+        requestManager = manager
+        return this
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             R.layout.vh_child_gallery -> GalleryViewHolder(parent)
-            R.layout.vh_child_camera -> CameraOpenViewHolder(parent, cameraDrawableRes)
+            R.layout.vh_child_camera -> CameraOpenViewHolder(parent)
             else -> throw IllegalArgumentException("Invalid ViewType")
         }
     }
@@ -158,6 +174,26 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             performCloseCursor()
         } catch (ex: Exception) {
             // ignore
+        }
+    }
+
+    /**
+     * onBindView Payloads
+     */
+    @Suppress("UNCHECKED_CAST")
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.size == 0) {
+            this.onBindViewHolder(holder, position)
+        } else {
+            if (payloads[0] is List<*>) {
+                if (holder is GalleryViewHolder) {
+                    holder.onBindView(payloads[0] as List<Any>)
+                }
+            }
         }
     }
 
@@ -193,7 +229,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 )
 
                 // 기존에 선택한 아이템이라면 주소값 넘김
-                val selectGalleryItem = selectedPhotoMap[uri.toString()]
+                val selectGalleryItem = pickerMap[uri.toString()]
                 if (selectGalleryItem != null) {
                     dataList.add(selectGalleryItem)
                 } else {
@@ -221,6 +257,31 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             Resources.getSystem().displayMetrics
         ).toInt()
 
+    /**
+     * 사진을 선택하고 나서
+     * 선택한 숫자 갱신 처리하는 함수
+     * @param isAdd 추가 or 제거
+     * @param item 갤러리 선택 아이템
+     * @param map Map
+     */
+    fun sortedPickerMap(
+        isAdd: Boolean,
+        item: GalleryItem,
+        map: MutableMap<String, GalleryItem>
+    ) {
+        if (isAdd) {
+            item.selectedNum = "${map.size.plus(1)}"
+            map[item.imagePath] = item
+        } else {
+            map.remove(item.imagePath)
+            var idx = 1
+            map.forEach { entry ->
+                entry.value.selectedNum = idx.toString()
+                idx++
+            }
+        }
+    }
+
     inner class GalleryViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context).inflate(
             R.layout.vh_child_gallery, parent, false
@@ -229,54 +290,140 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
-        private val clSelected: ConstraintLayout by lazy { itemView.findViewById(R.id.clSelected) }
+        private val clSelectedNumber: ConstraintLayout by lazy { itemView.findViewById(R.id.clSelectedNumber) }
+        private val vSelectedNum: View by lazy { itemView.findViewById(R.id.vSelectedNum) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
-        private val placeHolder: ColorDrawable by lazy {
-            ColorDrawable(Color.argb(50, 60, 63, 65))
-        }
+        private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.argb(50, 60, 63, 65)) }
 
-        private var lifecycleOwner: LifecycleOwner? = null
-
-        private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
-            DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
-        }
-
-        private val crossFadeTransition: DrawableTransitionOptions by lazy {
-            DrawableTransitionOptions.withCrossFade(crossFadeFactory)
-        }
+        private var resizeWidth = 300
+        private var model: GalleryItem? = null
 
         init {
-            itemView.doOnAttach { v ->
-                lifecycleOwner = ViewTreeLifecycleOwner.get(v)
-            }
-            itemView.doOnDetach {
-                lifecycleOwner = null
-            }
+            initStyle()
 
             ivThumb.setOnClickListener {
+                model?.runCatching {
+                    // 선택 해제
+                    if (isSelected) {
+                        sortedPickerMap(false, this, pickerMap)
+                        isSelected = !isSelected
+                        rangeNotifyPayload(this)
+                    } else {
+                        // Max Size
+                        if (pickerMap.size >= maxPickerCnt) {
+                            listener?.onMaxPickerCount()
+                            return@runCatching
+                        }
 
+                        // 추가인 경우 나머지 갱신 처리할 필요가 없음
+                        sortedPickerMap(true, this, pickerMap)
+                        isSelected = !isSelected
+                        notifyItemChanged(bindingAdapterPosition)
+                    }
+
+                    listener?.onPhotoPicker(this, isSelected)
+                }
             }
         }
 
+        private fun initStyle() {
+            clSelectedNumber.updateLayoutParams {
+                width = selectedSize.plus(10)
+                height = selectedSize.plus(10)
+            }
+            vSelectedNum.background = selectedBgDrawable
+            tvSelectNum.setTextColor(selectedTxtColor)
+            ivThumb.post {
+                resizeWidth = ivThumb.width.minus(30.dp)
+            }
+        }
+
+        /**
+         * Normal onBindView
+         */
         fun onBindView(item: BaseGalleryItem?) {
             if (item == null) return
 
             if (item is GalleryItem) {
-                Glide.with(ivThumb)
-                    .load(item.imagePath)
-                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                    .thumbnail(0.1F)
-                    .override(300, 300)
-                    .placeholder(placeHolder)
-                    .transition(crossFadeTransition)
-                    .into(ivThumb)
+                model = item
+                setLoadImage(item)
+                setPickerItem(item)
             }
         }
+
+        /**
+         * Payload BindView
+         * @param payloads Payload DataList
+         */
+        fun onBindView(payloads: List<Any>) {
+            model?.runCatching {
+                for (idx: Int in payloads.indices) {
+                    val item = payloads[idx]
+                    if (item is GalleryItem) {
+                        if (item.imagePath == this.imagePath) {
+                            onBindView(item)
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        private fun setLoadImage(item: GalleryItem) {
+            val manager = requestManager ?: Glide.with(itemView.context)
+            manager.load(item.imagePath)
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                .thumbnail(0.9F)
+                .override(resizeWidth, resizeWidth)
+                .placeholder(placeHolder)
+                .transition(crossFadeTransition)
+                .into(ivThumb)
+        }
+
+        private fun setPickerItem(item: GalleryItem) {
+            if (item.isSelected) {
+                vSelected.changeVisible(View.VISIBLE)
+                clSelectedNumber.changeVisible(View.VISIBLE)
+                tvSelectNum.text = item.selectedNum
+            } else {
+                vSelected.changeVisible(View.GONE)
+                clSelectedNumber.changeVisible(View.GONE)
+            }
+        }
+
+        /**
+         * 선택한 아이템들만 갱신 처리하도록 하는 함수
+         * @param changeItem Current Selected Item
+         */
+        private fun rangeNotifyPayload(changeItem: GalleryItem) {
+            if (itemView.parent is RecyclerView) {
+                val layoutManager = (itemView.parent as RecyclerView).layoutManager
+                if (layoutManager is GridLayoutManager) {
+                    val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                    val lastPosition = layoutManager.findLastVisibleItemPosition()
+                    val notifyList = mutableListOf<GalleryItem>()
+                    notifyList.add(changeItem)
+                    pickerMap.forEach { notifyList.add(it.value) }
+
+                    // 현재 보여지고 있는 뷰에 대해서만 갱신 처리
+                    notifyItemRangeChanged(firstPosition, lastPosition.plus(1), notifyList)
+                } else if (layoutManager is LinearLayoutManager) {
+                    val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                    val lastPosition = layoutManager.findLastVisibleItemPosition()
+                    val notifyList = mutableListOf<GalleryItem>()
+                    notifyList.add(changeItem)
+                    pickerMap.forEach { notifyList.add(it.value) }
+                    // 현재 보여지고 있는 뷰에 대해서만 갱신 처리
+                    notifyItemRangeChanged(firstPosition, lastPosition.plus(1), notifyList)
+                }
+            }
+        }
+
+
     }
 
     inner class CameraOpenViewHolder(
-        parent: ViewGroup,
-        @DrawableRes drawableId: Int
+        parent: ViewGroup
     ) : RecyclerView.ViewHolder(
         LayoutInflater
             .from(parent.context)
@@ -289,7 +436,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private val ivCamera: AppCompatImageView by lazy { itemView.findViewById(R.id.ivCamera) }
 
         init {
-            ivCamera.setImageResource(drawableId)
+            ivCamera.setImageResource(cameraDrawableRes)
             ivCamera.setOnClickListener {
                 // Camera Open
             }

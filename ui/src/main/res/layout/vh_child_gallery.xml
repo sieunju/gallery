@@ -27,9 +27,9 @@
         tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/clSelected"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:id="@+id/clSelectedNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:padding="10dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/ivThumb"
@@ -37,9 +37,9 @@
         tools:visibility="visible">
 
         <View
+            android:id="@+id/vSelectedNum"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/bg_select_gallery_item" />
+            android:layout_height="match_parent" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tvSelectNum"

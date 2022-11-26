@@ -9,9 +9,9 @@ import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.util.TypedValue
 import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.RequestManager
 import com.gallery.ui.adapter.GalleryAdapter
 
 /**
@@ -145,6 +145,13 @@ class GalleryRecyclerView @JvmOverloads constructor(
      */
     fun setSelectedTxtColor(@ColorInt color: Int): GalleryAdapter {
         return adapter.setSelectedTextColor(color)
+    }
+
+    /**
+     * Glide Request Manager
+     */
+    fun setRequestManager(manager: RequestManager): GalleryAdapter {
+        return adapter.setRequestManager(manager)
     }
 
     private val Int.dp: Int

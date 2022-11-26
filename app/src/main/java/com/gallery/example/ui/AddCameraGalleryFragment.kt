@@ -3,9 +3,11 @@ package com.gallery.example.ui
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.gallery.core.GalleryProvider
 import com.gallery.example.R
 import com.gallery.ui.GalleryRecyclerView
+import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
@@ -28,6 +30,8 @@ internal class AddCameraGalleryFragment : Fragment(R.layout.f_add_camera_gallery
         super.onViewCreated(view, savedInstanceState)
         with(view) {
             galleryRecyclerView = view.findViewById(R.id.rvGallery)
+            galleryRecyclerView.setRequestManager(Glide.with(this@AddCameraGalleryFragment))
+            galleryRecyclerView.addItemDecoration(GridDividerItemDecoration(2.dp))
         }
 
         fetchCursor()

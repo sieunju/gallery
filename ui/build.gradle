@@ -37,7 +37,6 @@ dependencies {
     implementation(deps.androidx.core)
     implementation(deps.androidx.recyclerview)
     implementation(deps.androidx.constraintLayout)
-    implementation(deps.coil)
     implementation(deps.glide.base)
 
     implementation(deps.timber)
