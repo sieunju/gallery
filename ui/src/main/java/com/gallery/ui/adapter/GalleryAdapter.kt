@@ -1,11 +1,18 @@
 package com.gallery.ui.adapter
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.database.ContentObserver
 import android.database.Cursor
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -16,6 +23,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,6 +38,8 @@ import com.gallery.ui.GalleryListener
 import com.gallery.ui.R
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
+import timber.log.Timber
+import java.io.File
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -72,6 +82,15 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun setCursor(newCursor: Cursor?) {
         if (newCursor == null) return
         dataList.clear()
+
+        newCursor.registerContentObserver(object :
+            ContentObserver(Handler(Looper.getMainLooper())) {
+
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
+                super.onChange(selfChange, uri)
+                Timber.d("onChange $selfChange $uri")
+            }
+        })
 
         if (isShowCamera) {
             // fist Index Default Camera Item
@@ -438,7 +457,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         init {
             ivCamera.setImageResource(cameraDrawableRes)
             ivCamera.setOnClickListener {
-                // Camera Open
+                listener?.onCameraOpen()
             }
         }
     }

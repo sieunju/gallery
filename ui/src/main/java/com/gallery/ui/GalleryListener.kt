@@ -9,6 +9,8 @@ import com.gallery.model.GalleryItem
  */
 interface GalleryListener {
 
+    fun onCameraOpen()
+
     /**
      * Photo Picker Callback
      * @param item Current GalleryItem

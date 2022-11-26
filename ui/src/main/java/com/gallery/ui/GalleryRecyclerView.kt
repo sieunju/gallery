@@ -154,6 +154,14 @@ class GalleryRecyclerView @JvmOverloads constructor(
         return adapter.setRequestManager(manager)
     }
 
+    /**
+     * Gallery Listener
+     */
+    fun setListener(listener: GalleryListener): GalleryAdapter {
+        adapter.listener = listener
+        return adapter
+    }
+
     private val Int.dp: Int
         get() = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
