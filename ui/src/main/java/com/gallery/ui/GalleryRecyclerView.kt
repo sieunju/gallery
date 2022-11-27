@@ -1,18 +1,30 @@
 package com.gallery.ui
 
 import android.content.Context
-import android.content.res.Resources
+import android.database.ContentObserver
 import android.database.Cursor
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.provider.MediaStore
 import android.util.AttributeSet
-import android.util.TypedValue
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.adapter.GalleryAdapter
+import com.gallery.ui.internal.MediaContentsDelayUpdateHandler
+import com.gallery.ui.internal.dp
+import timber.log.Timber
 
 /**
  * Description : Gallery RecyclerView
@@ -24,9 +36,15 @@ class GalleryRecyclerView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : RecyclerView(context, attrs, defStyleAttr) {
+) : RecyclerView(context, attrs, defStyleAttr), LifecycleEventObserver {
 
     private val adapter: GalleryAdapter by lazy { GalleryAdapter() }
+    var lifecycleStatus: Lifecycle.Event = Lifecycle.Event.ON_ANY
+
+    private val mediaContentsUpdateHandler: MediaContentsDelayUpdateHandler by lazy {
+        MediaContentsDelayUpdateHandler(this, adapter)
+    }
+
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.GalleryRecyclerView).run {
@@ -96,11 +114,52 @@ class GalleryRecyclerView @JvmOverloads constructor(
         }
     }
 
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        lifecycleStatus = event
+    }
+
+    /**
+     * setLifecycle Observer
+     */
+    fun setLifecycle(lifecycle: Lifecycle) {
+        lifecycle.addObserver(this)
+    }
+
+    fun setLifecycle(fragmentActivity: FragmentActivity) {
+        fragmentActivity.lifecycle.addObserver(this)
+    }
+
+    fun setLifecycle(fragment: Fragment) {
+        fragment.lifecycle.addObserver(this)
+    }
+
     /**
      * setCursor
      */
     fun setCursor(cursor: Cursor?) {
         adapter.setCursor(cursor)
+
+        context.contentResolver.unregisterContentObserver(contentsObserver)
+        context.contentResolver.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            contentsObserver
+        )
+    }
+
+    private val contentsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            super.onChange(selfChange, uri)
+            Timber.d("Real onChange $selfChange $uri")
+            if (uri != null) {
+                mediaContentsUpdateHandler.removeMessages(MediaContentsDelayUpdateHandler.UPDATE_TYPE)
+                val message = Message().apply {
+                    what = MediaContentsDelayUpdateHandler.UPDATE_TYPE
+                    obj = uri.toString()
+                }
+                mediaContentsUpdateHandler.sendMessageDelayed(message, 500)
+            }
+        }
     }
 
     /**
@@ -161,11 +220,4 @@ class GalleryRecyclerView @JvmOverloads constructor(
         adapter.listener = listener
         return adapter
     }
-
-    private val Int.dp: Int
-        get() = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            this.toFloat(),
-            Resources.getSystem().displayMetrics
-        ).toInt()
 }

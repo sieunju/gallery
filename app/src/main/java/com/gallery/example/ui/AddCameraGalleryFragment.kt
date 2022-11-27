@@ -54,6 +54,7 @@ internal class AddCameraGalleryFragment : Fragment(R.layout.f_add_camera_gallery
             galleryRecyclerView.setRequestManager(Glide.with(this@AddCameraGalleryFragment))
             galleryRecyclerView.addItemDecoration(GridDividerItemDecoration(2.dp))
             galleryRecyclerView.setListener(this@AddCameraGalleryFragment)
+            galleryRecyclerView.setLifecycle(this@AddCameraGalleryFragment.lifecycle)
         }
 
         fetchCursor()
