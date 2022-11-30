@@ -18,12 +18,13 @@ internal class GalleryRootFragment : Fragment(R.layout.fragment_gallery) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(view) {
-            findViewById<AppCompatTextView>(R.id.bAddCamera).setOnClickListener {
-                moveToFragment(AddCameraGalleryFragment())
+
+            findViewById<AppCompatTextView>(R.id.bGalleryAndCropEdit).setOnClickListener {
+                moveToFragment(GalleryAndCropEditFragment())
             }
 
-            findViewById<AppCompatTextView>(R.id.bNoCamera).setOnClickListener {
-                moveToFragment(NoCameraGalleryFragment())
+            findViewById<AppCompatTextView>(R.id.bAddCamera).setOnClickListener {
+                moveToFragment(GalleryAndFlexibleFragment())
             }
         }
     }

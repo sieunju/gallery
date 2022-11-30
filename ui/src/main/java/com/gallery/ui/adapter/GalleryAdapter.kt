@@ -351,8 +351,8 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private fun initStyle() {
             clSelectedNumber.updateLayoutParams {
-                width = selectedSize.plus(10)
-                height = selectedSize.plus(10)
+                width = selectedSize.plus(10.dp)
+                height = selectedSize.plus(10.dp)
             }
             vSelectedNum.background = selectedBgDrawable
             tvSelectNum.setTextColor(selectedTxtColor)

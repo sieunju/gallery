@@ -11,14 +11,14 @@
         android:weightSum="2">
 
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/bNoCamera"
+            android:id="@+id/bGalleryAndCropEdit"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="#0097A7"
             android:foreground="?selectableItemBackground"
             android:gravity="center"
-            android:text="NoCamera"
+            android:text="GalleryAndCropEdit"
             android:textColor="@color/white" />
 
         <androidx.appcompat.widget.AppCompatTextView

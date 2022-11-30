@@ -24,7 +24,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -87,7 +86,6 @@ internal class GalleryProviderImpl constructor(
                     sort
                 ) ?: break@loop
 
-                Timber.d("Directories ${Thread.currentThread()}")
                 if (cursor.moveToLast()) {
                     val contentId = getContentsId(cursor)
                     val photoUri = getPhotoUri(contentId)

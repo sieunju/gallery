@@ -112,6 +112,8 @@ class GalleryRecyclerView @JvmOverloads constructor(
             }
             recycle()
         }
+
+        isMotionEventSplittingEnabled = false
     }
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
@@ -137,8 +139,9 @@ class GalleryRecyclerView @JvmOverloads constructor(
      * setCursor
      */
     fun setCursor(cursor: Cursor?) {
-        adapter.setCursor(cursor)
+        if (cursor == null) return
 
+        adapter.setCursor(cursor)
         context.contentResolver.unregisterContentObserver(contentsObserver)
         context.contentResolver.registerContentObserver(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="vm"
+            type="com.gallery.example.ui.GalleryAndCropEditFragmentViewModel" />
+    </data>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="2">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="0dp">
+
+            <com.gallery.edit.CropImageEditView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:setCropImageEditBitmap="@{vm.selectPhotoBitmap}" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.gallery.ui.GalleryRecyclerView
+            android:id="@+id/rvGallery"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:cursor="@{vm.cursor}"
+            app:gallerySelectedMaxCount="5"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
+            app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
+            app:spanCount="3"
+            tools:listitem="@layout/vh_child_gallery" />
+
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</layout>

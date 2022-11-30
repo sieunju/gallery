@@ -52,6 +52,10 @@ dependencies {
     implementation(deps.androidx.constraintLayout)
     implementation(deps.androidx.multidex)
     implementation(deps.androidx.material)
+    
+    implementation(deps.lifecycle.base)
+    implementation(deps.lifecycle.viewmodel)
+    implementation(deps.lifecycle.livedata)
 
     implementation(deps.rx.base)
     implementation(deps.rx.kotlin)

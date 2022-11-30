@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="vm"
+            type="com.gallery.example.ui.AddCameraGalleryFragmentViewModel" />
+    </data>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.gallery.ui.GalleryRecyclerView
+            android:id="@+id/rvGallery"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            app:galleryCameraVisible="true"
+            app:gallerySelectedCorner="30dp"
+            app:gallerySelectedMaxCount="10"
+            app:gallerySelectedSize="60dp"
+            app:gallerySelectedStroke="2dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:onGalleryCameraOpen="@{()->vm.onCameraOpen()}"
+            app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
+            app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
+            app:cursor="@{vm.cursor}"
+            app:spanCount="3"
+            tools:listitem="@layout/vh_child_gallery" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>
