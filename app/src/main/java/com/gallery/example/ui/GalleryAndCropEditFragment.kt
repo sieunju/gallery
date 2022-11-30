@@ -8,16 +8,12 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
-import com.gallery.core.GalleryProvider
 import com.gallery.example.BR
 import com.gallery.example.R
 import com.gallery.example.databinding.FGalleryAndCropEditBinding
-import com.gallery.example.databinding.FGalleryAndFlexibleBinding
-import com.gallery.ui.GalleryRecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import javax.inject.Inject
 
 @AndroidEntryPoint
 internal class GalleryAndCropEditFragment : Fragment() {
@@ -53,6 +49,13 @@ internal class GalleryAndCropEditFragment : Fragment() {
         }
 
         with(viewModel) {
+            startViewHolderClickEvent.observe(viewLifecycleOwner) {
+                binding.rvGallery.requestViewHolderClick(it)
+            }
+            startSnackBarEvent.observe(viewLifecycleOwner) {
+                Snackbar.make(view, it, Snackbar.LENGTH_SHORT).show()
+            }
+
             start()
         }
     }

@@ -7,29 +7,42 @@
 
         <variable
             name="vm"
-            type="com.gallery.example.ui.AddCameraGalleryFragmentViewModel" />
+            type="com.gallery.example.ui.GalleryAndFlexibleFragmentViewModel" />
     </data>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:weightSum="2">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.gallery.edit.FlexibleImageEditView
+                android:id="@+id/ivFlexible"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:imageBitmap="@{vm.selectPhotoBitmap.first}"
+                app:stateItem="@{vm.selectPhotoBitmap.second}" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.gallery.ui.GalleryRecyclerView
             android:id="@+id/rvGallery"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:scrollbars="vertical"
+            app:cursor="@{vm.cursor}"
             app:galleryCameraVisible="true"
-            app:gallerySelectedCorner="30dp"
-            app:gallerySelectedMaxCount="10"
-            app:gallerySelectedSize="60dp"
-            app:gallerySelectedStroke="2dp"
+            app:gallerySelectedMaxCount="5"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             app:onGalleryCameraOpen="@{()->vm.onCameraOpen()}"
             app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
             app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
-            app:cursor="@{vm.cursor}"
             app:spanCount="3"
             tools:listitem="@layout/vh_child_gallery" />
 

@@ -217,6 +217,14 @@ class GalleryRecyclerView @JvmOverloads constructor(
     }
 
     /**
+     * Request Adapter.ViewHolder Click Function
+     * @param pos Request Position
+     */
+    fun requestViewHolderClick(pos: Int) {
+        adapter.requestViewHolderClick(pos)
+    }
+
+    /**
      * Gallery Listener
      */
     fun setListener(listener: GalleryListener): GalleryAdapter {

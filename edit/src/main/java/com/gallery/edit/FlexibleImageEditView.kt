@@ -91,6 +91,22 @@ class FlexibleImageEditView @JvmOverloads constructor(
         setImageBitmap(pair.first)
     }
 
+    @MainThread
+    fun loadBitmap(bitmap: Bitmap?, newItem: FlexibleStateItem) {
+        if (bitmap == null) return
+
+        resetView()
+        setImageBitmap(bitmap)
+        stateItem.run {
+            imgWidth = newItem.imgWidth
+            imgHeight = newItem.imgHeight
+            scale = newItem.scale
+            startScale = newItem.startScale
+            minScale = newItem.minScale
+        }
+        invalidate()
+    }
+
     /**
      * 이미지를 가운데로 옮기고 꽉차게 처리
      * UiThread 에서 이 함수를 실행 해야 합니다.
@@ -177,6 +193,11 @@ class FlexibleImageEditView @JvmOverloads constructor(
     fun getStateItem(): RectF? {
         return computeImageLocation()
     }
+
+    /**
+     * 해당 이미지가 위치한 State Item Model
+     */
+    fun getFlexibleStateItem() = stateItem
 
     /**
      * 해당 이미지 비트맵 Getter 처리함수

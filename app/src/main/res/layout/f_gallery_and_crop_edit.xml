@@ -18,13 +18,14 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_weight="1"
-            android:layout_height="0dp">
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
             <com.gallery.edit.CropImageEditView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:setCropImageEditBitmap="@{vm.selectPhotoBitmap}" />
+                app:cropScaleType="centerCrop"
+                app:imageBitmap="@{vm.selectPhotoBitmap}" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -33,6 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:scrollbars="vertical"
             app:cursor="@{vm.cursor}"
             app:gallerySelectedMaxCount="5"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"

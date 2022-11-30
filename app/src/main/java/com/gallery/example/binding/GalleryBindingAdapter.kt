@@ -4,6 +4,8 @@ import android.database.Cursor
 import android.graphics.Bitmap
 import androidx.databinding.BindingAdapter
 import com.gallery.edit.CropImageEditView
+import com.gallery.edit.FlexibleImageEditView
+import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.model.GalleryItem
 import com.gallery.ui.GalleryListener
 import com.gallery.ui.GalleryRecyclerView
@@ -13,7 +15,7 @@ import com.gallery.ui.GalleryRecyclerView
  *
  * Created by juhongmin on 2022/11/30
  */
-internal object GalleryRecyclerViewBindingAdapter {
+internal object GalleryBindingAdapter {
     interface GalleryCameraOpenListener {
         fun callback()
     }
@@ -71,11 +73,25 @@ internal object GalleryRecyclerViewBindingAdapter {
     }
 
     @JvmStatic
-    @BindingAdapter("setCropImageEditBitmap")
+    @BindingAdapter("imageBitmap")
     fun setCropImageEditBitmap(
         view: CropImageEditView,
         bitmap: Bitmap?
     ) {
         view.setImageBitmap(bitmap)
+    }
+
+    @JvmStatic
+    @BindingAdapter("imageBitmap", "stateItem", requireAll = false)
+    fun setFlexibleEditImageBitmap(
+        view: FlexibleImageEditView,
+        bitmap: Bitmap?,
+        stateItem: FlexibleStateItem?
+    ) {
+        if (stateItem == null) {
+            view.loadBitmap(bitmap)
+        } else {
+            view.loadBitmap(bitmap, stateItem)
+        }
     }
 }

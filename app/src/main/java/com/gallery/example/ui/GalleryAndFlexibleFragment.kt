@@ -21,7 +21,7 @@ import timber.log.Timber
 @AndroidEntryPoint
 internal class GalleryAndFlexibleFragment : Fragment() {
 
-    private val viewModel: AddCameraGalleryFragmentViewModel by viewModels()
+    private val viewModel: GalleryAndFlexibleFragmentViewModel by viewModels()
 
     private lateinit var binding: FGalleryAndFlexibleBinding
 
@@ -62,6 +62,14 @@ internal class GalleryAndFlexibleFragment : Fragment() {
 
         with(viewModel) {
 
+            startViewHolderClickEvent.observe(viewLifecycleOwner) {
+                binding.rvGallery.requestViewHolderClick(it)
+            }
+
+            startSaveStateItem.observe(viewLifecycleOwner) {
+                setCurrentStateItem(it, binding.ivFlexible.getFlexibleStateItem())
+            }
+
             startCameraOpenEvent.observe(viewLifecycleOwner) {
                 cameraCallback.launch(it)
             }
@@ -70,7 +78,7 @@ internal class GalleryAndFlexibleFragment : Fragment() {
                 Snackbar.make(view, it, Snackbar.LENGTH_SHORT).show()
             }
 
-            fetchCursor()
+            start()
         }
     }
 

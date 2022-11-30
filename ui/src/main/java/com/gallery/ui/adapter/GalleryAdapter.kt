@@ -172,6 +172,10 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return this
     }
 
+    fun requestViewHolderClick(pos: Int) {
+        notifyItemChanged(pos, true)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             R.layout.vh_child_gallery -> GalleryViewHolder(parent)
@@ -212,9 +216,15 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (payloads.size == 0) {
             this.onBindViewHolder(holder, position)
         } else {
+            Timber.d("onBindViewHolder Payload ${payloads[0]}")
             if (payloads[0] is List<*>) {
                 if (holder is GalleryViewHolder) {
                     holder.onBindView(payloads[0] as List<Any>)
+                }
+            } else if (payloads[0] is Boolean) {
+                Timber.d("onPerformClick $position $holder")
+                if (holder is GalleryViewHolder) {
+                    holder.onPerformClick(position)
                 }
             }
         }
@@ -323,29 +333,8 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         init {
             initStyle()
-
             ivThumb.setOnClickListener {
-                model?.runCatching {
-                    // 선택 해제
-                    if (isSelected) {
-                        sortedPickerMap(false, this, pickerMap)
-                        isSelected = !isSelected
-                        rangeNotifyPayload(this)
-                    } else {
-                        // Max Size
-                        if (pickerMap.size >= maxPickerCnt) {
-                            listener?.onMaxPickerCount()
-                            return@runCatching
-                        }
-
-                        // 추가인 경우 나머지 갱신 처리할 필요가 없음
-                        sortedPickerMap(true, this, pickerMap)
-                        isSelected = !isSelected
-                        notifyItemChanged(bindingAdapterPosition)
-                    }
-
-                    listener?.onPhotoPicker(this, isSelected)
-                }
+                performClickPhoto()
             }
         }
 
@@ -392,11 +381,48 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
 
+        /**
+         * 인위적으로 클릭 처리하는 함수
+         */
+        fun onPerformClick(pos: Int) {
+            if (bindingAdapterPosition == pos) {
+                ivThumb.post {
+                    performClickPhoto()
+                }
+            }
+        }
+
+        /**
+         * Photo Click
+         */
+        private fun performClickPhoto() {
+            model?.runCatching {
+                // 선택 해제
+                if (isSelected) {
+                    sortedPickerMap(false, this, pickerMap)
+                    isSelected = !isSelected
+                    rangeNotifyPayload(this)
+                } else {
+                    // Max Size
+                    if (pickerMap.size >= maxPickerCnt) {
+                        listener?.onMaxPickerCount()
+                        return@runCatching
+                    }
+
+                    // 추가인 경우 나머지 갱신 처리할 필요가 없음
+                    sortedPickerMap(true, this, pickerMap)
+                    isSelected = !isSelected
+                    notifyItemChanged(bindingAdapterPosition)
+                }
+
+                listener?.onPhotoPicker(this, isSelected)
+            }
+        }
+
         private fun setLoadImage(item: GalleryItem) {
             val manager = requestManager ?: Glide.with(itemView.context)
             manager.load(item.imagePath)
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                .thumbnail(0.9F)
                 .override(resizeWidth, resizeWidth)
                 .placeholder(placeHolder)
                 .transition(crossFadeTransition)

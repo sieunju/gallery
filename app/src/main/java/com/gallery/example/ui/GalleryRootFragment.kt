@@ -23,7 +23,7 @@ internal class GalleryRootFragment : Fragment(R.layout.fragment_gallery) {
                 moveToFragment(GalleryAndCropEditFragment())
             }
 
-            findViewById<AppCompatTextView>(R.id.bAddCamera).setOnClickListener {
+            findViewById<AppCompatTextView>(R.id.bGalleryAndFlexible).setOnClickListener {
                 moveToFragment(GalleryAndFlexibleFragment())
             }
         }

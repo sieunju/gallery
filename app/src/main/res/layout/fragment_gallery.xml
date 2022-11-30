@@ -22,14 +22,14 @@
             android:textColor="@color/white" />
 
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/bAddCamera"
+            android:id="@+id/bGalleryAndFlexible"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="#0097A7"
             android:foreground="?selectableItemBackground"
             android:gravity="center"
-            android:text="AddCamera"
+            android:text="GalleryAndFlexible"
             android:textColor="@color/white" />
 
 

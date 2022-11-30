@@ -16,6 +16,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
 import io.reactivex.rxjava3.schedulers.Schedulers
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -32,6 +33,7 @@ internal class GalleryAndCropEditFragmentViewModel @Inject constructor(
     private val disposable: CompositeDisposable by lazy { CompositeDisposable() }
 
     val startSnackBarEvent: SingleLiveEvent<String> by lazy { SingleLiveEvent() }
+    val startViewHolderClickEvent: SingleLiveEvent<Int> by lazy { SingleLiveEvent() }
 
     private val _cursor: MutableLiveData<Cursor> by lazy { MutableLiveData() }
     val cursor: LiveData<Cursor> get() = _cursor
@@ -57,8 +59,23 @@ internal class GalleryAndCropEditFragmentViewModel @Inject constructor(
             .subscribe({
                 Timber.d("SUCC $it")
                 _cursor.value = it
+                performClickPosition()
             }, {
                 Timber.d("ERROR $it")
+            }).addTo(disposable)
+    }
+
+    /**
+     * 초기 RecyclerView 클릭 처리하는 함수
+     */
+    private fun performClickPosition() {
+        Single.just(0)
+            .delay(400, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                startViewHolderClickEvent.value = it
+            }, {
+
             }).addTo(disposable)
     }
 
@@ -80,7 +97,6 @@ internal class GalleryAndCropEditFragmentViewModel @Inject constructor(
     }
 
     fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {
-        Timber.d("onPhotoClick $item $isAdd")
         if (isAdd) {
             getBitmap(item.imagePath)
         }
