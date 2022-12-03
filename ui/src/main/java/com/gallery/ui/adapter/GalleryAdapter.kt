@@ -216,13 +216,11 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (payloads.size == 0) {
             this.onBindViewHolder(holder, position)
         } else {
-            Timber.d("onBindViewHolder Payload ${payloads[0]}")
             if (payloads[0] is List<*>) {
                 if (holder is GalleryViewHolder) {
                     holder.onBindView(payloads[0] as List<Any>)
                 }
             } else if (payloads[0] is Boolean) {
-                Timber.d("onPerformClick $position $holder")
                 if (holder is GalleryViewHolder) {
                     holder.onPerformClick(position)
                 }
@@ -334,7 +332,11 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         init {
             initStyle()
             ivThumb.setOnClickListener {
-                performClickPhoto()
+                performAddPhotoClick()
+            }
+
+            clSelectedNumber.setOnClickListener {
+                performRemovePhotoClick()
             }
         }
 
@@ -387,22 +389,18 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         fun onPerformClick(pos: Int) {
             if (bindingAdapterPosition == pos) {
                 ivThumb.post {
-                    performClickPhoto()
+                    performAddPhotoClick()
                 }
             }
         }
 
         /**
-         * Photo Click
+         * Perform Add Photo Click Function
          */
-        private fun performClickPhoto() {
+        private fun performAddPhotoClick() {
             model?.runCatching {
-                // 선택 해제
-                if (isSelected) {
-                    sortedPickerMap(false, this, pickerMap)
-                    isSelected = !isSelected
-                    rangeNotifyPayload(this)
-                } else {
+                // 선택 하는 경우
+                if (!isSelected) {
                     // Max Size
                     if (pickerMap.size >= maxPickerCnt) {
                         listener?.onMaxPickerCount()
@@ -413,9 +411,26 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     sortedPickerMap(true, this, pickerMap)
                     isSelected = !isSelected
                     notifyItemChanged(bindingAdapterPosition)
+                    listener?.onPhotoPicker(this, true)
+                } else {
+                    // 이미 선택한 경우
+                    listener?.onPhotoPicker(this, true)
                 }
+            }
+        }
 
-                listener?.onPhotoPicker(this, isSelected)
+        /**
+         * Perform Remove Photo Click
+         */
+        private fun performRemovePhotoClick() {
+            model?.runCatching {
+                if (isSelected) {
+                    sortedPickerMap(false, this, pickerMap)
+                    isSelected = !isSelected
+                    rangeNotifyPayload(this)
+
+                    listener?.onPhotoPicker(this, false)
+                }
             }
         }
 
