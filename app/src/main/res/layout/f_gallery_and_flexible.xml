@@ -29,6 +29,11 @@
                 app:onStateUpdated="@{(item) -> vm.onStateItem(item)}"
                 app:stateItem="@{vm.selectPhotoBitmap.second}" />
 
+            <com.gallery.edit.FlexibleImageEditGuideView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:targetEditView="@{ivFlexible}" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.gallery.ui.GalleryRecyclerView

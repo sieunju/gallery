@@ -2,6 +2,7 @@ package com.gallery.example.binding
 
 import android.graphics.Bitmap
 import androidx.databinding.BindingAdapter
+import com.gallery.edit.FlexibleImageEditGuideView
 import com.gallery.edit.FlexibleImageEditListener
 import com.gallery.edit.FlexibleImageEditView
 import com.gallery.edit.detector.FlexibleStateItem
@@ -46,5 +47,14 @@ internal object FlexibleImageEditBindingAdapter {
                 }
             }
         }
+    }
+
+    @JvmStatic
+    @BindingAdapter("targetEditView")
+    fun setTargetEditView(
+        view: FlexibleImageEditGuideView,
+        targetView: FlexibleImageEditView
+    ) {
+        view.setImageEditView(targetView)
     }
 }

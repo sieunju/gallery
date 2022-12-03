@@ -10,7 +10,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.MainThread
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.animation.addListener
@@ -19,6 +18,7 @@ import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
+import com.gallery.edit.internal.dp
 import kotlin.math.*
 
 /**
@@ -56,6 +56,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
     private var isTouchLock: Boolean = false // 애니메이션 동작중 터치 잠금하기위한 Flag 값
 
     var listener: FlexibleImageEditListener? = null
+    var guideListener: FlexibleImageGuideListener? = null
 
     init {
         if (isInEditMode) {
@@ -359,8 +360,8 @@ class FlexibleImageEditView @JvmOverloads constructor(
         }
 
         // rotation = stateItem.rotationDegree 회전은 나중에 처리 할 예정
+        onDelegatedListener()
         super.onDraw(canvas)
-        listener?.onUpdateStateItem(stateItem)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -412,7 +413,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * 이미지 현재 너비 와 높이 값과 현재 포커싱 잡힌 X,Y 값을 기준으로
      * Top, Left, Right, Bottom 값들을 구할수 있다.
      */
-    private fun computeImageLocation(): RectF? {
+    internal fun computeImageLocation(): RectF? {
         if (viewWidth == -1 || viewHeight == -1 ||
             stateItem.currentImgWidth == -1F ||
             stateItem.currentImgHeight == -1F
@@ -491,12 +492,11 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * @param targetY Target Y 좌표
      */
     private fun handleTargetTranslation(targetX: Float, targetY: Float) {
-        // LogD("Ani $targetX $targetY")
         val pvhX = PropertyValuesHolder.ofFloat(View.TRANSLATION_X, targetX)
         val pvhY = PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, targetY)
         ObjectAnimator.ofPropertyValuesHolder(this@FlexibleImageEditView, pvhX, pvhY).apply {
             duration = 200
-            interpolator = AccelerateDecelerateInterpolator()
+            interpolator = FastOutSlowInInterpolator()
             doOnStart { isTouchLock = true }
             doOnEnd {
                 stateItem.focusX = this@FlexibleImageEditView.translationX
@@ -506,6 +506,14 @@ class FlexibleImageEditView @JvmOverloads constructor(
             }
             start()
         }
+    }
+
+    /**
+     * 설정한 리스너에 FlexibleStateItem 전달하는 함수
+     */
+    private fun onDelegatedListener() {
+        guideListener?.onUpdateItem(stateItem)
+        listener?.onUpdateStateItem(stateItem)
     }
 
     inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -523,7 +531,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
             }
 
             stateItem.scale = scale
-
             return true
         }
 
