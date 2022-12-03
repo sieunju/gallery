@@ -10,7 +10,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.MainThread
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.animation.addListener
@@ -19,7 +18,7 @@ import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
-import timber.log.Timber
+import com.gallery.edit.internal.dp
 import kotlin.math.*
 
 /**
@@ -47,14 +46,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
         MoveGestureDetector(MoveListener())
     }
 
-    private var stateItem = FlexibleStateItem(
-        scale = 1.0F,
-        focusX = 0F,
-        focusY = 0F,
-        rotationDegree = 0F,
-        flipX = 1F,
-        flipY = 1F
-    )
+    private val stateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
 
     private var isMultiTouch: Boolean = false
     private var moveDistance: Double = 0.0
@@ -62,6 +54,9 @@ class FlexibleImageEditView @JvmOverloads constructor(
     private var viewWidth = -1
     private var viewHeight = -1
     private var isTouchLock: Boolean = false // 애니메이션 동작중 터치 잠금하기위한 Flag 값
+
+    var listener: FlexibleImageEditListener? = null
+    var guideListener: FlexibleImageGuideListener? = null
 
     init {
         if (isInEditMode) {
@@ -75,20 +70,43 @@ class FlexibleImageEditView @JvmOverloads constructor(
      */
     @MainThread
     fun loadBitmap(bitmap: Bitmap?) {
+        loadBitmap(bitmap, null)
+    }
+
+    /**
+     * Load Bitmap
+     * @param bitmap Image Bitmap
+     * @param newItem Target FlexibleStateItem
+     */
+    @MainThread
+    fun loadBitmap(bitmap: Bitmap?, newItem: FlexibleStateItem? = null) {
         if (bitmap == null) return
 
         resetView()
-        val pair = cropBitmap(bitmap)
 
-        stateItem.run {
-            imgWidth = (pair.first.width.toFloat() / pair.second).toInt()
-            imgHeight = (pair.first.height.toFloat() / pair.second).toInt()
-            scale = pair.second
-            startScale = pair.second
-            minScale = 1F
+        if (newItem != null) {
+            setImageBitmap(bitmap)
+            stateItem.run {
+                imgWidth = newItem.imgWidth
+                imgHeight = newItem.imgHeight
+                scale = newItem.scale
+                startScale = newItem.startScale
+                minScale = newItem.minScale
+            }
+            invalidate()
+        } else {
+            val pair = cropBitmap(bitmap)
+
+            stateItem.run {
+                imgWidth = (pair.first.width.toFloat() / pair.second).toInt()
+                imgHeight = (pair.first.height.toFloat() / pair.second).toInt()
+                scale = pair.second
+                startScale = pair.second
+                minScale = 1F
+            }
+
+            setImageBitmap(pair.first)
         }
-
-        setImageBitmap(pair.first)
     }
 
     /**
@@ -103,8 +121,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
         ) {
             return
         }
-
-        Timber.d("centerCrop $stateItem")
 
         ObjectAnimator.ofPropertyValuesHolder(
             this,
@@ -177,6 +193,11 @@ class FlexibleImageEditView @JvmOverloads constructor(
     fun getStateItem(): RectF? {
         return computeImageLocation()
     }
+
+    /**
+     * 해당 이미지가 위치한 State Item Model
+     */
+    fun getFlexibleStateItem() = stateItem
 
     /**
      * 해당 이미지 비트맵 Getter 처리함수
@@ -339,6 +360,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
         }
 
         // rotation = stateItem.rotationDegree 회전은 나중에 처리 할 예정
+        onDelegatedListener()
         super.onDraw(canvas)
     }
 
@@ -391,7 +413,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * 이미지 현재 너비 와 높이 값과 현재 포커싱 잡힌 X,Y 값을 기준으로
      * Top, Left, Right, Bottom 값들을 구할수 있다.
      */
-    private fun computeImageLocation(): RectF? {
+    internal fun computeImageLocation(): RectF? {
         if (viewWidth == -1 || viewHeight == -1 ||
             stateItem.currentImgWidth == -1F ||
             stateItem.currentImgHeight == -1F
@@ -470,12 +492,11 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * @param targetY Target Y 좌표
      */
     private fun handleTargetTranslation(targetX: Float, targetY: Float) {
-        // LogD("Ani $targetX $targetY")
         val pvhX = PropertyValuesHolder.ofFloat(View.TRANSLATION_X, targetX)
         val pvhY = PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, targetY)
         ObjectAnimator.ofPropertyValuesHolder(this@FlexibleImageEditView, pvhX, pvhY).apply {
             duration = 200
-            interpolator = AccelerateDecelerateInterpolator()
+            interpolator = FastOutSlowInInterpolator()
             doOnStart { isTouchLock = true }
             doOnEnd {
                 stateItem.focusX = this@FlexibleImageEditView.translationX
@@ -485,6 +506,14 @@ class FlexibleImageEditView @JvmOverloads constructor(
             }
             start()
         }
+    }
+
+    /**
+     * 설정한 리스너에 FlexibleStateItem 전달하는 함수
+     */
+    private fun onDelegatedListener() {
+        guideListener?.onUpdateItem(stateItem)
+        listener?.onUpdateStateItem(stateItem)
     }
 
     inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -502,7 +531,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
             }
 
             stateItem.scale = scale
-
             return true
         }
 
@@ -530,7 +558,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
         override fun onMoveEnd(detector: MoveGestureDetector) {
             computeImageLocation()?.let { rect ->
-                val pair = computeInBoundary(rect) ?: return
+                val pair = computeInBoundary(rect)
 
                 handleTargetTranslation(
                     stateItem.focusX.plus(pair.first),

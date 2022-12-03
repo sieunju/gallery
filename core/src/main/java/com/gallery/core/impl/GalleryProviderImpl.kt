@@ -3,6 +3,7 @@ package com.gallery.core.impl
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -12,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.WorkerThread
+import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
@@ -22,7 +24,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -32,8 +33,7 @@ import kotlin.math.*
 
 /**
  * Description : Gallery Provider 구현체 클래스
- * CropImageEditView
- * Reference  https://github.com/CanHub/Android-Image-Cropper
+ * CropImageEditView Reference  https://github.com/CanHub/Android-Image-Cropper
  *
  * Created by juhongmin on 2022/09/13
  */
@@ -86,7 +86,6 @@ internal class GalleryProviderImpl constructor(
                     sort
                 ) ?: break@loop
 
-                Timber.d("Directories ${Thread.currentThread()}")
                 if (cursor.moveToLast()) {
                     val contentId = getContentsId(cursor)
                     val photoUri = getPhotoUri(contentId)
@@ -169,6 +168,7 @@ internal class GalleryProviderImpl constructor(
      * @param params QueryParameter
      */
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
+        if (!isReadStoragePermissionsGranted()) throw IllegalStateException("Permissions PERMISSION_DENIED")
         val projection = arrayOf(ID)
         val order = "$ID ${params.order}"
         val selection = "$BUCKET_ID ==?"
@@ -483,6 +483,66 @@ internal class GalleryProviderImpl constructor(
         return croppedBitmap
     }
 
+    override fun createGalleryPhotoUri(authority: String): Uri? {
+        val file = createTempFile() ?: return null
+        return FileProvider.getUriForFile(
+            context,
+            authority,
+            file
+        )
+    }
+
+    override fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String> {
+        // Scoped Storage
+        try {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, "${name}.jpg")
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpg")
+                    put(MediaStore.Images.Media.IS_PENDING, 1)
+                    put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
+                    put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+                }
+
+                val collection =
+                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val item = contentResolver.insert(collection, values)
+                    ?: return false to "Insert Resolver Error"
+                val parcelFile = contentResolver.openFileDescriptor(item, "w", null)
+                    ?: return false to "openFileDescriptor Error"
+                val fos = FileOutputStream(parcelFile.fileDescriptor)
+                val bitmap = pathToBitmap(pictureUri)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                fos.close()
+                values.clear()
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                contentResolver.update(item, values, null, null)
+                true to pictureUri
+            } else {
+                // Legacy Version
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, "${name}.jpg")
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpg")
+                    put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
+                    put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+                }
+                val url =
+                    contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                        ?: return false to "Insert Resolver Error"
+                val bitmap = pathToBitmap(pictureUri)
+                val imageOut = contentResolver.openOutputStream(url)
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOut)
+                } finally {
+                    imageOut?.close()
+                }
+                true to pictureUri
+            }
+        } catch (ex: Exception) {
+            return false to ex.toString()
+        }
+    }
+
     private fun toCompressFormat(suffix: String): Bitmap.CompressFormat {
         return if (suffix == ".png") {
             Bitmap.CompressFormat.PNG
@@ -498,6 +558,17 @@ internal class GalleryProviderImpl constructor(
     private fun isReadStoragePermissionsGranted(): Boolean {
         return context.packageManager.checkPermission(
             Manifest.permission.READ_EXTERNAL_STORAGE,
+            context.packageName
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * 저장소 쓰기 권한 체크
+     * @return true 쓰기 권한 허용, false 쓰기 권한 거부 상태
+     */
+    private fun isWriteStoragePermissionsGranted(): Boolean {
+        return context.packageManager.checkPermission(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
     }

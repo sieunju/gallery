@@ -3,6 +3,7 @@ package com.gallery.core
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.net.Uri
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
@@ -192,4 +193,8 @@ interface GalleryProvider {
         flipHorizontally: Boolean,
         flipVertically: Boolean
     ): Bitmap?
+
+    fun createGalleryPhotoUri(authority: String): Uri?
+
+    fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String>
 }
