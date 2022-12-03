@@ -1,13 +1,17 @@
-Version: 0.0.1
-Title: v0.0.1
+Version: 0.0.1-beta01
+Title: v0.0.1-beta01
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
+> 라이브러리를 효율성있게 Multi-Module 로 구현 했습니다.
+ex.) core, edit, ui
 
 ### 기능 개선을 했어요.
 
 EN-US
 ### Introduction
 > It is a library that helps you retrieve images from the gallery and edit them all at once.
+> Library efficiency is divided into Multi-Modules.
+ex.) core, edit, ui
 
 ### Improvements
