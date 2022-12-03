@@ -32,19 +32,20 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
     val startCameraOpenEvent: SingleLiveEvent<Intent> by lazy { SingleLiveEvent() }
     val startSnackBarEvent: SingleLiveEvent<String> by lazy { SingleLiveEvent() }
     val startViewHolderClickEvent: SingleLiveEvent<Int> by lazy { SingleLiveEvent() }
-    val startSaveStateItem: SingleLiveEvent<String> by lazy { SingleLiveEvent() }
-
 
     private val _cursor: MutableLiveData<Cursor> by lazy { MutableLiveData() }
     val cursor: LiveData<Cursor> get() = _cursor
 
-    private val _selectPhotoBitmap : SingleLiveEvent<Pair<Bitmap,FlexibleStateItem?>> by lazy { SingleLiveEvent() }
-    val selectPhotoBitmap: LiveData<Pair<Bitmap,FlexibleStateItem?>> get() = _selectPhotoBitmap
-    private val selectPhotoMap: HashMap<String, FlexibleStateItem?> by lazy { hashMapOf() }
+    private val _selectPhotoBitmap: SingleLiveEvent<Pair<Bitmap, FlexibleStateItem?>> by lazy { SingleLiveEvent() }
+    val selectPhotoBitmap: LiveData<Pair<Bitmap, FlexibleStateItem?>> get() = _selectPhotoBitmap
+    private val selectPhotoMap: MutableMap<String, FlexibleStateItem> by lazy { mutableMapOf() } // 선택한 사진 정보
 
-    private var currentImagePath : String = ""
+    private var prevImagePath: String = ""
 
     private var takePictureUrl: Uri? = null
+
+    // 현재 편집창에서 처리되는 위치값들
+    private val currentFlexibleStateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
 
     fun start() {
         Single.create<Cursor> { emitter ->
@@ -70,7 +71,7 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
      */
     private fun performClickPosition() {
         Single.just(1)
-            .delay(400, TimeUnit.MILLISECONDS)
+            .delay(200, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 startViewHolderClickEvent.value = it
@@ -86,37 +87,30 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
         }
     }
 
+    /**
+     * FlexibleImageEditView onStateItem Listener
+     */
+    fun onStateItem(newItem: FlexibleStateItem) {
+        newItem.valueCopy(currentFlexibleStateItem)
+    }
+
     fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {
-        // 초기값 셋팅
-        if (selectPhotoMap.size == 0) {
-            Timber.d("초기값 셋팅입니다. ")
-            selectPhotoMap[item.imagePath] = null
-            requestBitmap(item.imagePath)
-            currentImagePath = item.imagePath
-        } else if (selectPhotoMap.containsKey(item.imagePath) && isAdd) {
-            Timber.d("이전에 선택한 값이고 추가입니다. ")
-            // 선택한 사진값이 이전에 있는 경우
-            requestBitmap(item.imagePath,selectPhotoMap[item.imagePath])
-            startSaveStateItem.value = currentImagePath
-            currentImagePath = item.imagePath
+        if (isAdd) {
+            // 로딩바 구현
+            performChangeBitmap(item.imagePath)
         } else {
-            Timber.d("삭제 압니다. ${selectPhotoMap.containsKey(item.imagePath)}")
-            selectPhotoMap.remove(item.imagePath)
-            currentImagePath = item.imagePath
+            performRemovePhoto(item)
         }
     }
 
-    fun setCurrentStateItem(key: String, currentStateItem: FlexibleStateItem) {
-        // 이전 사진값 저장
-        Timber.d("이전값 셋팅합니다.")
-        selectPhotoMap[key] = currentStateItem
-        requestBitmap(currentImagePath)
-    }
-
-    private fun requestBitmap(imagePath: String, stateItem: FlexibleStateItem? = null) {
+    /**
+     * FlexibleImageView 에 변경 하기 위한 함수
+     */
+    private fun performChangeBitmap(newImagePath: String) {
         Single.create<Bitmap> { emitter ->
             try {
-                val bitmap = galleryProvider.pathToBitmap(imagePath)
+                savePreviewStateItem()
+                val bitmap = galleryProvider.pathToBitmap(newImagePath)
                 emitter.onSuccess(bitmap)
             } catch (ex: Exception) {
                 emitter.onError(ex)
@@ -124,10 +118,40 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
         }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                _selectPhotoBitmap.value = it to stateItem
+                val cacheStateItem = selectPhotoMap[newImagePath]
+                // 이미 존재하는 경우
+                if (cacheStateItem != null) {
+                    _selectPhotoBitmap.value = it to cacheStateItem
+                } else {
+                    selectPhotoMap[newImagePath] = FlexibleStateItem()
+                    _selectPhotoBitmap.value = it to null
+                }
+                prevImagePath = newImagePath
             }, {
 
             }).addTo(disposable)
+    }
+
+    private fun performRemovePhoto(item: GalleryItem) {
+        selectPhotoMap.remove(item.imagePath)
+        val nextImagePath = selectPhotoMap.keys.lastOrNull()
+        if (nextImagePath != null) {
+            performChangeBitmap(nextImagePath)
+        } else {
+            // Empty Selected Photo
+        }
+    }
+
+    /**
+     * 다른 사진 선택할때 이전 상태값들 저장하는 함수
+     */
+    private fun savePreviewStateItem() {
+        if (prevImagePath.isNotEmpty()) {
+            val stateItem = selectPhotoMap[prevImagePath]
+            if (stateItem != null) {
+                currentFlexibleStateItem.valueCopy(stateItem)
+            }
+        }
     }
 
     fun onMaxPhotoClick() {

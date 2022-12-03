@@ -66,10 +66,6 @@ internal class GalleryAndFlexibleFragment : Fragment() {
                 binding.rvGallery.requestViewHolderClick(it)
             }
 
-            startSaveStateItem.observe(viewLifecycleOwner) {
-                setCurrentStateItem(it, binding.ivFlexible.getFlexibleStateItem())
-            }
-
             startCameraOpenEvent.observe(viewLifecycleOwner) {
                 cameraCallback.launch(it)
             }

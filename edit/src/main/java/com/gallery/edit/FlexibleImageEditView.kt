@@ -551,7 +551,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
         override fun onMoveEnd(detector: MoveGestureDetector) {
             computeImageLocation()?.let { rect ->
-                val pair = computeInBoundary(rect) ?: return
+                val pair = computeInBoundary(rect)
 
                 handleTargetTranslation(
                     stateItem.focusX.plus(pair.first),

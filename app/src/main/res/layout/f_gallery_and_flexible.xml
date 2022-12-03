@@ -26,6 +26,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:imageBitmap="@{vm.selectPhotoBitmap.first}"
+                app:onStateUpdated="@{(item) -> vm.onStateItem(item)}"
                 app:stateItem="@{vm.selectPhotoBitmap.second}" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

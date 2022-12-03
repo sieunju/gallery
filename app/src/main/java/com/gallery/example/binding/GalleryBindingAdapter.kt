@@ -80,18 +80,4 @@ internal object GalleryBindingAdapter {
     ) {
         view.setImageBitmap(bitmap)
     }
-
-    @JvmStatic
-    @BindingAdapter("imageBitmap", "stateItem", requireAll = false)
-    fun setFlexibleEditImageBitmap(
-        view: FlexibleImageEditView,
-        bitmap: Bitmap?,
-        stateItem: FlexibleStateItem?
-    ) {
-        if (stateItem == null) {
-            view.loadBitmap(bitmap)
-        } else {
-            view.loadBitmap(bitmap, stateItem)
-        }
-    }
 }
