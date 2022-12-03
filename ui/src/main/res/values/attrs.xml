@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GalleryRecyclerView">
+        <attr name="galleryCameraVisible" format="boolean" />
+        <attr name="galleryCameraDrawableId" format="integer" />
+        <attr name="gallerySelectedMaxCount" format="integer" />
+        <attr name="gallerySelectedSize" format="dimension" />
+        <attr name="gallerySelectedCorner" format="dimension" />
+        <attr name="gallerySelectedStroke" format="dimension" />
+        <attr name="gallerySelectedStrokeColor" format="color" />
+        <attr name="gallerySelectedBgColor" format="color" />
+        <attr name="gallerySelectedTxtColor" format="color" />
+    </declare-styleable>
+
+</resources>
