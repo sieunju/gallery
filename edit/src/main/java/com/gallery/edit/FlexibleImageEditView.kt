@@ -19,7 +19,6 @@ import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
-import timber.log.Timber
 import kotlin.math.*
 
 /**
@@ -47,14 +46,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
         MoveGestureDetector(MoveListener())
     }
 
-    private var stateItem = FlexibleStateItem(
-        scale = 1.0F,
-        focusX = 0F,
-        focusY = 0F,
-        rotationDegree = 0F,
-        flipX = 1F,
-        flipY = 1F
-    )
+    private val stateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
 
     private var isMultiTouch: Boolean = false
     private var moveDistance: Double = 0.0
@@ -62,6 +54,8 @@ class FlexibleImageEditView @JvmOverloads constructor(
     private var viewWidth = -1
     private var viewHeight = -1
     private var isTouchLock: Boolean = false // 애니메이션 동작중 터치 잠금하기위한 Flag 값
+
+    var listener: FlexibleImageEditListener? = null
 
     init {
         if (isInEditMode) {
@@ -75,36 +69,43 @@ class FlexibleImageEditView @JvmOverloads constructor(
      */
     @MainThread
     fun loadBitmap(bitmap: Bitmap?) {
-        if (bitmap == null) return
-
-        resetView()
-        val pair = cropBitmap(bitmap)
-
-        stateItem.run {
-            imgWidth = (pair.first.width.toFloat() / pair.second).toInt()
-            imgHeight = (pair.first.height.toFloat() / pair.second).toInt()
-            scale = pair.second
-            startScale = pair.second
-            minScale = 1F
-        }
-
-        setImageBitmap(pair.first)
+        loadBitmap(bitmap, null)
     }
 
+    /**
+     * Load Bitmap
+     * @param bitmap Image Bitmap
+     * @param newItem Target FlexibleStateItem
+     */
     @MainThread
-    fun loadBitmap(bitmap: Bitmap?, newItem: FlexibleStateItem) {
+    fun loadBitmap(bitmap: Bitmap?, newItem: FlexibleStateItem? = null) {
         if (bitmap == null) return
 
         resetView()
-        setImageBitmap(bitmap)
-        stateItem.run {
-            imgWidth = newItem.imgWidth
-            imgHeight = newItem.imgHeight
-            scale = newItem.scale
-            startScale = newItem.startScale
-            minScale = newItem.minScale
+
+        if (newItem != null) {
+            setImageBitmap(bitmap)
+            stateItem.run {
+                imgWidth = newItem.imgWidth
+                imgHeight = newItem.imgHeight
+                scale = newItem.scale
+                startScale = newItem.startScale
+                minScale = newItem.minScale
+            }
+            invalidate()
+        } else {
+            val pair = cropBitmap(bitmap)
+
+            stateItem.run {
+                imgWidth = (pair.first.width.toFloat() / pair.second).toInt()
+                imgHeight = (pair.first.height.toFloat() / pair.second).toInt()
+                scale = pair.second
+                startScale = pair.second
+                minScale = 1F
+            }
+
+            setImageBitmap(pair.first)
         }
-        invalidate()
     }
 
     /**
@@ -119,8 +120,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
         ) {
             return
         }
-
-        Timber.d("centerCrop $stateItem")
 
         ObjectAnimator.ofPropertyValuesHolder(
             this,
@@ -361,6 +360,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
         // rotation = stateItem.rotationDegree 회전은 나중에 처리 할 예정
         super.onDraw(canvas)
+        listener?.onUpdateStateItem(stateItem)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
