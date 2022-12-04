@@ -21,7 +21,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.gallery.ui.adapter.GalleryAdapter
 import com.gallery.ui.internal.MediaContentsDelayUpdateHandler
 import com.gallery.ui.internal.dp
 

@@ -1,4 +1,4 @@
-package com.gallery.ui.adapter
+package com.gallery.ui
 
 import android.content.res.Resources
 import android.database.Cursor
@@ -26,11 +26,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.gallery.model.BaseGalleryItem
 import com.gallery.model.CameraOpenItem
 import com.gallery.model.GalleryItem
-import com.gallery.ui.GalleryListener
-import com.gallery.ui.R
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
-import timber.log.Timber
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -94,6 +91,10 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyItemRangeChanged(0, 10)
     }
 
+    /**
+     * 카메라를 찍은 이후 이미지를 개신 처리하기위한 함수
+     * @param imagePath TakePicture Camera Contents path
+     */
     fun setTakePictureItemUpdate(imagePath: String) {
         val searchPos = if (isShowCamera) {
             1
@@ -103,7 +104,6 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         val item = dataList[searchPos]
         if (item is GalleryItem) {
             if (item.imagePath != imagePath) {
-                Timber.d("Update GalleryItem $imagePath")
                 dataList.add(searchPos, GalleryItem(imagePath))
                 notifyItemInserted(searchPos)
             } else {

@@ -5,7 +5,7 @@ import android.os.Looper
 import android.os.Message
 import androidx.lifecycle.Lifecycle
 import com.gallery.ui.GalleryRecyclerView
-import com.gallery.ui.adapter.GalleryAdapter
+import com.gallery.ui.GalleryAdapter
 import timber.log.Timber
 
 /**
