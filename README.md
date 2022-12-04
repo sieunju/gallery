@@ -20,7 +20,11 @@ allprojects {
 
 - We have classified it by 'features' so that only the necessary features can be added and used. (AKA. Multi-module)
 
-### Core Module
+## Core Module
+
+> [Wiki](https://github.com/sieunju/gallery/wiki/Core-Module-Wiki)
+
+#### How To
 
 ```groovy
 dependencies {
@@ -28,6 +32,7 @@ dependencies {
 }
 ```
 
+#### Simple Description
 - GalleryProviderImpl Example
 ```kotlin
 Used Hilt
@@ -43,8 +48,13 @@ internal class CoreModule {
     ): GalleryProvider = Factory.create(context)
 }
 ```
+   
+   
+## Edit Module
 
-### Edit Module
+> [Wiki](https://github.com/sieunju/gallery/wiki/Edit-Module-Wiki)
+
+#### How To
 
 ```groovy
 dependencies {
@@ -52,6 +62,7 @@ dependencies {
 }
 ```
 
+#### Simple Description
 - FlexibleImageEditView.  
     - This is a view class that allows you to zoom in, zoom out, and move through gestures.
     - When the image is out of the area, there is a logic to reposition it. It's similar to adding an Instagram story.
@@ -59,6 +70,26 @@ dependencies {
     
     ![ezgif com-gif-maker](https://user-images.githubusercontent.com/33802191/205472555-85e07b24-cac3-49b2-af01-b5bc225df7f8.gif)
 
-- CropImageEditView
+- CropImageEditView.
     - Referred to the https://github.com/ArthurHub/Android-Image-Cropper Light Version!!
+    - Preview.   
+    ![crop_image_edit_view](https://user-images.githubusercontent.com/33802191/205473714-c513d8e8-9ab8-436c-99cd-3a2775620933.gif)
+
+
+## Ui Module
+
+> [Wiki](https://github.com/sieunju/gallery/wiki/Ui-Module-Wiki)
+#### How To
+
+```groovy
+dependencies {
+    	implementation 'com.github.sieunju.gallery:ui:$latestVersion'
+}
+```
+
+#### Simple Description.  
+
+- GalleryRecyclerView.   
+    ![gallery_recyclerview_example](https://user-images.githubusercontent.com/33802191/205474967-a3146c32-35b7-40cf-98e5-7ed2d380357c.gif)
+
     
