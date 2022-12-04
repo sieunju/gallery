@@ -1,8 +1,8 @@
-# Android Gallery Library.   
+# Android Gallery Library (Simple is Best 🤩).  
 [![](https://jitpack.io/v/sieunju/gallery.svg)](https://jitpack.io/#sieunju/gallery)![AndroidMinSdkVersion](https://img.shields.io/badge/minSdkVersion-21-green.svg) ![AndroidTargetSdkVersion](https://img.shields.io/badge/targetSdkVersion-32-brightgreen.svg)
 ---
 
-## HowTo
+### HowTo
 
 - Project Gradle
 
@@ -32,7 +32,7 @@ dependencies {
 #### Simple Description
 - GalleryProviderImpl Example
 ```kotlin
-Used Hilt
+Using Hilt Library!!
 import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider 
 @InstallIn(SingletonComponent::class)
