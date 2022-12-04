@@ -1,4 +1,4 @@
-package com.gallery.edit
+package com.gallery.edit.internal
 
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -7,7 +7,6 @@ import android.view.animation.Animation
 import android.view.animation.Animation.AnimationListener
 import android.view.animation.Transformation
 import android.widget.ImageView
-import com.gallery.edit.internal.CropOverlayView
 
 /**
  * Animation to handle smooth cropping image matrix transformation change, specifically for

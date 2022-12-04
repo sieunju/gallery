@@ -1,4 +1,4 @@
-package com.gallery.edit
+package com.gallery.edit.internal
 
 import android.graphics.Color
 import android.os.Parcelable
@@ -16,7 +16,7 @@ import kotlinx.parcelize.Parcelize
  * Initialized with default values.
  */
 @Parcelize
-data class CropImageOptions(
+internal data class CropImageOptions(
     /** The shape of the cropping window.  */
     @JvmField
     var cropShape: CropShape = CropShape.RECTANGLE,

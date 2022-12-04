@@ -13,7 +13,7 @@ import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.internal.dp
 
 /**
- * Description :
+ * Description : FlexibleImageEditView Guide Line View
  *
  * Created by juhongmin on 2022/12/03
  */

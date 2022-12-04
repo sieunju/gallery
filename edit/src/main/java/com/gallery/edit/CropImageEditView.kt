@@ -167,22 +167,6 @@ class CropImageEditView @JvmOverloads constructor(
             }
         }
 
-    /** Set multi-touch functionality to enabled/disabled.  */
-    fun setMultiTouchEnabled(multiTouchEnabled: Boolean) {
-        if (cropOverlayView.setMultiTouchEnabled(multiTouchEnabled)) {
-            handleCropWindowChanged(inProgress = false, animate = false)
-            cropOverlayView.invalidate()
-        }
-    }
-
-    /** Set moving of the crop window by dragging the center to enabled/disabled.  */
-    fun setCenterMoveEnabled(centerMoveEnabled: Boolean) {
-        if (cropOverlayView.setCenterMoveEnabled(centerMoveEnabled)) {
-            handleCropWindowChanged(inProgress = false, animate = false)
-            cropOverlayView.invalidate()
-        }
-    }
-
     /** The max zoom allowed during cropping.  */
     var maxZoom: Int
         get() = mMaxZoom
@@ -193,22 +177,6 @@ class CropImageEditView @JvmOverloads constructor(
                 cropOverlayView.invalidate()
             }
         }
-
-    /**
-     * the min size the resulting cropping image is allowed to be, affects the cropping window limits
-     * (in pixels).<br></br>
-     */
-    fun setMinCropResultSize(minCropResultWidth: Int, minCropResultHeight: Int) {
-        cropOverlayView.setMinCropResultSize(minCropResultWidth, minCropResultHeight)
-    }
-
-    /**
-     * the max size the resulting cropping image is allowed to be, affects the cropping window limits
-     * (in pixels).<br></br>
-     */
-    fun setMaxCropResultSize(maxCropResultWidth: Int, maxCropResultHeight: Int) {
-        cropOverlayView.setMaxCropResultSize(maxCropResultWidth, maxCropResultHeight)
-    }
 
     /**
      * Set / Get the amount of degrees (between 0 and 360) the cropping image is rotated clockwise.<br></br>
@@ -231,14 +199,6 @@ class CropImageEditView @JvmOverloads constructor(
      */
     val isFixAspectRatio: Boolean
         get() = cropOverlayView.isFixAspectRatio
-
-    /**
-     * Sets whether the aspect ratio is fixed or not; true fixes the aspect ratio, while false allows
-     * it to be changed.
-     */
-    fun setFixedAspectRatio(fixAspectRatio: Boolean) {
-        cropOverlayView.setFixedAspectRatio(fixAspectRatio)
-    }
 
     /** Sets whether the image should be flipped horizontally  */
     var isFlippedHorizontally: Boolean
@@ -286,35 +246,6 @@ class CropImageEditView @JvmOverloads constructor(
     /** both the X and Y values of the aspectRatio.  */
     val aspectRatio: Pair<Int, Int>
         get() = Pair(cropOverlayView.aspectRatioX, cropOverlayView.aspectRatioY)
-
-    /**
-     * Sets the both the X and Y values of the aspectRatio.<br></br>
-     * Sets fixed aspect ratio to TRUE.
-     *
-     * @param aspectRatioX int that specifies the new X value of the aspect ratio
-     * @param aspectRatioY int that specifies the new Y value of the aspect ratio
-     */
-    fun setAspectRatio(aspectRatioX: Int, aspectRatioY: Int) {
-        cropOverlayView.aspectRatioX = aspectRatioX
-        cropOverlayView.aspectRatioY = aspectRatioY
-        setFixedAspectRatio(true)
-    }
-
-    /** Clears set aspect ratio values and sets fixed aspect ratio to FALSE.  */
-    fun clearAspectRatio() {
-        cropOverlayView.aspectRatioX = 1
-        cropOverlayView.aspectRatioY = 1
-        setFixedAspectRatio(false)
-    }
-
-    /**
-     * An edge of the crop window will snap to the corresponding edge of a specified bounding box when
-     * the crop window edge is less than or equal to this distance (in pixels) away from the bounding
-     * box edge. (default: 3dp)
-     */
-    fun setSnapRadius(snapRadius: Float) {
-        if (snapRadius >= 0) cropOverlayView.setSnapRadius(snapRadius)
-    }
 
     /**
      * if to show crop overlay UI what contains the crop window UI surrounded by background over the
@@ -415,6 +346,75 @@ class CropImageEditView @JvmOverloads constructor(
             }
             return resultPoints
         }
+
+    /**
+     * the min size the resulting cropping image is allowed to be, affects the cropping window limits
+     * (in pixels).<br></br>
+     */
+    fun setMinCropResultSize(minCropResultWidth: Int, minCropResultHeight: Int) {
+        cropOverlayView.setMinCropResultSize(minCropResultWidth, minCropResultHeight)
+    }
+
+    /**
+     * the max size the resulting cropping image is allowed to be, affects the cropping window limits
+     * (in pixels).<br></br>
+     */
+    fun setMaxCropResultSize(maxCropResultWidth: Int, maxCropResultHeight: Int) {
+        cropOverlayView.setMaxCropResultSize(maxCropResultWidth, maxCropResultHeight)
+    }
+
+    /** Set multi-touch functionality to enabled/disabled.  */
+    fun setMultiTouchEnabled(multiTouchEnabled: Boolean) {
+        if (cropOverlayView.setMultiTouchEnabled(multiTouchEnabled)) {
+            handleCropWindowChanged(inProgress = false, animate = false)
+            cropOverlayView.invalidate()
+        }
+    }
+
+    /** Set moving of the crop window by dragging the center to enabled/disabled.  */
+    fun setCenterMoveEnabled(centerMoveEnabled: Boolean) {
+        if (cropOverlayView.setCenterMoveEnabled(centerMoveEnabled)) {
+            handleCropWindowChanged(inProgress = false, animate = false)
+            cropOverlayView.invalidate()
+        }
+    }
+
+    /**
+     * Sets whether the aspect ratio is fixed or not; true fixes the aspect ratio, while false allows
+     * it to be changed.
+     */
+    fun setFixedAspectRatio(fixAspectRatio: Boolean) {
+        cropOverlayView.setFixedAspectRatio(fixAspectRatio)
+    }
+
+    /**
+     * Sets the both the X and Y values of the aspectRatio.<br></br>
+     * Sets fixed aspect ratio to TRUE.
+     *
+     * @param aspectRatioX int that specifies the new X value of the aspect ratio
+     * @param aspectRatioY int that specifies the new Y value of the aspect ratio
+     */
+    fun setAspectRatio(aspectRatioX: Int, aspectRatioY: Int) {
+        cropOverlayView.aspectRatioX = aspectRatioX
+        cropOverlayView.aspectRatioY = aspectRatioY
+        setFixedAspectRatio(true)
+    }
+
+    /** Clears set aspect ratio values and sets fixed aspect ratio to FALSE.  */
+    fun clearAspectRatio() {
+        cropOverlayView.aspectRatioX = 1
+        cropOverlayView.aspectRatioY = 1
+        setFixedAspectRatio(false)
+    }
+
+    /**
+     * An edge of the crop window will snap to the corresponding edge of a specified bounding box when
+     * the crop window edge is less than or equal to this distance (in pixels) away from the bounding
+     * box edge. (default: 3dp)
+     */
+    fun setSnapRadius(snapRadius: Float) {
+        if (snapRadius >= 0) cropOverlayView.setSnapRadius(snapRadius)
+    }
 
     /** Reset crop window to initial rectangle.  */
     fun resetCropRect() {

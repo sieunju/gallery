@@ -194,7 +194,13 @@ interface GalleryProvider {
         flipVertically: Boolean
     ): Bitmap?
 
+    /**
+     * 카메라 열어서 사진을 캐시 디렉토리에 저장할 URI 을 생성하는 함수 입니다.
+     */
     fun createGalleryPhotoUri(authority: String): Uri?
 
+    /**
+     * 카메라에서 사진을 찍은후 갤러리에 저장하는 함수입니다.
+     */
     fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String>
 }
