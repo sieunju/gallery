@@ -1,5 +1,5 @@
 # Android Gallery Library (Simple is Best 🤩).  
-[![](https://jitpack.io/v/sieunju/gallery.svg)](https://jitpack.io/#sieunju/gallery)![AndroidMinSdkVersion](https://img.shields.io/badge/minSdkVersion-21-green.svg) ![AndroidTargetSdkVersion](https://img.shields.io/badge/targetSdkVersion-32-brightgreen.svg)
+[![](https://jitpack.io/v/sieunju/gallery.svg)](https://jitpack.io/#sieunju/gallery) ![AndroidMinSdkVersion](https://img.shields.io/badge/minSdkVersion-21-green.svg) ![AndroidTargetSdkVersion](https://img.shields.io/badge/targetSdkVersion-32-brightgreen.svg)
 ---
 
 ### HowTo
