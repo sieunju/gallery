@@ -1,8 +1,5 @@
-> Android Gallery Library.  
-> [![](https://jitpack.io/v/sieunju/gallery.svg)](https://jitpack.io/#sieunju/gallery).  
-> Referred to the https://github.com/ArthurHub/Android-Image-Cropper library. @see CropImageEditView
-
-![AndroidMinSdkVersion](https://img.shields.io/badge/minSdkVersion-21-green.svg) ![AndroidTargetSdkVersion](https://img.shields.io/badge/targetSdkVersion-32-brightgreen.svg)
+# Android Gallery Library.   
+[![](https://jitpack.io/v/sieunju/gallery.svg)](https://jitpack.io/#sieunju/gallery)![AndroidMinSdkVersion](https://img.shields.io/badge/minSdkVersion-21-green.svg) ![AndroidTargetSdkVersion](https://img.shields.io/badge/targetSdkVersion-32-brightgreen.svg)
 ---
 
 ## HowTo
@@ -68,7 +65,7 @@ dependencies {
     - When the image is out of the area, there is a logic to reposition it. It's similar to adding an Instagram story.
     - Preview.  
     
-    ![ezgif com-gif-maker](https://user-images.githubusercontent.com/33802191/205472555-85e07b24-cac3-49b2-af01-b5bc225df7f8.gif)
+    ![flexibleimage_example](https://user-images.githubusercontent.com/33802191/205475538-9446da12-e997-49e7-84bb-d88330087ef5.gif)
 
 - CropImageEditView.
     - Referred to the https://github.com/ArthurHub/Android-Image-Cropper Light Version!!
