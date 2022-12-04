@@ -82,7 +82,9 @@ internal class FlexibleEditFragment : Fragment(R.layout.f_flexible_edit) {
 
     private suspend fun getSampleBitmap(): Bitmap? = withContext(Dispatchers.IO) {
         return@withContext try {
-            val bytes = URL("https://image.zdnet.co.kr/2021/08/27/48a2291e7cbed1be50aa28880b58477e.jpg")
+            // "https://image.zdnet.co.kr/2021/08/27/48a2291e7cbed1be50aa28880b58477e.jpg"
+            val url = "https://wplyuoicjiwl13857209.cdn.ntruss.com/data2/content/image/2022/01/12/.cache/512/20220112500244.png"
+            val bytes = URL(url)
                 .readBytes()
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         } catch (ex: IOException) {

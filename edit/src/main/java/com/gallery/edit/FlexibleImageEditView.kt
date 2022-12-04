@@ -18,7 +18,6 @@ import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
-import com.gallery.edit.internal.dp
 import kotlin.math.*
 
 /**

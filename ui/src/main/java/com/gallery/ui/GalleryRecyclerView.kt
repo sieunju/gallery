@@ -24,7 +24,6 @@ import com.bumptech.glide.RequestManager
 import com.gallery.ui.adapter.GalleryAdapter
 import com.gallery.ui.internal.MediaContentsDelayUpdateHandler
 import com.gallery.ui.internal.dp
-import timber.log.Timber
 
 /**
  * Description : Gallery RecyclerView
@@ -44,7 +43,6 @@ class GalleryRecyclerView @JvmOverloads constructor(
     private val mediaContentsUpdateHandler: MediaContentsDelayUpdateHandler by lazy {
         MediaContentsDelayUpdateHandler(this, adapter)
     }
-
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.GalleryRecyclerView).run {
@@ -153,7 +151,6 @@ class GalleryRecyclerView @JvmOverloads constructor(
     private val contentsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
             super.onChange(selfChange, uri)
-            Timber.d("Real onChange $selfChange $uri")
             if (uri != null) {
                 mediaContentsUpdateHandler.removeMessages(MediaContentsDelayUpdateHandler.UPDATE_TYPE)
                 val message = Message().apply {

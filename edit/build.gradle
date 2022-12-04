@@ -39,10 +39,6 @@ dependencies {
     implementation(deps.androidx.appCompat)
     implementation(deps.androidx.constraintLayout)
     implementation(deps.androidx.exif)
-    implementation(deps.timber)
-
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3')
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
