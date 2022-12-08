@@ -32,8 +32,8 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/ivThumb"
-        app:layout_constraintRight_toRightOf="@+id/ivThumb"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         tools:visibility="visible">
 
         <View

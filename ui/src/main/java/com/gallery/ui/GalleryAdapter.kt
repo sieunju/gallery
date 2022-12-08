@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +29,7 @@ import com.gallery.model.CameraOpenItem
 import com.gallery.model.GalleryItem
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
+import com.gallery.ui.internal.isAndOperatorTrue
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -60,6 +62,11 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     @ColorInt
     private var selectedTxtColor: Int = Color.WHITE
     private var requestManager: RequestManager? = null
+    private var selectedGravity: Int = 0x50 shl 0x05
+    private val SELECT_TOP = 0x30
+    private val SELECT_BOTTOM = 0x50
+    private val SELECT_LEFT = 0x03
+    private val SELECT_RIGHT = 0x05
     // [e] Attribute Set
 
     private var lastPos = -1
@@ -169,6 +176,16 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
      */
     fun setRequestManager(manager: RequestManager): GalleryAdapter {
         requestManager = manager
+        return this
+    }
+
+    /**
+     * set Selected Ui Gravity
+     * @param gravity
+     */
+    fun setSelectGravity(gravity: Int): GalleryAdapter {
+        // top 0x30, bottom 0x50, left 0x03, right 0x05
+        selectedGravity = gravity
         return this
     }
 
@@ -344,6 +361,24 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             clSelectedNumber.updateLayoutParams {
                 width = selectedSize.plus(10.dp)
                 height = selectedSize.plus(10.dp)
+                if (this is ConstraintLayout.LayoutParams) {
+                    topToTop = -1
+                    bottomToBottom = -1
+                    leftToLeft = -1
+                    rightToRight = -1
+                    if (isAndOperatorTrue(selectedGravity,SELECT_TOP)) {
+                        topToTop = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity,SELECT_BOTTOM)) {
+                        bottomToBottom = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity,SELECT_LEFT)) {
+                        leftToLeft = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity,SELECT_RIGHT)) {
+                        rightToRight = R.id.ivThumb
+                    }
+                }
             }
             vSelectedNum.background = selectedBgDrawable
             tvSelectNum.setTextColor(selectedTxtColor)
