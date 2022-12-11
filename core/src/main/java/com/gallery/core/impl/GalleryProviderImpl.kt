@@ -19,6 +19,7 @@ import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
+import com.gallery.model.FlexibleStateItem
 import com.gallery.model.RequestSizeOptions
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -393,6 +394,26 @@ internal class GalleryProviderImpl constructor(
         } catch (ex: IOException) {
             null
         }
+    }
+
+    override fun getFlexibleImageToBitmap(
+        originalImagePath: String,
+        flexibleItem: FlexibleStateItem
+    ): Bitmap {
+        val editLocation =
+            flexibleItem.getImageLocation() ?: throw NullPointerException("EditLocation is Null")
+        return getFlexibleImageToBitmap(
+            originalImagePath, editLocation, flexibleItem.viewWidth, flexibleItem.viewHeight
+        )
+    }
+
+    override fun getFlexibleImageToBitmap(
+        originalImagePath: String,
+        srcRect: RectF,
+        width: Int,
+        height: Int
+    ): Bitmap {
+        return getFlexibleImageToBitmap(pathToBitmap(originalImagePath), srcRect, width, height)
     }
 
     override fun getFlexibleImageToBitmap(

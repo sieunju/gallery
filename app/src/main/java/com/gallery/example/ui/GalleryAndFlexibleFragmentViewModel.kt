@@ -9,7 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel

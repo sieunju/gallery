@@ -19,7 +19,6 @@ import com.gallery.example.databinding.DGalleryBottomSheetBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.snackbar.Snackbar
 import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -64,16 +63,6 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
         }
     }
 
-//    override fun onStart() {
-//        super.onStart()
-//        if (dialog is BottomSheetDialog) {
-//            (dialog as BottomSheetDialog).runCatching {
-//                behavior.state = BottomSheetBehavior.STATE_EXPANDED
-//                behavior.skipCollapsed = true
-//            }
-//        }
-//    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
@@ -89,7 +78,17 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
             }
 
             startSnackBarEvent.observe(viewLifecycleOwner) {
-                Snackbar.make(view, it, Snackbar.LENGTH_SHORT).show()
+                androidx.appcompat.app.AlertDialog.Builder(view.context)
+                    .setMessage(it)
+                    .show()
+            }
+
+            startDismissEvent.observe(viewLifecycleOwner) {
+                dismiss()
+            }
+
+            startSendEditImageBitmap.observe(viewLifecycleOwner) {
+
             }
 
             start()

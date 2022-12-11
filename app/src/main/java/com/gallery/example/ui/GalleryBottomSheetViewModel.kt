@@ -1,15 +1,13 @@
 package com.gallery.example.ui
 
-import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
-import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.example.SingleLiveEvent
+import com.gallery.model.FlexibleStateItem
 import com.gallery.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -24,10 +22,11 @@ import javax.inject.Inject
 @HiltViewModel
 internal class GalleryBottomSheetViewModel @Inject constructor(
     private val galleryProvider: GalleryProvider
-): ViewModel() {
+) : ViewModel() {
 
     private val disposable: CompositeDisposable by lazy { CompositeDisposable() }
 
+    val startDismissEvent: SingleLiveEvent<Unit> by lazy { SingleLiveEvent() }
     val startSnackBarEvent: SingleLiveEvent<String> by lazy { SingleLiveEvent() }
     val startViewHolderClickEvent: SingleLiveEvent<Int> by lazy { SingleLiveEvent() }
 
@@ -38,9 +37,10 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     val selectPhotoBitmap: LiveData<Pair<Bitmap, FlexibleStateItem?>> get() = _selectPhotoBitmap
     private val selectPhotoMap: MutableMap<String, FlexibleStateItem> by lazy { mutableMapOf() } // 선택한 사진 정보
 
-    private var prevImagePath: String = ""
+    private val _startSendEditImageBitmap: MutableLiveData<List<Bitmap>> by lazy { MutableLiveData() }
+    val startSendEditImageBitmap: LiveData<List<Bitmap>> get() = _startSendEditImageBitmap
 
-    private var takePictureUrl: Uri? = null
+    private var prevImagePath: String = ""
 
     // 현재 편집창에서 처리되는 위치값들
     private val currentFlexibleStateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
@@ -55,6 +55,7 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
             }
         }
             .subscribeOn(Schedulers.io())
+            .delay(500, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 _cursor.value = it
@@ -62,6 +63,10 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
             }, {
 
             }).addTo(disposable)
+    }
+
+    fun onDismiss() {
+        startDismissEvent.call()
     }
 
     /**
@@ -83,15 +88,6 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
      */
     fun onStateItem(newItem: FlexibleStateItem) {
         newItem.valueCopy(currentFlexibleStateItem)
-    }
-
-    fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {
-        if (isAdd) {
-            // 로딩바 구현
-            performChangeBitmap(item.imagePath)
-        } else {
-            performRemovePhoto(item)
-        }
     }
 
     /**
@@ -145,37 +141,46 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
         }
     }
 
+    fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {
+        if (isAdd) {
+            performChangeBitmap(item.imagePath)
+        } else {
+            performRemovePhoto(item)
+        }
+    }
+
     fun onMaxPhotoClick() {
         startSnackBarEvent.value = "Max Picker Count"
     }
 
-    fun onSuccessSavePicture() {
-        val url = takePictureUrl
-        if (url != null) {
-            savePicture(url.toString())
-        }
+    fun isSamePhoto(clickItem: GalleryItem): Boolean {
+        return prevImagePath == clickItem.imagePath
     }
 
-    private fun savePicture(uri: String) {
-        Single.create<Pair<Boolean, String>> {
+    fun sendEditImageBitmap() {
+        Single.create<Boolean> { emitter ->
             try {
-                val result = galleryProvider.saveGalleryPicture(
-                    uri,
-                    "gallery_${System.currentTimeMillis()}"
-                )
-                it.onSuccess(result)
+                savePreviewStateItem()
+                galleryProvider.deleteCacheDirectory()
+                Timber.d("SaveEditImageBitmap $selectPhotoMap")
+                selectPhotoMap.forEach { entry ->
+                    try {
+                        val bitmap =
+                            galleryProvider.getFlexibleImageToBitmap(entry.key, entry.value)
+                        galleryProvider.saveBitmapToFile(bitmap)
+                    } catch (ex: Exception) {
+
+                    }
+                }
             } catch (ex: Exception) {
-                it.onError(ex)
+                emitter.onError(ex)
             }
-        }
-            .subscribeOn(Schedulers.io())
-            .subscribe({
-                Timber.d("SUCC $it")
-                galleryProvider.deleteCacheDirectory()
-            }, {
-                Timber.d("ERROR $it")
-                galleryProvider.deleteCacheDirectory()
-            }).addTo(disposable)
+            emitter.onSuccess(true)
+        }.subscribe({
+            Timber.d("SUCC $it")
+        }, {
+            Timber.d("ERROR $it")
+        }).addTo(disposable)
     }
 
     fun clearDisposable() {

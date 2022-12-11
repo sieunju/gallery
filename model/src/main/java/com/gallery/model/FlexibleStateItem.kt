@@ -1,4 +1,4 @@
-package com.gallery.edit.detector
+package com.gallery.model
 
 import android.graphics.RectF
 

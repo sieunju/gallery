@@ -9,7 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.animation.doOnCancel
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 import com.gallery.edit.internal.dp
 
 /**

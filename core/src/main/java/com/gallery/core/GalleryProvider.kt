@@ -10,6 +10,7 @@ import androidx.annotation.WorkerThread
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
+import com.gallery.model.FlexibleStateItem
 import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
@@ -130,6 +131,33 @@ interface GalleryProvider {
      * Create Temp File
      */
     fun createFile(name: String, suffix: String): File?
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalImagePath Original ImagePath
+     * @param flexibleItem FlexibleStateItem
+     * @throws NullPointerException
+     */
+    fun getFlexibleImageToBitmap(
+        originalImagePath: String,
+        flexibleItem: FlexibleStateItem
+    ): Bitmap
+
+    /**
+     * FlexibleImageView Capture Bitmap
+     *
+     * @param originalImagePath Original ImagePath
+     * @param srcRect FlexibleImageView getStateItem
+     * @param width FlexibleImageView Root Layout Width
+     * @param height FlexibleImageView Root Layout Height
+     */
+    fun getFlexibleImageToBitmap(
+        originalImagePath: String,
+        srcRect: RectF,
+        width: Int,
+        height: Int
+    ): Bitmap
 
     /**
      * FlexibleImageView Capture Bitmap
