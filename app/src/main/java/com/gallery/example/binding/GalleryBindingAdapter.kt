@@ -4,8 +4,6 @@ import android.database.Cursor
 import android.graphics.Bitmap
 import androidx.databinding.BindingAdapter
 import com.gallery.edit.CropImageEditView
-import com.gallery.edit.FlexibleImageEditView
-import com.gallery.edit.detector.FlexibleStateItem
 import com.gallery.model.GalleryItem
 import com.gallery.ui.GalleryListener
 import com.gallery.ui.GalleryRecyclerView
@@ -28,6 +26,10 @@ internal object GalleryBindingAdapter {
         fun callback()
     }
 
+    interface GalleryIsCurrentPhotoListener {
+        fun callback(item: GalleryItem): Boolean
+    }
+
     /**
      * GalleryRecyclerView setListener
      * DataBinding Example
@@ -37,12 +39,14 @@ internal object GalleryBindingAdapter {
     @BindingAdapter(
         "onGalleryCameraOpen",
         "onGalleryPhotoClick",
-        "onGalleryMaxPicker", requireAll = false
+        "onGalleryMaxPicker",
+        "onGalleryIsCurrentPhoto", requireAll = false
     )
     fun GalleryRecyclerView.setGalleryRecyclerViewListener(
         cameraOpen: GalleryCameraOpenListener? = null,
         photoClick: GalleryPhotoClickListener? = null,
-        maxClick: GalleryMaxClickListener? = null
+        maxClick: GalleryMaxClickListener? = null,
+        isCurrentPhoto: GalleryIsCurrentPhotoListener? = null
     ) {
         setListener(object : GalleryListener {
             override fun onCameraOpen() {
@@ -55,6 +59,10 @@ internal object GalleryBindingAdapter {
 
             override fun onMaxPickerCount() {
                 maxClick?.callback()
+            }
+
+            override fun isCurrentPhoto(item: GalleryItem): Boolean {
+                return isCurrentPhoto?.callback(item) ?: false
             }
         })
     }
