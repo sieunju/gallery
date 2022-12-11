@@ -1,12 +1,13 @@
-Version: 0.0.1-beta01
-Title: v0.0.1-beta01
+Version: 0.0.1-beta02
+Title: v0.0.1-beta02
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
 > 라이브러리를 효율성있게 Multi-Module 로 구현 했습니다.
 ex.) core, edit, ui
 
-### 기능 개선을 했어요.
+### 기능 추가 했어요.
+> core 모듈을 ReactiveX로 간단히 사용할수 있는 core-rx 를 추가했어요!
 
 EN-US
 ### Introduction
@@ -14,4 +15,5 @@ EN-US
 > Library efficiency is divided into Multi-Modules.
 ex.) core, edit, ui
 
-### Improvements
+### Additional details
+> We added core-rx, which can easily use core module as ReactiveX!
