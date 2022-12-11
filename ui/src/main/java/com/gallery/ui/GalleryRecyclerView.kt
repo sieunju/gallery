@@ -111,6 +111,13 @@ class GalleryRecyclerView @JvmOverloads constructor(
                     )
                 )
 
+                setSelectedBackgroundDim(
+                    getColor(
+                        R.styleable.GalleryRecyclerView_gallerySelectedBgDim,
+                        Color.argb(50, 0, 0, 0)
+                    )
+                )
+
                 setAdapter(adapter)
             } catch (ex: Exception) {
             }
@@ -224,6 +231,14 @@ class GalleryRecyclerView @JvmOverloads constructor(
      */
     fun setSelectGravity(gravity: Int): GalleryAdapter {
         return adapter.setSelectGravity(gravity)
+    }
+
+    /**
+     * Selected Dim Background Color
+     * @param color Color
+     */
+    fun setSelectedBackgroundDim(@ColorInt color: Int): GalleryAdapter {
+        return adapter.setSelectedBackgroundDim(color)
     }
 
     /**

@@ -16,6 +16,7 @@
             <flag name="left" value="0x03" />
             <flag name="right" value="0x05" />
         </attr>
+        <attr name="gallerySelectedBgDim" format="color" />
     </declare-styleable>
 
 </resources>
