@@ -4,9 +4,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import androidx.lifecycle.Lifecycle
+import com.gallery.ui.GalleryAdapter
 import com.gallery.ui.GalleryRecyclerView
-import com.gallery.ui.adapter.GalleryAdapter
-import timber.log.Timber
 
 /**
  * Description : MediaContents Delay Update Handler
@@ -24,7 +23,6 @@ internal class MediaContentsDelayUpdateHandler(
 
     override fun handleMessage(msg: Message) {
         if (msg.what == UPDATE_TYPE) {
-            Timber.d("HandleMessage ${msg.obj}")
             val obj = msg.obj
             if (obj is String) {
                 if (view.lifecycleStatus != Lifecycle.Event.ON_DESTROY) {

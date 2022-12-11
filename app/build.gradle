@@ -42,7 +42,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation implementation(project(':core-rx',))
+//    implementation("com.github.sieunju.gallery:core:0.0.1-beta01")
+//    implementation("com.github.sieunju.gallery:edit:0.0.1-beta01")
+//    implementation("com.github.sieunju.gallery:ui:0.0.1-beta01")
+
+    // implementation(project(":core"))
     implementation(project(":edit"))
     implementation(project(":ui"))
 

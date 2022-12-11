@@ -68,7 +68,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/purple_500">
 
         <com.gallery.edit.CropImageEditView
             android:id="@+id/ivEdit"

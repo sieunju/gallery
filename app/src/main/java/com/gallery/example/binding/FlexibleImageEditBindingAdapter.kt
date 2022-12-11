@@ -5,7 +5,7 @@ import androidx.databinding.BindingAdapter
 import com.gallery.edit.FlexibleImageEditGuideView
 import com.gallery.edit.FlexibleImageEditListener
 import com.gallery.edit.FlexibleImageEditView
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 
 /**
  * Description : FlexibleImageEidtView Binding Adapter

@@ -1,8 +1,7 @@
 package com.gallery.edit.handler
 
 import android.graphics.RectF
-import com.gallery.edit.CropImageOptions
-import com.gallery.edit.CropImageEditView
+import com.gallery.edit.internal.CropImageOptions
 import com.gallery.edit.enums.*
 import kotlin.math.abs
 import kotlin.math.max

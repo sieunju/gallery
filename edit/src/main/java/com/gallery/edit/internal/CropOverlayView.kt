@@ -9,7 +9,6 @@ import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import androidx.annotation.RequiresApi
-import com.gallery.edit.CropImageOptions
 import com.gallery.edit.enums.CropCornerShape
 import com.gallery.edit.enums.CropShape
 import com.gallery.edit.enums.Guidelines

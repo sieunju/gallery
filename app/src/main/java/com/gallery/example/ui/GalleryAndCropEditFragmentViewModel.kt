@@ -7,6 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryQueryParameter
+import com.gallery.core_rx.fetchDirectoriesRx
+import com.gallery.core_rx.fetchGalleryRx
+import com.gallery.core_rx.pathToBitmapRx
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,8 +17,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
-import io.reactivex.rxjava3.schedulers.Schedulers
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.random.Random
@@ -41,28 +42,21 @@ internal class GalleryAndCropEditFragmentViewModel @Inject constructor(
     val selectPhotoBitmap: LiveData<Bitmap> get() = _selectPhotoBitmap
 
     fun start() {
-        Single.create<Cursor> { emitter ->
-            try {
-                val directories = galleryProvider.fetchDirectories()
-                val ranIdx = Random.nextInt(directories.size)
-                val filter = directories[ranIdx]
+        galleryProvider.fetchDirectoriesRx()
+            .map {
+                val ranIdx = Random.nextInt(it.size)
                 val params = GalleryQueryParameter()
-                params.filterId = filter.bucketId
+                params.filterId = it[ranIdx].bucketId
                 params.isAscOrder = true
-                val cursor = galleryProvider.fetchGallery(params)
-                emitter.onSuccess(cursor)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
+                return@map params
             }
-        }.subscribeOn(Schedulers.io())
+            .flatMap { galleryProvider.fetchGalleryRx(it) }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Timber.d("SUCC $it")
+            .doOnSuccess {
                 _cursor.value = it
                 performClickPosition()
-            }, {
-                Timber.d("ERROR $it")
-            }).addTo(disposable)
+            }
+            .subscribe().addTo(disposable)
     }
 
     /**
@@ -80,20 +74,10 @@ internal class GalleryAndCropEditFragmentViewModel @Inject constructor(
     }
 
     private fun getBitmap(imagePath: String) {
-        Single.create<Bitmap> { emitter ->
-            try {
-                val bitmap = galleryProvider.pathToBitmap(imagePath)
-                emitter.onSuccess(bitmap)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }.subscribeOn(Schedulers.io())
+        galleryProvider.pathToBitmapRx(imagePath)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                _selectPhotoBitmap.value = it
-            }, {
-
-            }).addTo(disposable)
+            .doOnSuccess { _selectPhotoBitmap.value = it }
+            .subscribe().addTo(disposable)
     }
 
     fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {

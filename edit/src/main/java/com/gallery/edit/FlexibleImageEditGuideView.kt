@@ -9,12 +9,11 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.animation.doOnCancel
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 import com.gallery.edit.internal.dp
-import timber.log.Timber
 
 /**
- * Description :
+ * Description : FlexibleImageEditView Guide Line View
  *
  * Created by juhongmin on 2022/12/03
  */
@@ -59,7 +58,6 @@ class FlexibleImageEditGuideView @JvmOverloads constructor(
     }
 
     override fun onUpdateItem(newItem: FlexibleStateItem) {
-        Timber.d("onUpdateItem $newItem")
         invalidate()
     }
 
@@ -129,7 +127,6 @@ class FlexibleImageEditGuideView @JvmOverloads constructor(
             guideLine
         )
 
-        Timber.tag("EDIT").d("AlphaAnimation ${alphaAnimation.isRunning}")
         if (alphaAnimation.isRunning) {
             alphaAnimation.cancel()
             alphaAnimation.start()

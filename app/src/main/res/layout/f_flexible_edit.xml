@@ -59,12 +59,14 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:background="@color/purple_500"
         android:layout_height="match_parent">
 
         <FrameLayout
             android:id="@+id/fRoot"
             android:layout_width="match_parent"
             android:layout_height="400dp"
+            android:background="@color/white"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.gallery.edit.FlexibleImageEditView

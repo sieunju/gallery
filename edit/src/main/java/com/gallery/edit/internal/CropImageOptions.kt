@@ -1,4 +1,4 @@
-package com.gallery.edit
+package com.gallery.edit.internal
 
 import android.graphics.Color
 import android.os.Parcelable

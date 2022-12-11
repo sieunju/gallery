@@ -1,4 +1,4 @@
-package com.gallery.ui.adapter
+package com.gallery.ui
 
 import android.content.res.Resources
 import android.database.Cursor
@@ -26,11 +26,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.gallery.model.BaseGalleryItem
 import com.gallery.model.CameraOpenItem
 import com.gallery.model.GalleryItem
-import com.gallery.ui.GalleryListener
-import com.gallery.ui.R
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
-import timber.log.Timber
+import com.gallery.ui.internal.isAndOperatorTrue
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -63,6 +61,12 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     @ColorInt
     private var selectedTxtColor: Int = Color.WHITE
     private var requestManager: RequestManager? = null
+    private val SELECT_TOP = 0x30
+    private val SELECT_BOTTOM = 0x50
+    private val SELECT_LEFT = 0x03
+    private val SELECT_RIGHT = 0x05
+    private var selectedGravity: Int = SELECT_BOTTOM shl SELECT_RIGHT
+    private var selectedBackgroundDim: Int = Color.argb(50, 0, 0, 0)
     // [e] Attribute Set
 
     private var lastPos = -1
@@ -94,6 +98,10 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyItemRangeChanged(0, 10)
     }
 
+    /**
+     * 카메라를 찍은 이후 이미지를 개신 처리하기위한 함수
+     * @param imagePath TakePicture Camera Contents path
+     */
     fun setTakePictureItemUpdate(imagePath: String) {
         val searchPos = if (isShowCamera) {
             1
@@ -103,7 +111,6 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         val item = dataList[searchPos]
         if (item is GalleryItem) {
             if (item.imagePath != imagePath) {
-                Timber.d("Update GalleryItem $imagePath")
                 dataList.add(searchPos, GalleryItem(imagePath))
                 notifyItemInserted(searchPos)
             } else {
@@ -169,6 +176,25 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
      */
     fun setRequestManager(manager: RequestManager): GalleryAdapter {
         requestManager = manager
+        return this
+    }
+
+    /**
+     * set Selected Ui Gravity
+     * @param gravity
+     */
+    fun setSelectGravity(gravity: Int): GalleryAdapter {
+        // top 0x30, bottom 0x50, left 0x03, right 0x05
+        selectedGravity = gravity
+        return this
+    }
+
+    /**
+     * set Selected Dim Background
+     * @param color Selected Dim
+     */
+    fun setSelectedBackgroundDim(@ColorInt color: Int): GalleryAdapter {
+        selectedBackgroundDim = color
         return this
     }
 
@@ -266,8 +292,6 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 } else {
                     dataList.add(GalleryItem(uri.toString()))
                 }
-
-                // initBindViewHolder Listener
             }
         }
     }
@@ -340,15 +364,44 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
 
+        /**
+         * init Gallery ViewHolder Style
+         */
         private fun initStyle() {
-            clSelectedNumber.updateLayoutParams {
-                width = selectedSize.plus(10.dp)
-                height = selectedSize.plus(10.dp)
-            }
+            initSelectNumberStyle()
+            vSelected.setBackgroundColor(selectedBackgroundDim)
             vSelectedNum.background = selectedBgDrawable
             tvSelectNum.setTextColor(selectedTxtColor)
             ivThumb.post {
                 resizeWidth = ivThumb.width.minus(30.dp)
+            }
+        }
+
+        /**
+         * init Selected Number Style
+         */
+        private fun initSelectNumberStyle() {
+            clSelectedNumber.updateLayoutParams {
+                width = selectedSize.plus(10.dp)
+                height = selectedSize.plus(10.dp)
+                if (this is ConstraintLayout.LayoutParams) {
+                    topToTop = -1
+                    bottomToBottom = -1
+                    leftToLeft = -1
+                    rightToRight = -1
+                    if (isAndOperatorTrue(selectedGravity, SELECT_TOP)) {
+                        topToTop = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity, SELECT_BOTTOM)) {
+                        bottomToBottom = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity, SELECT_LEFT)) {
+                        leftToLeft = R.id.ivThumb
+                    }
+                    if (isAndOperatorTrue(selectedGravity, SELECT_RIGHT)) {
+                        rightToRight = R.id.ivThumb
+                    }
+                }
             }
         }
 
@@ -414,7 +467,12 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     listener?.onPhotoPicker(this, true)
                 } else {
                     // 이미 선택한 경우
-                    listener?.onPhotoPicker(this, true)
+                    if (listener?.isCurrentPhoto(this) == true) {
+                        performRemovePhotoClick()
+                    } else {
+                        listener?.onPhotoPicker(this, true)
+                    }
+
                 }
             }
         }

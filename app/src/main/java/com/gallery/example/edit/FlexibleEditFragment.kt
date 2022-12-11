@@ -11,7 +11,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.gallery.core.GalleryProvider
-import com.gallery.core.toPhotoUri
 import com.gallery.edit.FlexibleImageEditView
 import com.gallery.example.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,17 +71,21 @@ internal class FlexibleEditFragment : Fragment(R.layout.f_flexible_edit) {
 
     private fun performRandomGallery() {
         lifecycleScope.launch(Dispatchers.Main) {
-            // val bitmap = getRandomGalleryBitmap()
-            val bitmap = getSampleBitmap()
-            if (bitmap != null) {
-                ivFlexible.loadBitmap(bitmap)
-            }
+            getRandomGalleryBitmap()
+                .onSuccess {
+                    ivFlexible.loadBitmap(it)
+                }
+            // val bitmap = getSampleBitmap()
+
         }
     }
 
     private suspend fun getSampleBitmap(): Bitmap? = withContext(Dispatchers.IO) {
         return@withContext try {
-            val bytes = URL("https://image.zdnet.co.kr/2021/08/27/48a2291e7cbed1be50aa28880b58477e.jpg")
+            // "https://image.zdnet.co.kr/2021/08/27/48a2291e7cbed1be50aa28880b58477e.jpg"
+            val url =
+                "https://wplyuoicjiwl13857209.cdn.ntruss.com/data2/content/image/2022/01/12/.cache/512/20220112500244.png"
+            val bytes = URL(url)
                 .readBytes()
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         } catch (ex: IOException) {
@@ -90,15 +93,15 @@ internal class FlexibleEditFragment : Fragment(R.layout.f_flexible_edit) {
         }
     }
 
-    private suspend fun getRandomGalleryBitmap(): Bitmap? = withContext(Dispatchers.IO) {
-        val allCursor = galleryProvider.fetchGallery()
-        val ranPos = Random.nextInt(0, allCursor.count)
-        allCursor.moveToPosition(ranPos)
-        val photoUri = allCursor.toPhotoUri()
-        if (photoUri != null) {
-            return@withContext galleryProvider.pathToBitmap(photoUri)
-        } else {
-            return@withContext null
+    private suspend fun getRandomGalleryBitmap(): Result<Bitmap> = withContext(Dispatchers.IO) {
+        try {
+            val allCursor = galleryProvider.fetchGallery()
+            val ranPos = Random.nextInt(0, allCursor.count)
+            allCursor.moveToPosition(ranPos)
+            val photoUri = galleryProvider.cursorToPhotoUri(allCursor)
+            return@withContext Result.success(galleryProvider.pathToBitmap(photoUri))
+        } catch (ex: Exception) {
+            return@withContext Result.failure(ex)
         }
     }
 

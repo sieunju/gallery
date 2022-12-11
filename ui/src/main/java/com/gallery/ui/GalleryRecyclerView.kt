@@ -21,10 +21,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.gallery.ui.adapter.GalleryAdapter
 import com.gallery.ui.internal.MediaContentsDelayUpdateHandler
 import com.gallery.ui.internal.dp
-import timber.log.Timber
 
 /**
  * Description : Gallery RecyclerView
@@ -44,7 +42,6 @@ class GalleryRecyclerView @JvmOverloads constructor(
     private val mediaContentsUpdateHandler: MediaContentsDelayUpdateHandler by lazy {
         MediaContentsDelayUpdateHandler(this, adapter)
     }
-
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.GalleryRecyclerView).run {
@@ -107,6 +104,20 @@ class GalleryRecyclerView @JvmOverloads constructor(
                     )
                 )
 
+                setSelectGravity(
+                    getInt(
+                        R.styleable.GalleryRecyclerView_gallerySelectedGravity,
+                        0x50 shl 0x05
+                    )
+                )
+
+                setSelectedBackgroundDim(
+                    getColor(
+                        R.styleable.GalleryRecyclerView_gallerySelectedBgDim,
+                        Color.argb(50, 0, 0, 0)
+                    )
+                )
+
                 setAdapter(adapter)
             } catch (ex: Exception) {
             }
@@ -153,7 +164,6 @@ class GalleryRecyclerView @JvmOverloads constructor(
     private val contentsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
             super.onChange(selfChange, uri)
-            Timber.d("Real onChange $selfChange $uri")
             if (uri != null) {
                 mediaContentsUpdateHandler.removeMessages(MediaContentsDelayUpdateHandler.UPDATE_TYPE)
                 val message = Message().apply {
@@ -214,6 +224,21 @@ class GalleryRecyclerView @JvmOverloads constructor(
      */
     fun setRequestManager(manager: RequestManager): GalleryAdapter {
         return adapter.setRequestManager(manager)
+    }
+
+    /**
+     * Selected UI Gravity
+     */
+    fun setSelectGravity(gravity: Int): GalleryAdapter {
+        return adapter.setSelectGravity(gravity)
+    }
+
+    /**
+     * Selected Dim Background Color
+     * @param color Color
+     */
+    fun setSelectedBackgroundDim(@ColorInt color: Int): GalleryAdapter {
+        return adapter.setSelectedBackgroundDim(color)
     }
 
     /**
