@@ -45,7 +45,27 @@ internal class CoreModule {
     ): GalleryProvider = Factory.create(context)
 }
 ```
-   
+
+## Core-rx Module
+This module is converted from core module to ReactiveX and processed.   
+___Core and core-rx must not be used together.___
+
+#### How To
+
+```groovy
+dependencies {
+    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion'
+}
+```
+
+#### Do Not Example ❌😵
+```groovy
+dependencies {
+    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion'
+    	implementation 'com.github.sieunju.gallery:core:$latestVersion'
+}
+```
+
    
 ## Edit Module
 
