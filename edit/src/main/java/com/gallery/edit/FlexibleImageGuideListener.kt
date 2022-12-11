@@ -1,6 +1,6 @@
 package com.gallery.edit
 
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 
 /**
  * Description : FlexibleImageGuideView Listener

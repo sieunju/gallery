@@ -26,6 +26,11 @@ internal class GalleryRootFragment : Fragment(R.layout.fragment_gallery) {
             findViewById<AppCompatTextView>(R.id.bGalleryAndFlexible).setOnClickListener {
                 moveToFragment(GalleryAndFlexibleFragment())
             }
+
+            findViewById<AppCompatTextView>(R.id.bBottomSheet).setOnClickListener {
+                GalleryBottomSheetDialog()
+                    .simpleShow(childFragmentManager)
+            }
         }
     }
 

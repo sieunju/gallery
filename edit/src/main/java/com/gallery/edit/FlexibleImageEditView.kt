@@ -16,7 +16,7 @@ import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.gallery.edit.detector.FlexibleStateItem
+import com.gallery.model.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
 import kotlin.math.*
 
@@ -50,8 +50,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
     private var isMultiTouch: Boolean = false
     private var moveDistance: Double = 0.0
     private var touchPoint = PointF()
-    private var viewWidth = -1
-    private var viewHeight = -1
     private var isTouchLock: Boolean = false // 애니메이션 동작중 터치 잠금하기위한 Flag 값
 
     var listener: FlexibleImageEditListener? = null
@@ -86,16 +84,19 @@ class FlexibleImageEditView @JvmOverloads constructor(
         if (newItem != null) {
             setImageBitmap(bitmap)
             stateItem.run {
+                focusX = newItem.focusX
+                focusY = newItem.focusY
                 imgWidth = newItem.imgWidth
                 imgHeight = newItem.imgHeight
                 scale = newItem.scale
                 startScale = newItem.startScale
                 minScale = newItem.minScale
+                viewWidth = newItem.viewWidth
+                viewHeight = newItem.viewHeight
             }
             invalidate()
         } else {
             val pair = cropBitmap(bitmap)
-
             stateItem.run {
                 imgWidth = (pair.first.width.toFloat() / pair.second).toInt()
                 imgHeight = (pair.first.height.toFloat() / pair.second).toInt()
@@ -218,7 +219,6 @@ class FlexibleImageEditView @JvmOverloads constructor(
         isMultiTouch = false
         moveDistance = 0.0
         touchPoint = PointF()
-        alpha = 1F
     }
 
     /**
@@ -365,8 +365,8 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        viewWidth = MeasureSpec.getSize(widthMeasureSpec)
-        viewHeight = MeasureSpec.getSize(heightMeasureSpec)
+        stateItem.viewWidth = MeasureSpec.getSize(widthMeasureSpec)
+        stateItem.viewHeight = MeasureSpec.getSize(heightMeasureSpec)
     }
 
 
@@ -376,16 +376,16 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * @return 알맞게 Scale 한 비트맵, 해당 비트맵과 뷰의 Max Scale 값
      */
     private fun cropBitmap(bitmap: Bitmap): Pair<Bitmap, Float> {
-        var xScale: Float = viewWidth.toFloat() / bitmap.width.toFloat()
-        var yScale: Float = viewHeight.toFloat() / bitmap.height.toFloat()
+        var xScale: Float = stateItem.viewWidth.toFloat() / bitmap.width.toFloat()
+        var yScale: Float = stateItem.viewHeight.toFloat() / bitmap.height.toFloat()
         // 가장 큰 비율 가져옴
         var maxScale = xScale.coerceAtLeast(yScale)
 
         val scaledWidth = maxScale * bitmap.width
         val scaledHeight = maxScale * bitmap.height
 
-        xScale = scaledWidth / viewWidth.toFloat()
-        yScale = scaledHeight / viewHeight.toFloat()
+        xScale = scaledWidth / stateItem.viewWidth.toFloat()
+        yScale = scaledHeight / stateItem.viewHeight.toFloat()
         maxScale = xScale.coerceAtLeast(yScale)
         return Bitmap.createScaledBitmap(
             bitmap,
@@ -413,7 +413,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * Top, Left, Right, Bottom 값들을 구할수 있다.
      */
     internal fun computeImageLocation(): RectF? {
-        if (viewWidth == -1 || viewHeight == -1 ||
+        if (stateItem.viewWidth == -1 || stateItem.viewHeight == -1 ||
             stateItem.currentImgWidth == -1F ||
             stateItem.currentImgHeight == -1F
         ) return null
@@ -423,10 +423,10 @@ class FlexibleImageEditView @JvmOverloads constructor(
         val focusX = stateItem.focusX
         val focusY = stateItem.focusY
 
-        val imgTop = (focusY + (viewHeight / 2F)) - imgHeight / 2F
-        val imgLeft = (focusX + (viewWidth / 2F)) - imgWidth / 2F
-        val imgRight = (focusX + (viewWidth / 2F)) + imgWidth / 2F
-        val imgBottom = (focusY + (viewHeight / 2F)) + imgHeight / 2F
+        val imgTop = (focusY + (stateItem.viewHeight / 2F)) - imgHeight / 2F
+        val imgLeft = (focusX + (stateItem.viewWidth / 2F)) - imgWidth / 2F
+        val imgRight = (focusX + (stateItem.viewWidth / 2F)) + imgWidth / 2F
+        val imgBottom = (focusY + (stateItem.viewHeight / 2F)) + imgHeight / 2F
         return RectF(imgLeft, imgTop, imgRight, imgBottom)
     }
 
@@ -440,13 +440,13 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
         // 좌우 모자란 부분이 있는 경우 -> X 좌표 가운데
         // MinScale 이 1.0 이하인 경우에만 존재
-        if ((rect.left > 0 && rect.right < viewWidth) && (rect.top > 0 && rect.bottom < viewHeight)) {
+        if ((rect.left > 0 && rect.right < stateItem.viewWidth) && (rect.top > 0 && rect.bottom < stateItem.viewHeight)) {
             // 0으로 초기화
             return Pair(-stateItem.focusX, -stateItem.focusY)
         }
 
         when {
-            rect.width() < viewWidth -> {
+            rect.width() < stateItem.viewWidth -> {
                 // 좌우 공간이 부족한 경우
                 diffFocusX = -stateItem.focusX
             }
@@ -454,14 +454,14 @@ class FlexibleImageEditView @JvmOverloads constructor(
                 // 왼쪽에 빈공간이 있는 경우
                 diffFocusX = -abs(rect.left)
             }
-            rect.right < viewWidth -> {
+            rect.right < stateItem.viewWidth -> {
                 // 오른쪽에 빈공간이 있는 경우
-                diffFocusX = abs(rect.right - viewWidth)
+                diffFocusX = abs(rect.right - stateItem.viewWidth)
             }
         }
 
         when {
-            rect.height() < viewHeight -> {
+            rect.height() < stateItem.viewHeight -> {
                 // 상하 공간이 부족한 경우
                 diffFocusY = -stateItem.focusY
             }
@@ -469,9 +469,9 @@ class FlexibleImageEditView @JvmOverloads constructor(
                 // 위쪽에 빈공간이 있는 경우
                 diffFocusY = -abs(rect.top)
             }
-            rect.bottom < viewHeight -> {
+            rect.bottom < stateItem.viewHeight -> {
                 // 아래쪽에 빈공간이 있는 경우
-                diffFocusY = abs(rect.bottom - viewHeight)
+                diffFocusY = abs(rect.bottom - stateItem.viewHeight)
             }
         }
 

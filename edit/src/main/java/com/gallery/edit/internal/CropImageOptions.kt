@@ -16,7 +16,7 @@ import kotlinx.parcelize.Parcelize
  * Initialized with default values.
  */
 @Parcelize
-internal data class CropImageOptions(
+data class CropImageOptions(
     /** The shape of the cropping window.  */
     @JvmField
     var cropShape: CropShape = CropShape.RECTANGLE,

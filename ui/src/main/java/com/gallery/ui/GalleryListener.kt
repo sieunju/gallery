@@ -9,11 +9,14 @@ import com.gallery.model.GalleryItem
  */
 interface GalleryListener {
 
+    /**
+     * Camera Open Click
+     */
     fun onCameraOpen()
 
     /**
      * Photo Picker Callback
-     * @param item Current GalleryItem
+     * @param item Click GalleryItem
      * @param isAdd true Picker, false No Picker
      */
     fun onPhotoPicker(item: GalleryItem, isAdd: Boolean)
@@ -23,4 +26,10 @@ interface GalleryListener {
      */
     fun onMaxPickerCount()
 
+    /**
+     * Listener that can be cleared if clicked in duplicate.
+     * @param item Click GalleryItem
+     * @return true SamePhoto removeGallery
+     */
+    fun isCurrentPhoto(item: GalleryItem): Boolean
 }
