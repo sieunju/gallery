@@ -12,7 +12,9 @@ import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
 import com.gallery.model.FlexibleStateItem
 import okhttp3.MultipartBody
+import okio.IOException
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
 /**
@@ -25,29 +27,34 @@ interface GalleryProvider {
      * Fetch Gallery Directory
      * 갤러리 조회 함수
      */
+    @Throws(IllegalStateException::class, Exception::class)
     fun fetchDirectories(): List<GalleryFilterData>
 
     /**
      * Fetch Selected FilterId Gallery
      * @param params QueryParameter
      */
+    @Throws(IllegalStateException::class, NullPointerException::class)
     fun fetchGallery(params: GalleryQueryParameter): Cursor
 
     /**
      * Fetch All Gallery
      */
+    @Throws(IllegalStateException::class, NullPointerException::class)
     fun fetchGallery(): Cursor
 
     /**
      * Converter Current Cursor -> Images Local Uri content://
      * @param cursor Current Cursor
      */
-    fun cursorToPhotoUri(cursor: Cursor): String?
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    fun cursorToPhotoUri(cursor: Cursor): String
 
     /**
      * Converter Local Path -> Bitmap
      * @param path Local Path content://...
      */
+    @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
     fun pathToBitmap(path: String): Bitmap
 
     /**
@@ -55,12 +62,14 @@ interface GalleryProvider {
      * @param path Local Path content://...
      * @param limitWidth Image Limit Resize Width
      */
+    @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
     fun pathToBitmap(path: String, limitWidth: Int): Bitmap
 
     /**
      * DrawableRes to Bitmap
      * @param redId Drawable Resource Id
      */
+    @Throws(IllegalArgumentException::class)
     fun pathToBitmap(@DrawableRes redId: Int): Bitmap
 
     /**
@@ -69,6 +78,7 @@ interface GalleryProvider {
      * @param bitmap Source Bitmap
      * @param name MultipartBody key Name
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun bitmapToMultipart(bitmap: Bitmap, name: String): MultipartBody.Part
 
     /**
@@ -78,6 +88,7 @@ interface GalleryProvider {
      * @param filename MultipartBody FileName
      * @param suffix ex.) .jpg, .png..
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun bitmapToMultipart(
         bitmap: Bitmap,
         name: String,
@@ -90,10 +101,11 @@ interface GalleryProvider {
      * @param bitmap Source Bitmap
      * @param fos FileStream
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun copyBitmapToFile(
         bitmap: Bitmap,
         fos: FileOutputStream
-    )
+    ): Boolean
 
     /**
      * Delete File
@@ -119,18 +131,23 @@ interface GalleryProvider {
      *
      * @return Resize Bitmap..
      */
+    @Throws(IllegalArgumentException::class)
     fun ratioResizeBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap
 
     /**
      * Create Temp File
      * .jpg Type
+     * @throws IOException
      */
-    fun createTempFile(): File?
+    @Throws(IOException::class)
+    fun createTempFile(): File
 
     /**
      * Create Temp File
+     * @throws IOException
      */
-    fun createFile(name: String, suffix: String): File?
+    @Throws(IOException::class)
+    fun createFile(name: String, suffix: String): File
 
     /**
      * FlexibleImageView Capture Bitmap
@@ -139,6 +156,7 @@ interface GalleryProvider {
      * @param flexibleItem FlexibleStateItem
      * @throws NullPointerException
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun getFlexibleImageToBitmap(
         originalImagePath: String,
         flexibleItem: FlexibleStateItem
@@ -152,6 +170,7 @@ interface GalleryProvider {
      * @param width FlexibleImageView Root Layout Width
      * @param height FlexibleImageView Root Layout Height
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun getFlexibleImageToBitmap(
         originalImagePath: String,
         srcRect: RectF,
@@ -167,6 +186,7 @@ interface GalleryProvider {
      * @param width FlexibleImageView Root Layout Width
      * @param height FlexibleImageView Root Layout Height
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun getFlexibleImageToBitmap(
         originalBitmap: Bitmap,
         srcRect: RectF,
@@ -183,6 +203,7 @@ interface GalleryProvider {
      * @param height FlexibleImageView Root Layout Height
      * @param color Color Resource Int
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     fun getFlexibleImageToBitmap(
         originalBitmap: Bitmap,
         srcRect: RectF,
@@ -195,7 +216,13 @@ interface GalleryProvider {
      * Save Bitmap File Completed File Info Return
      * File Location Cache Directory
      */
-    fun saveBitmapToFile(bitmap: Bitmap): File?
+    @Throws(
+        FileNotFoundException::class,
+        SecurityException::class,
+        NullPointerException::class,
+        IllegalArgumentException::class
+    )
+    fun saveBitmapToFile(bitmap: Bitmap): File
 
     /**
      * CropImageEditView Edit Completed -> Bitmap Return
@@ -203,7 +230,8 @@ interface GalleryProvider {
      * Bitmap 으로 리턴하고 싶은 경우 해당 함수를 사용합니다.
      */
     @WorkerThread
-    fun getCropImageEditToBitmap(editModel: CropImageEditModel): Bitmap?
+    @Throws(IllegalArgumentException::class)
+    fun getCropImageEditToBitmap(editModel: CropImageEditModel): Bitmap
 
     /**
      * CropImageEditView Edit Completed -> Bitmap Return
@@ -211,6 +239,7 @@ interface GalleryProvider {
      * Bitmap 으로 리턴하고 싶은 경우 해당 함수를 사용합니다.
      */
     @WorkerThread
+    @Throws(IllegalArgumentException::class)
     fun getCropImageEditToBitmap(
         originalBitmap: Bitmap?,
         points: FloatArray,
@@ -220,15 +249,17 @@ interface GalleryProvider {
         aspectRatioY: Int,
         flipHorizontally: Boolean,
         flipVertically: Boolean
-    ): Bitmap?
+    ): Bitmap
 
     /**
      * 카메라 열어서 사진을 캐시 디렉토리에 저장할 URI 을 생성하는 함수 입니다.
      */
-    fun createGalleryPhotoUri(authority: String): Uri?
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    fun createGalleryPhotoUri(authority: String): Uri
 
     /**
      * 카메라에서 사진을 찍은후 갤러리에 저장하는 함수입니다.
      */
+    @Throws(Exception::class)
     fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String>
 }

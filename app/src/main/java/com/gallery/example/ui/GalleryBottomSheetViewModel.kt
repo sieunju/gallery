@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
+import com.gallery.core_rx.fetchGalleryRx
+import com.gallery.core_rx.pathToBitmapRx
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.FlexibleStateItem
 import com.gallery.model.GalleryItem
@@ -46,22 +48,15 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     private val currentFlexibleStateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
 
     fun start() {
-        Single.create<Cursor> { emitter ->
-            try {
-                val cursor = galleryProvider.fetchGallery()
-                emitter.onSuccess(cursor)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }
-            .subscribeOn(Schedulers.io())
+        galleryProvider.fetchGalleryRx()
             .delay(500, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
+                Timber.d("SUCC $it")
                 _cursor.value = it
                 performClickPosition()
             }, {
-
+                Timber.d("ERROR $it")
             }).addTo(disposable)
     }
 
@@ -94,15 +89,8 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
      * FlexibleImageView 에 변경 하기 위한 함수
      */
     private fun performChangeBitmap(newImagePath: String) {
-        Single.create<Bitmap> { emitter ->
-            try {
-                savePreviewStateItem()
-                val bitmap = galleryProvider.pathToBitmap(newImagePath)
-                emitter.onSuccess(bitmap)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }.subscribeOn(Schedulers.io())
+        savePreviewStateItem()
+        galleryProvider.pathToBitmapRx(newImagePath)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 val cacheStateItem = selectPhotoMap[newImagePath]
@@ -114,7 +102,7 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
                     _selectPhotoBitmap.value = it to null
                 }
                 prevImagePath = newImagePath
-            }, {
+            },{
 
             }).addTo(disposable)
     }

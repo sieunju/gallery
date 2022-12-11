@@ -27,6 +27,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,6 +39,7 @@ import kotlin.math.*
  *
  * Created by juhongmin on 2022/09/13
  */
+@Suppress("unused")
 internal class GalleryProviderImpl constructor(
     private val context: Context
 ) : GalleryProvider {
@@ -61,6 +63,7 @@ internal class GalleryProviderImpl constructor(
      * Fetch Gallery Directory
      * 갤러리 조회 함수
      */
+    @Throws(IllegalStateException::class, Exception::class)
     override fun fetchDirectories(): List<GalleryFilterData> {
         // Permissions Check
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("'android.permission.READ_EXTERNAL_STORAGE' is not Granted! ")
@@ -168,6 +171,7 @@ internal class GalleryProviderImpl constructor(
      * Fetch Selected FilterId Gallery
      * @param params QueryParameter
      */
+    @Throws(IllegalStateException::class, NullPointerException::class)
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("Permissions PERMISSION_DENIED")
         val projection = arrayOf(ID)
@@ -186,6 +190,7 @@ internal class GalleryProviderImpl constructor(
     /**
      * Fetch All Gallery
      */
+    @Throws(IllegalStateException::class, NullPointerException::class)
     override fun fetchGallery(): Cursor {
         return fetchGallery(GalleryQueryParameter())
     }
@@ -194,11 +199,12 @@ internal class GalleryProviderImpl constructor(
      * Converter Current Cursor -> Images Local Uri content://
      * @param cursor Current Cursor
      */
-    override fun cursorToPhotoUri(cursor: Cursor): String? {
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    override fun cursorToPhotoUri(cursor: Cursor): String {
         return try {
             getPhotoUri(getContentsId(cursor))
         } catch (ex: Exception) {
-            null
+            throw ex
         }
     }
 
@@ -206,6 +212,7 @@ internal class GalleryProviderImpl constructor(
      * Converter Local Path -> Bitmap
      * @param path Local Path content://...
      */
+    @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
     override fun pathToBitmap(path: String): Bitmap {
         return pathToBitmap(path, -1)
     }
@@ -214,6 +221,7 @@ internal class GalleryProviderImpl constructor(
      * Converter Local Path -> Bitmap
      * @param path Local Path content://...
      */
+    @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
     override fun pathToBitmap(path: String, limitWidth: Int): Bitmap {
         val uri = Uri.parse(path)
         var bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -262,6 +270,7 @@ internal class GalleryProviderImpl constructor(
      * DrawableRes to Bitmap
      * @param redId Drawable Resource Id
      */
+    @Throws(IllegalArgumentException::class)
     override fun pathToBitmap(redId: Int): Bitmap {
         return BitmapFactory.decodeResource(context.resources, redId)
     }
@@ -272,6 +281,7 @@ internal class GalleryProviderImpl constructor(
      * @param bitmap Source Bitmap
      * @param name MultipartBody key Name
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun bitmapToMultipart(bitmap: Bitmap, name: String): MultipartBody.Part {
         return bitmapToMultipart(bitmap, name, "${System.currentTimeMillis()}.jpg", ".jpg")
     }
@@ -283,6 +293,7 @@ internal class GalleryProviderImpl constructor(
      * @param filename MultipartBody FileName
      * @param suffix ex.) .jpg, .png..
      */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun bitmapToMultipart(
         bitmap: Bitmap,
         name: String,
@@ -305,8 +316,10 @@ internal class GalleryProviderImpl constructor(
      * @param bitmap Source Bitmap
      * @param fos FileStream
      */
-    override fun copyBitmapToFile(bitmap: Bitmap, fos: FileOutputStream) {
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    override fun copyBitmapToFile(bitmap: Bitmap, fos: FileOutputStream): Boolean {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        return true
     }
 
     /**
@@ -357,6 +370,7 @@ internal class GalleryProviderImpl constructor(
      *
      * @return Resize Bitmap..
      */
+    @Throws(IllegalArgumentException::class)
     override fun ratioResizeBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap {
         val xScale: Float = width.toFloat() / bitmap.width.toFloat()
         val yScale: Float = height.toFloat() / bitmap.height.toFloat()
@@ -380,11 +394,13 @@ internal class GalleryProviderImpl constructor(
     }
 
     @SuppressLint("SimpleDateFormat")
-    override fun createTempFile(): File? {
+    @Throws(IOException::class)
+    override fun createTempFile(): File {
         return createFile("${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}_", ".jpg")
     }
 
-    override fun createFile(name: String, suffix: String): File? {
+    @Throws(IOException::class)
+    override fun createFile(name: String, suffix: String): File {
         return try {
             File.createTempFile(
                 name,
@@ -392,10 +408,11 @@ internal class GalleryProviderImpl constructor(
                 context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             )
         } catch (ex: IOException) {
-            null
+            throw ex
         }
     }
 
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun getFlexibleImageToBitmap(
         originalImagePath: String,
         flexibleItem: FlexibleStateItem
@@ -407,6 +424,7 @@ internal class GalleryProviderImpl constructor(
         )
     }
 
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun getFlexibleImageToBitmap(
         originalImagePath: String,
         srcRect: RectF,
@@ -416,6 +434,7 @@ internal class GalleryProviderImpl constructor(
         return getFlexibleImageToBitmap(pathToBitmap(originalImagePath), srcRect, width, height)
     }
 
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun getFlexibleImageToBitmap(
         originalBitmap: Bitmap,
         srcRect: RectF,
@@ -431,6 +450,7 @@ internal class GalleryProviderImpl constructor(
         )
     }
 
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun getFlexibleImageToBitmap(
         originalBitmap: Bitmap,
         srcRect: RectF,
@@ -452,7 +472,13 @@ internal class GalleryProviderImpl constructor(
         return bitmap
     }
 
-    override fun saveBitmapToFile(bitmap: Bitmap): File? {
+    @Throws(
+        FileNotFoundException::class,
+        SecurityException::class,
+        NullPointerException::class,
+        IllegalArgumentException::class
+    )
+    override fun saveBitmapToFile(bitmap: Bitmap): File {
         val file = createTempFile()
         val fos = FileOutputStream(file)
         copyBitmapToFile(bitmap, fos)
@@ -460,7 +486,8 @@ internal class GalleryProviderImpl constructor(
     }
 
     @WorkerThread
-    override fun getCropImageEditToBitmap(editModel: CropImageEditModel): Bitmap? {
+    @Throws(NullPointerException::class)
+    override fun getCropImageEditToBitmap(editModel: CropImageEditModel): Bitmap {
         return getCropImageEditToBitmap(
             editModel.bitmap,
             editModel.points,
@@ -474,6 +501,7 @@ internal class GalleryProviderImpl constructor(
     }
 
     @WorkerThread
+    @Throws(NullPointerException::class)
     override fun getCropImageEditToBitmap(
         originalBitmap: Bitmap?,
         points: FloatArray,
@@ -483,8 +511,10 @@ internal class GalleryProviderImpl constructor(
         aspectRatioY: Int,
         flipHorizontally: Boolean,
         flipVertically: Boolean
-    ): Bitmap? {
-        if (originalBitmap == null) return null
+    ): Bitmap {
+        if (originalBitmap == null) {
+            throw NullPointerException("originalBitmap is Null")
+        }
         var croppedBitmap = cropBitmapObjectHandleOOM(
             originalBitmap,
             points,
@@ -504,8 +534,9 @@ internal class GalleryProviderImpl constructor(
         return croppedBitmap
     }
 
-    override fun createGalleryPhotoUri(authority: String): Uri? {
-        val file = createTempFile() ?: return null
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    override fun createGalleryPhotoUri(authority: String): Uri {
+        val file = createTempFile()
         return FileProvider.getUriForFile(
             context,
             authority,
@@ -513,6 +544,7 @@ internal class GalleryProviderImpl constructor(
         )
     }
 
+    @Throws(Exception::class)
     override fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String> {
         // Scoped Storage
         try {
