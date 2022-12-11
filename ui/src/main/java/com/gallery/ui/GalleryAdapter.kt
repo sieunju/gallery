@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -62,11 +61,12 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     @ColorInt
     private var selectedTxtColor: Int = Color.WHITE
     private var requestManager: RequestManager? = null
-    private var selectedGravity: Int = 0x50 shl 0x05
     private val SELECT_TOP = 0x30
     private val SELECT_BOTTOM = 0x50
     private val SELECT_LEFT = 0x03
     private val SELECT_RIGHT = 0x05
+    private var selectedGravity: Int = SELECT_BOTTOM shl SELECT_RIGHT
+    private var selectedBackgroundDim: Int = Color.argb(50, 0, 0, 0)
     // [e] Attribute Set
 
     private var lastPos = -1
@@ -189,6 +189,15 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return this
     }
 
+    /**
+     * set Selected Dim Background
+     * @param color Selected Dim
+     */
+    fun setSelectedBackgroundDim(@ColorInt color: Int): GalleryAdapter {
+        selectedBackgroundDim = color
+        return this
+    }
+
     fun requestViewHolderClick(pos: Int) {
         notifyItemChanged(pos, true)
     }
@@ -283,8 +292,6 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 } else {
                     dataList.add(GalleryItem(uri.toString()))
                 }
-
-                // initBindViewHolder Listener
             }
         }
     }
@@ -357,7 +364,23 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
 
+        /**
+         * init Gallery ViewHolder Style
+         */
         private fun initStyle() {
+            initSelectNumberStyle()
+            vSelected.setBackgroundColor(selectedBackgroundDim)
+            vSelectedNum.background = selectedBgDrawable
+            tvSelectNum.setTextColor(selectedTxtColor)
+            ivThumb.post {
+                resizeWidth = ivThumb.width.minus(30.dp)
+            }
+        }
+
+        /**
+         * init Selected Number Style
+         */
+        private fun initSelectNumberStyle() {
             clSelectedNumber.updateLayoutParams {
                 width = selectedSize.plus(10.dp)
                 height = selectedSize.plus(10.dp)
@@ -366,24 +389,19 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     bottomToBottom = -1
                     leftToLeft = -1
                     rightToRight = -1
-                    if (isAndOperatorTrue(selectedGravity,SELECT_TOP)) {
+                    if (isAndOperatorTrue(selectedGravity, SELECT_TOP)) {
                         topToTop = R.id.ivThumb
                     }
-                    if (isAndOperatorTrue(selectedGravity,SELECT_BOTTOM)) {
+                    if (isAndOperatorTrue(selectedGravity, SELECT_BOTTOM)) {
                         bottomToBottom = R.id.ivThumb
                     }
-                    if (isAndOperatorTrue(selectedGravity,SELECT_LEFT)) {
+                    if (isAndOperatorTrue(selectedGravity, SELECT_LEFT)) {
                         leftToLeft = R.id.ivThumb
                     }
-                    if (isAndOperatorTrue(selectedGravity,SELECT_RIGHT)) {
+                    if (isAndOperatorTrue(selectedGravity, SELECT_RIGHT)) {
                         rightToRight = R.id.ivThumb
                     }
                 }
-            }
-            vSelectedNum.background = selectedBgDrawable
-            tvSelectNum.setTextColor(selectedTxtColor)
-            ivThumb.post {
-                resizeWidth = ivThumb.width.minus(30.dp)
             }
         }
 
@@ -449,7 +467,12 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     listener?.onPhotoPicker(this, true)
                 } else {
                     // 이미 선택한 경우
-                    listener?.onPhotoPicker(this, true)
+                    if (listener?.isCurrentPhoto(this) == true) {
+                        performRemovePhotoClick()
+                    } else {
+                        listener?.onPhotoPicker(this, true)
+                    }
+
                 }
             }
         }
