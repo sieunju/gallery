@@ -49,18 +49,9 @@ fun GalleryProvider.fetchDirectoriesRx(): Single<List<GalleryFilterData>> {
  */
 @Suppress("unused")
 fun GalleryProvider.fetchGalleryRx(
-    params: GalleryQueryParameter
+    params: GalleryQueryParameter = GalleryQueryParameter()
 ): Single<Cursor> {
     return simpleRx { fetchGallery(params) }
-}
-
-/**
- * Rx Extensions
- * @see GalleryProvider.fetchGallery()
- */
-@Suppress("unused")
-fun GalleryProvider.fetchGalleryRx(): Single<Cursor> {
-    return simpleRx { fetchGallery() }
 }
 
 /**
@@ -106,6 +97,19 @@ fun GalleryProvider.pathToBitmapRx(
     @DrawableRes redId: Int
 ): Single<Bitmap> {
     return simpleRx { pathToBitmap(redId) }
+}
+
+/**
+ * Rx Extensions
+ * @see GalleryProvider.pathToMultipart()
+ */
+@Suppress("unused")
+fun GalleryProvider.pathToMultipartRx(
+    path: String,
+    name: String,
+    resizeWidth: Int
+): Single<MultipartBody.Part> {
+    return simpleRx { bitmapToMultipart(pathToBitmap(path, resizeWidth), name) }
 }
 
 /**
@@ -250,6 +254,19 @@ fun GalleryProvider.getFlexibleImageToBitmapRx(
     @ColorInt color: Int
 ): Single<Bitmap> {
     return simpleRx { getFlexibleImageToBitmap(originalBitmap, srcRect, width, height, color) }
+}
+
+/**
+ * Rx Extensions
+ * @see GalleryProvider.getFlexibleImageToMultipart()
+ */
+@Suppress("unused")
+fun GalleryProvider.getFlexibleImageToMultipartRx(
+    originalImagePath: String,
+    flexibleItem: FlexibleStateItem,
+    multipartKey: String
+): Single<MultipartBody.Part> {
+    return simpleRx { getFlexibleImageToMultipart(originalImagePath, flexibleItem, multipartKey) }
 }
 
 /**

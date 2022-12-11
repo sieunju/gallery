@@ -9,16 +9,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
-import com.gallery.model.FlexibleStateItem
+import com.gallery.core_rx.fetchGalleryRx
+import com.gallery.core_rx.pathToBitmapRx
+import com.gallery.core_rx.saveGalleryPictureRx
 import com.gallery.example.SingleLiveEvent
+import com.gallery.model.FlexibleStateItem
 import com.gallery.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
-import io.reactivex.rxjava3.schedulers.Schedulers
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -48,22 +49,13 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
     private val currentFlexibleStateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
 
     fun start() {
-        Single.create<Cursor> { emitter ->
-            try {
-                val cursor = galleryProvider.fetchGallery()
-                emitter.onSuccess(cursor)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }
-            .subscribeOn(Schedulers.io())
+        galleryProvider.fetchGalleryRx()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
+            .doOnSuccess {
                 _cursor.value = it
                 performClickPosition()
-            }, {
-
-            }).addTo(disposable)
+            }
+            .subscribe().addTo(disposable)
     }
 
     /**
@@ -107,17 +99,10 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
      * FlexibleImageView 에 변경 하기 위한 함수
      */
     private fun performChangeBitmap(newImagePath: String) {
-        Single.create<Bitmap> { emitter ->
-            try {
-                savePreviewStateItem()
-                val bitmap = galleryProvider.pathToBitmap(newImagePath)
-                emitter.onSuccess(bitmap)
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }.subscribeOn(Schedulers.io())
+        savePreviewStateItem()
+        galleryProvider.pathToBitmapRx(newImagePath)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
+            .doOnSuccess {
                 val cacheStateItem = selectPhotoMap[newImagePath]
                 // 이미 존재하는 경우
                 if (cacheStateItem != null) {
@@ -127,9 +112,8 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
                     _selectPhotoBitmap.value = it to null
                 }
                 prevImagePath = newImagePath
-            }, {
-
-            }).addTo(disposable)
+            }
+            .subscribe().addTo(disposable)
     }
 
     private fun performRemovePhoto(item: GalleryItem) {
@@ -166,23 +150,11 @@ internal class GalleryAndFlexibleFragmentViewModel @Inject constructor(
     }
 
     private fun savePicture(uri: String) {
-        Single.create<Pair<Boolean, String>> {
-            try {
-                val result = galleryProvider.saveGalleryPicture(
-                    uri,
-                    "gallery_${System.currentTimeMillis()}"
-                )
-                it.onSuccess(result)
-            } catch (ex: Exception) {
-                it.onError(ex)
-            }
-        }
-            .subscribeOn(Schedulers.io())
+        galleryProvider.saveGalleryPictureRx(uri, "gallery_${System.currentTimeMillis()}")
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                Timber.d("SUCC $it")
                 galleryProvider.deleteCacheDirectory()
             }, {
-                Timber.d("ERROR $it")
                 galleryProvider.deleteCacheDirectory()
             }).addTo(disposable)
     }

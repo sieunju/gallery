@@ -6,8 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
-import com.gallery.core_rx.fetchGalleryRx
-import com.gallery.core_rx.pathToBitmapRx
+import com.gallery.core_rx.*
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.FlexibleStateItem
 import com.gallery.model.GalleryItem
@@ -16,7 +15,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
-import io.reactivex.rxjava3.schedulers.Schedulers
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -92,7 +90,7 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
         savePreviewStateItem()
         galleryProvider.pathToBitmapRx(newImagePath)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
+            .doOnSuccess {
                 val cacheStateItem = selectPhotoMap[newImagePath]
                 // 이미 존재하는 경우
                 if (cacheStateItem != null) {
@@ -102,9 +100,8 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
                     _selectPhotoBitmap.value = it to null
                 }
                 prevImagePath = newImagePath
-            },{
-
-            }).addTo(disposable)
+            }
+            .subscribe().addTo(disposable)
     }
 
     private fun performRemovePhoto(item: GalleryItem) {
@@ -146,29 +143,23 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     }
 
     fun sendEditImageBitmap() {
-        Single.create<Boolean> { emitter ->
-            try {
-                savePreviewStateItem()
-                galleryProvider.deleteCacheDirectory()
-                Timber.d("SaveEditImageBitmap $selectPhotoMap")
+        savePreviewStateItem()
+        galleryProvider.deleteCacheDirectoryRx()
+            .map {
+                val workList = mutableListOf<Single<Bitmap>>()
                 selectPhotoMap.forEach { entry ->
-                    try {
-                        val bitmap =
-                            galleryProvider.getFlexibleImageToBitmap(entry.key, entry.value)
-                        galleryProvider.saveBitmapToFile(bitmap)
-                    } catch (ex: Exception) {
-
-                    }
+                    workList.add(galleryProvider.getFlexibleImageToBitmapRx(entry.key, entry.value))
                 }
-            } catch (ex: Exception) {
-                emitter.onError(ex)
+                return@map workList
             }
-            emitter.onSuccess(true)
-        }.subscribe({
-            Timber.d("SUCC $it")
-        }, {
-            Timber.d("ERROR $it")
-        }).addTo(disposable)
+            .toFlowable()
+            .flatMap { Single.mergeDelayError(it) }
+            .flatMap { galleryProvider.saveBitmapToFileRx(it).toFlowable() }
+            .subscribe({
+                Timber.d("SUCC $it")
+            }, {
+                Timber.d("ERROR $it")
+            }).addTo(disposable)
     }
 
     fun clearDisposable() {

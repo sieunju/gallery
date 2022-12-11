@@ -276,6 +276,22 @@ internal class GalleryProviderImpl constructor(
     }
 
     /**
+     * Converter Contents Path to Multipart
+     * @param path ex.) content://
+     * @param name Multipart.Body Upload key
+     * @param resizeWidth Resize Limit Width
+     */
+    @Throws(
+        IOException::class,
+        NullPointerException::class,
+        IllegalArgumentException::class,
+        FileNotFoundException::class
+    )
+    override fun pathToMultipart(path: String, name: String, resizeWidth: Int): MultipartBody.Part {
+        return bitmapToMultipart(pathToBitmap(path, resizeWidth), name)
+    }
+
+    /**
      * Converter Bitmap to OkHttp.MultipartBody
      * .jpg Compress Type
      * @param bitmap Source Bitmap
@@ -472,6 +488,15 @@ internal class GalleryProviderImpl constructor(
         return bitmap
     }
 
+    override fun getFlexibleImageToMultipart(
+        originalImagePath: String,
+        flexibleItem: FlexibleStateItem,
+        multipartKey: String
+    ): MultipartBody.Part {
+        val bitmap = getFlexibleImageToBitmap(originalImagePath,flexibleItem)
+        return bitmapToMultipart(bitmap,multipartKey)
+    }
+
     @Throws(
         FileNotFoundException::class,
         SecurityException::class,
@@ -482,6 +507,7 @@ internal class GalleryProviderImpl constructor(
         val file = createTempFile()
         val fos = FileOutputStream(file)
         copyBitmapToFile(bitmap, fos)
+        fos.close()
         return file
     }
 

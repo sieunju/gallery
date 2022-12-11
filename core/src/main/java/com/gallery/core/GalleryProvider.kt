@@ -62,7 +62,12 @@ interface GalleryProvider {
      * @param path Local Path content://...
      * @param limitWidth Image Limit Resize Width
      */
-    @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
+    @Throws(
+        IOException::class,
+        NullPointerException::class,
+        IllegalArgumentException::class,
+        FileNotFoundException::class
+    )
     fun pathToBitmap(path: String, limitWidth: Int): Bitmap
 
     /**
@@ -71,6 +76,15 @@ interface GalleryProvider {
      */
     @Throws(IllegalArgumentException::class)
     fun pathToBitmap(@DrawableRes redId: Int): Bitmap
+
+    /**
+     * Converter Contents Path to Multipart
+     * @param path ex.) content://
+     * @param name Multipart.Body Upload key
+     * @param resizeWidth Resize Limit Width
+     */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    fun pathToMultipart(path: String, name: String, resizeWidth: Int): MultipartBody.Part
 
     /**
      * Converter Bitmap to OkHttp.MultipartBody
@@ -211,6 +225,25 @@ interface GalleryProvider {
         height: Int,
         @ColorInt color: Int
     ): Bitmap
+
+    /**
+     * FlexibleImageView Capture Bitmap And MultipartBody
+     *
+     * @param originalImagePath Original ImagePath
+     * @param flexibleItem FlexibleStateItem
+     * @param multipartKey MultipartBody FileName
+     *
+     * @throws NullPointerException
+     * @throws IllegalArgumentException
+     *
+     * @return MultipartBody.Part
+     */
+    @Throws(NullPointerException::class, IllegalArgumentException::class)
+    fun getFlexibleImageToMultipart(
+        originalImagePath: String,
+        flexibleItem: FlexibleStateItem,
+        multipartKey: String
+    ): MultipartBody.Part
 
     /**
      * Save Bitmap File Completed File Info Return
