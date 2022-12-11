@@ -1,5 +1,7 @@
 package com.gallery.edit.detector
 
+import android.graphics.RectF
+
 /**
  * Description: Flexible State Data Class
  * 각 초기값은
@@ -27,6 +29,8 @@ data class FlexibleStateItem(
     var minScale: Float = -1F
     var imgWidth: Int = -1 // 실제 이미지 너비
     var imgHeight: Int = -1 // 실제 이미지 높이
+    var viewWidth: Int = -1
+    var viewHeight: Int = -1
 
     val currentImgWidth: Float
         get() = if (imgWidth == -1) -1F else imgWidth * scale
@@ -63,18 +67,43 @@ data class FlexibleStateItem(
         copyItem.rotationDegree = rotationDegree
         copyItem.flipX = flipX
         copyItem.flipY = flipY
-		copyItem.imgWidth = imgWidth
-		copyItem.imgHeight = imgHeight
+        copyItem.imgWidth = imgWidth
+        copyItem.imgHeight = imgHeight
+        copyItem.viewWidth = viewWidth
+        copyItem.viewHeight = viewHeight
     }
 
-	override fun toString(): String {
-		val str = StringBuilder("StateItem(")
-		str.append("scale=${scale}")
-		str.append(" focusX=${focusX}")
-		str.append(" focusY=${focusY}")
-		str.append(" imgWidth=${imgWidth}")
-		str.append(" imgHeight=${imgHeight}")
-		str.append(")")
-		return str.toString()
-	}
+    /**
+     * get Image Location Retrun
+     */
+    fun getImageLocation(): RectF? {
+        if (viewWidth == -1 || viewHeight == -1 ||
+            currentImgWidth == -1F ||
+            currentImgHeight == -1F
+        ) return null
+
+        val imgWidth = currentImgWidth
+        val imgHeight = currentImgHeight
+        val focusX = focusX
+        val focusY = focusY
+
+        val imgTop = (focusY + (viewHeight / 2F)) - imgHeight / 2F
+        val imgLeft = (focusX + (viewWidth / 2F)) - imgWidth / 2F
+        val imgRight = (focusX + (viewWidth / 2F)) + imgWidth / 2F
+        val imgBottom = (focusY + (viewHeight / 2F)) + imgHeight / 2F
+        return RectF(imgLeft, imgTop, imgRight, imgBottom)
+    }
+
+    override fun toString(): String {
+        val str = StringBuilder("StateItem(")
+        str.append("scale=${scale}")
+        str.append(" focusX=${focusX}")
+        str.append(" focusY=${focusY}")
+        str.append(" imgWidth=${imgWidth}")
+        str.append(" imgHeight=${imgHeight}")
+        str.append(" viewWidth=${viewWidth}")
+        str.append(" viewHeight=${viewHeight}")
+        str.append(")")
+        return str.toString()
+    }
 }
