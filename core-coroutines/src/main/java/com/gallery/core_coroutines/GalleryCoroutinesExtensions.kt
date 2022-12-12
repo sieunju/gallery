@@ -12,7 +12,7 @@ import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
 import com.gallery.model.FlexibleStateItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
@@ -23,13 +23,13 @@ import java.io.FileOutputStream
  * Created by juhongmin on 2022/12/12
  */
 
-internal suspend inline fun <reified R : Any> simpleCoroutines(crossinline callback: () -> R): Result<R> {
-    return withContext(Dispatchers.IO) {
+inline fun <reified R : Any> simpleCoroutines(crossinline callback: () -> R): Result<R> {
+    return runBlocking(Dispatchers.IO) {
         try {
             val result = callback()
             Result.success(result)
         } catch (ex: Exception) {
-            Result.failure<R>(ex)
+            Result.failure(ex)
         }
     }
 }
@@ -39,7 +39,7 @@ internal suspend inline fun <reified R : Any> simpleCoroutines(crossinline callb
  * @see GalleryProvider.fetchDirectories()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.fetchDirectoriesCo(): Result<List<GalleryFilterData>> {
+inline fun <reified T : GalleryProvider> T.fetchDirectoriesCo(): Result<List<GalleryFilterData>> {
     return simpleCoroutines { fetchDirectories() }
 }
 
@@ -48,7 +48,7 @@ suspend fun GalleryProvider.fetchDirectoriesCo(): Result<List<GalleryFilterData>
  * @see GalleryProvider.fetchGallery()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.fetchGalleryCo(
+inline fun <reified T : GalleryProvider> T.fetchGalleryCo(
     params: GalleryQueryParameter = GalleryQueryParameter()
 ): Result<Cursor> {
     return simpleCoroutines { fetchGallery(params) }
@@ -59,7 +59,7 @@ suspend fun GalleryProvider.fetchGalleryCo(
  * @see GalleryProvider.cursorToPhotoUri()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.cursorToPhotoUriCo(
+inline fun <reified T : GalleryProvider> T.cursorToPhotoUriCo(
     cursor: Cursor
 ): Result<String> {
     return simpleCoroutines { cursorToPhotoUri(cursor) }
@@ -70,7 +70,7 @@ suspend fun GalleryProvider.cursorToPhotoUriCo(
  * @see GalleryProvider.pathToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.pathToBitmapCo(
+inline fun <reified T : GalleryProvider> T.pathToBitmapCo(
     path: String
 ): Result<Bitmap> {
     return simpleCoroutines { pathToBitmap(path) }
@@ -81,7 +81,7 @@ suspend fun GalleryProvider.pathToBitmapCo(
  * @see GalleryProvider.pathToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.pathToBitmapCo(
+inline fun <reified T : GalleryProvider> T.pathToBitmapCo(
     path: String,
     limitWidth: Int
 ): Result<Bitmap> {
@@ -93,7 +93,7 @@ suspend fun GalleryProvider.pathToBitmapCo(
  * @see GalleryProvider.pathToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.pathToBitmapCo(
+inline fun <reified T : GalleryProvider> T.pathToBitmapCo(
     @DrawableRes redId: Int
 ): Result<Bitmap> {
     return simpleCoroutines { pathToBitmap(redId) }
@@ -104,7 +104,7 @@ suspend fun GalleryProvider.pathToBitmapCo(
  * @see GalleryProvider.pathToMultipart()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.pathToMultipartCo(
+inline fun <reified T : GalleryProvider> T.pathToMultipartCo(
     path: String,
     name: String,
     resizeWidth: Int
@@ -117,7 +117,7 @@ suspend fun GalleryProvider.pathToMultipartCo(
  * @see GalleryProvider.bitmapToMultipart()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.bitmapToMultipartCo(
+inline fun <reified T : GalleryProvider> T.bitmapToMultipartCo(
     bitmap: Bitmap,
     name: String
 ): Result<MultipartBody.Part> {
@@ -129,7 +129,7 @@ suspend fun GalleryProvider.bitmapToMultipartCo(
  * @see GalleryProvider.bitmapToMultipart()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.bitmapToMultipartCo(
+inline fun <reified T : GalleryProvider> T.bitmapToMultipartCo(
     bitmap: Bitmap,
     name: String,
     filename: String,
@@ -143,7 +143,7 @@ suspend fun GalleryProvider.bitmapToMultipartCo(
  * @see GalleryProvider.copyBitmapToFile()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.copyBitmapToFileCo(
+inline fun <reified T : GalleryProvider> T.copyBitmapToFileCo(
     bitmap: Bitmap,
     fos: FileOutputStream
 ): Result<Boolean> {
@@ -155,7 +155,7 @@ suspend fun GalleryProvider.copyBitmapToFileCo(
  * @see GalleryProvider.deleteFile()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.deleteFileCo(
+inline fun <reified T : GalleryProvider> T.deleteFileCo(
     path: String?
 ): Result<Boolean> {
     return simpleCoroutines { deleteFile(path) }
@@ -166,7 +166,7 @@ suspend fun GalleryProvider.deleteFileCo(
  * @see GalleryProvider.deleteCacheDirectory()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.deleteCacheDirectoryCo(): Result<Boolean> {
+inline fun <reified T : GalleryProvider> T.deleteCacheDirectoryCo(): Result<Boolean> {
     return simpleCoroutines { deleteCacheDirectory() }
 }
 
@@ -175,7 +175,7 @@ suspend fun GalleryProvider.deleteCacheDirectoryCo(): Result<Boolean> {
  * @see GalleryProvider.ratioResizeBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.ratioResizeBitmapCo(
+inline fun <reified T : GalleryProvider> T.ratioResizeBitmapCo(
     bitmap: Bitmap,
     width: Int,
     height: Int
@@ -188,7 +188,7 @@ suspend fun GalleryProvider.ratioResizeBitmapCo(
  * @see GalleryProvider.createTempFile()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.createTempFileCo(): Result<File> {
+inline fun <reified T : GalleryProvider> T.createTempFileCo(): Result<File> {
     return simpleCoroutines { createTempFile() }
 }
 
@@ -197,7 +197,7 @@ suspend fun GalleryProvider.createTempFileCo(): Result<File> {
  * @see GalleryProvider.createFile()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.createFileCo(
+inline fun <reified T : GalleryProvider> T.createFileCo(
     name: String,
     suffix: String
 ): Result<File> {
@@ -209,7 +209,7 @@ suspend fun GalleryProvider.createFileCo(
  * @see GalleryProvider.getFlexibleImageToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getFlexibleImageToBitmapCo(
     originalImagePath: String,
     flexibleItem: FlexibleStateItem
 ): Result<Bitmap> {
@@ -221,7 +221,7 @@ suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
  * @see GalleryProvider.getFlexibleImageToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getFlexibleImageToBitmapCo(
     originalImagePath: String,
     srcRect: RectF,
     width: Int,
@@ -235,7 +235,7 @@ suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
  * @see GalleryProvider.getFlexibleImageToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getFlexibleImageToBitmapCo(
     originalBitmap: Bitmap,
     srcRect: RectF,
     width: Int,
@@ -249,7 +249,7 @@ suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
  * @see GalleryProvider.getFlexibleImageToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getFlexibleImageToBitmapCo(
     originalBitmap: Bitmap,
     srcRect: RectF,
     width: Int,
@@ -272,7 +272,7 @@ suspend fun GalleryProvider.getFlexibleImageToBitmapCo(
  * @see GalleryProvider.getFlexibleImageToMultipart()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getFlexibleImageToMultipartCo(
+inline fun <reified T : GalleryProvider> T.getFlexibleImageToMultipartCo(
     originalImagePath: String,
     flexibleItem: FlexibleStateItem,
     multipartKey: String
@@ -291,7 +291,7 @@ suspend fun GalleryProvider.getFlexibleImageToMultipartCo(
  * @see GalleryProvider.saveBitmapToFile()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.saveBitmapToFileCo(
+inline fun <reified T : GalleryProvider> T.saveBitmapToFileCo(
     bitmap: Bitmap
 ): Result<File> {
     return simpleCoroutines { saveBitmapToFile(bitmap) }
@@ -302,7 +302,7 @@ suspend fun GalleryProvider.saveBitmapToFileCo(
  * @see GalleryProvider.getCropImageEditToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getCropImageEditToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getCropImageEditToBitmapCo(
     editModel: CropImageEditModel
 ): Result<Bitmap> {
     return simpleCoroutines { getCropImageEditToBitmap(editModel) }
@@ -313,7 +313,7 @@ suspend fun GalleryProvider.getCropImageEditToBitmapCo(
  * @see GalleryProvider.getCropImageEditToBitmap()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.getCropImageEditToBitmapCo(
+inline fun <reified T : GalleryProvider> T.getCropImageEditToBitmapCo(
     originalBitmap: Bitmap?,
     points: FloatArray,
     degreesRotated: Int,
@@ -342,7 +342,7 @@ suspend fun GalleryProvider.getCropImageEditToBitmapCo(
  * @see GalleryProvider.createGalleryPhotoUri()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.createGalleryPhotoUriCo(
+inline fun <reified T : GalleryProvider> T.createGalleryPhotoUriCo(
     authority: String
 ): Result<Uri> {
     return simpleCoroutines { createGalleryPhotoUri(authority) }
@@ -353,7 +353,7 @@ suspend fun GalleryProvider.createGalleryPhotoUriCo(
  * @see GalleryProvider.saveGalleryPicture()
  */
 @Suppress("unused")
-suspend fun GalleryProvider.saveGalleryPictureCo(
+inline fun <reified T : GalleryProvider> T.saveGalleryPictureCo(
     pictureUri: String, name: String
 ): Result<Pair<Boolean, String>> {
     return simpleCoroutines { saveGalleryPicture(pictureUri, name) }

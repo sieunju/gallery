@@ -1,102 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="50dp">
+    <data>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/bRandomGallery"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="Random Bitmap" />
-
-            <Button
-                android:id="@+id/bCenterCrop"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="CenterCrop Ani" />
-
-            <Button
-                android:id="@+id/bFitCenter"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="FitCenter Ani" />
-
-            <Button
-                android:id="@+id/bCapture"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="Capture Show" />
-
-            <Button
-                android:id="@+id/bCaptureHidden"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="Capture Hidden" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </HorizontalScrollView>
+        <variable
+            name="vm"
+            type="com.gallery.example.ui.FlexibleEditFragmentViewModel" />
+    </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:background="@color/purple_500"
         android:layout_height="match_parent">
 
-        <FrameLayout
-            android:id="@+id/fRoot"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/frame"
             android:layout_width="match_parent"
-            android:layout_height="400dp"
-            android:background="@color/white"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.gallery.edit.FlexibleImageEditView
-                android:id="@+id/ivFlexible"
+                android:id="@+id/edit"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                app:imageBitmap="@{vm.selectPhotoBitmap.first}"
+                app:onStateUpdated="@{(item) -> vm.onStateItem(item)}"
+                app:stateItem="@{vm.selectPhotoBitmap.second}" />
 
-        </FrameLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/clCapture"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#66000000"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/ivCapture"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cvCrop"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginBottom="5dp"
+                app:cardBackgroundColor="#3E000000"
+                app:cardCornerRadius="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintLeft_toLeftOf="parent">
 
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_crop" />
 
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
+                android:onClick="@{()->vm.sendEditImageBitmap()}"
+                app:cardBackgroundColor="#3E000000"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_save" />
+
+            </androidx.cardview.widget.CardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.gallery.ui.GalleryRecyclerView
+            android:id="@+id/rvGallery"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:cursor="@{vm.cursor}"
+            app:gallerySelectedBgColor="@color/black"
+            app:gallerySelectedBgDim="#80FFFFFF"
+            app:gallerySelectedGravity="right|top"
+            app:gallerySelectedMaxCount="5"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/frame"
+            app:onGalleryIsCurrentPhoto="@{(item) -> vm.isSamePhoto(item)}"
+            app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
+            app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
+            app:spanCount="3"
+            tools:listitem="@layout/vh_child_gallery" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+</layout>
