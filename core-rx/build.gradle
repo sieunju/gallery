@@ -32,13 +32,10 @@ android {
 }
 
 dependencies {
-    api(project(":model"))
-    api(project(":core"))
-    implementation(deps.androidx.core)
-    implementation(deps.androidx.appCompat)
-    implementation(deps.androidx.exif)
+    implementation(project(":model"))
+    implementation(project(":core"))
 
-    implementation(deps.javax.inject)
+    implementation(deps.androidx.appCompat)
     implementation(deps.retrofit.okhttp)
 
     implementation(deps.rx.base)

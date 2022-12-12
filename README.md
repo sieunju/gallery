@@ -47,25 +47,16 @@ internal class CoreModule {
 ```
 
 ## Core-rx Module
-This module is converted from core module to ReactiveX and processed.   
-___Core and core-rx must not be used together.___
+This module is converted from core module to ReactiveX and processed.
 
 #### How To
 
 ```groovy
 dependencies {
-    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion'
+        implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
+    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion' // optional
 }
 ```
-
-#### Do Not Example ❌😵
-```groovy
-dependencies {
-    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion'
-    	implementation 'com.github.sieunju.gallery:core:$latestVersion'
-}
-```
-
    
 ## Edit Module
 
