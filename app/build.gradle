@@ -44,11 +44,13 @@ android {
 dependencies {
 //    implementation("com.github.sieunju.gallery:core:${deps.release}")
 //    implementation("com.github.sieunju.gallery:core-rx:${deps.release}")
+//    implementation("com.github.sieunju.gallery:core-coroutines:${deps.release}")
 //    implementation("com.github.sieunju.gallery:edit:${deps.release}")
 //    implementation("com.github.sieunju.gallery:ui:${deps.release}")
 
     implementation(project(":core"))
     implementation(project(":core-rx"))
+    implementation(project(":core-coroutines"))
     implementation(project(":edit"))
     implementation(project(":ui"))
 
