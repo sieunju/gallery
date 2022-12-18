@@ -55,6 +55,7 @@ This module is converted from core module to ReactiveX and processed.
 dependencies {
         implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
     	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion' // optional
+        implementation 'com.github.sieunju.gallery:core-coroutines:$latestVersion' // optional
 }
 ```
    
