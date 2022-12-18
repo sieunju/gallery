@@ -16,8 +16,8 @@ import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.gallery.model.FlexibleStateItem
 import com.gallery.edit.detector.MoveGestureDetector
+import com.gallery.model.FlexibleStateItem
 import kotlin.math.*
 
 /**
@@ -25,6 +25,7 @@ import kotlin.math.*
  *
  * Created by juhongmin on 2022/09/19
  */
+@Suppress("unused")
 class FlexibleImageEditView @JvmOverloads constructor(
     ctx: Context,
     attrs: AttributeSet? = null,

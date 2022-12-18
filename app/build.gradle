@@ -42,12 +42,15 @@ android {
 }
 
 dependencies {
-    implementation implementation(project(':core-rx',))
-//    implementation("com.github.sieunju.gallery:core:0.0.1-beta01")
-//    implementation("com.github.sieunju.gallery:edit:0.0.1-beta01")
-//    implementation("com.github.sieunju.gallery:ui:0.0.1-beta01")
+//    implementation("com.github.sieunju.gallery:core:${deps.release}")
+//    implementation("com.github.sieunju.gallery:core-rx:${deps.release}")
+//    implementation("com.github.sieunju.gallery:core-coroutines:${deps.release}")
+//    implementation("com.github.sieunju.gallery:edit:${deps.release}")
+//    implementation("com.github.sieunju.gallery:ui:${deps.release}")
 
-    // implementation(project(":core"))
+    implementation(project(":core"))
+    implementation(project(":core-rx"))
+    implementation(project(":core-coroutines"))
     implementation(project(":edit"))
     implementation(project(":ui"))
 
@@ -57,7 +60,7 @@ dependencies {
     implementation(deps.androidx.constraintLayout)
     implementation(deps.androidx.multidex)
     implementation(deps.androidx.material)
-    
+
     implementation(deps.lifecycle.base)
     implementation(deps.lifecycle.viewmodel)
     implementation(deps.lifecycle.livedata)
@@ -65,6 +68,9 @@ dependencies {
     implementation(deps.rx.base)
     implementation(deps.rx.kotlin)
     implementation(deps.rx.android)
+
+    implementation(deps.coroutines.base)
+    implementation(deps.coroutines.android)
 
     implementation(deps.timber)
     implementation(deps.retrofit.okhttp)

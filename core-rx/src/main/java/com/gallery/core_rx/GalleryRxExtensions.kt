@@ -18,7 +18,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Description : GalleryProvider Rx 확장 함수
+ * Description : GalleryProvider ReactiveX 확장 함수
  *
  * Created by juhongmin on 2022/12/11
  */

@@ -38,7 +38,7 @@ dependencies {
     implementation(deps.androidx.appCompat)
     implementation(deps.retrofit.okhttp)
 
-    implementation(deps.rx.base)
+    implementation(deps.coroutines.base)
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
@@ -51,7 +51,7 @@ afterEvaluate {
             mavenJava(MavenPublication) {
                 from components.release
                 groupId = 'com.github.sieunju.gallery'
-                artifactId = 'core-rx'
+                artifactId = 'core-coroutines'
                 version = deps.release
             }
         }
