@@ -99,6 +99,23 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     /**
+     * Selected PickerMap Clear 함수
+     */
+    fun clearPickerMap(layoutManager: RecyclerView.LayoutManager?) {
+        pickerMap.forEach { it.value.isSelected = false }
+        pickerMap.clear()
+        if (layoutManager == null) {
+            notifyDataSetChanged()
+        } else {
+            if (layoutManager is LinearLayoutManager) {
+                val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastPosition = layoutManager.findLastVisibleItemPosition()
+                notifyItemRangeChanged(firstPosition, lastPosition)
+            }
+        }
+    }
+
+    /**
      * 카메라를 찍은 이후 이미지를 개신 처리하기위한 함수
      * @param imagePath TakePicture Camera Contents path
      */
