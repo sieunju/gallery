@@ -186,7 +186,7 @@ class CropImageEditView @JvmOverloads constructor(
         get() = mDegreesRotated
         set(value) {
             if (value != 0 && value != 90 && value != 180 && value != 270 && value != 360) {
-                throw IllegalArgumentException("RotateDegrees 0, 90, 180, 270, 360")
+                throw IllegalArgumentException("RotateDegrees 0, 90, 180, 270, 360 CurrentValue $value")
             }
             if (mDegreesRotated != value) {
                 rotateImage(value - mDegreesRotated)

@@ -79,13 +79,4 @@ internal object GalleryBindingAdapter {
     ) {
         view.setCursor(cursor)
     }
-
-    @JvmStatic
-    @BindingAdapter("imageBitmap")
-    fun setCropImageEditBitmap(
-        view: CropImageEditView,
-        bitmap: Bitmap?
-    ) {
-        view.setImageBitmap(bitmap)
-    }
 }
