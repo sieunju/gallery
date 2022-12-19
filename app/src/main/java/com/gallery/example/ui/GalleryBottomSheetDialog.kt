@@ -13,6 +13,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
+import com.gallery.core.model.GalleryFilterData
 import com.gallery.example.BR
 import com.gallery.example.R
 import com.gallery.example.databinding.DGalleryBottomSheetBinding
@@ -21,6 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * Description :
@@ -28,7 +30,8 @@ import dagger.hilt.android.AndroidEntryPoint
  * Created by juhongmin on 2022/12/09
  */
 @AndroidEntryPoint
-internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
+internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
+    SelectAlbumBottomSheetDialog.Listener {
 
     private val viewModel: GalleryBottomSheetViewModel by viewModels()
 
@@ -43,6 +46,11 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
             setupRatio(bottomSheetDialog)
         }
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
     }
 
     override fun onCreateView(
@@ -67,8 +75,26 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
             rvGallery.setRequestManager(Glide.with(this@GalleryBottomSheetDialog))
-            rvGallery.addItemDecoration(GridDividerItemDecoration(2.dp))
+            rvGallery.addItemDecoration(GridDividerItemDecoration(3.dp))
             rvGallery.setLifecycle(this@GalleryBottomSheetDialog)
+
+            cvCrop.setOnClickListener {
+                if (it.isSelected) {
+                    edit.centerCrop()
+                    it.isSelected = false
+                } else {
+                    edit.fitCenter()
+                    it.isSelected = true
+                }
+            }
+
+            tvSelectedAlbum.setOnClickListener {
+                showSelectAlbumBottomSheet()
+            }
+
+            root.post {
+                Timber.d("RootHeight ${root.height}")
+            }
         }
 
         with(viewModel) {
@@ -113,6 +139,8 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
         val behavior = BottomSheetBehavior.from(bottomSheet)
         val layoutParams = bottomSheet.layoutParams
         layoutParams.height = getDeviceHeight()
+            .minus(getNavigationBarHeight())
+            .minus(getStatusBarHeight())
         bottomSheet.layoutParams = layoutParams
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed = true
@@ -128,5 +156,31 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment() {
             windowManager.defaultDisplay.getMetrics(displayMetrics)
             displayMetrics.heightPixels
         }
+    }
+
+    private fun getNavigationBarHeight(): Int {
+        val id: Int = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (id > 0) {
+            resources.getDimensionPixelSize(id)
+        } else 0
+    }
+
+    private fun getStatusBarHeight(): Int {
+        val id: Int = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (id > 0) {
+            resources.getDimensionPixelSize(id)
+        } else 0
+    }
+
+    private fun showSelectAlbumBottomSheet() {
+        SelectAlbumBottomSheetDialog()
+            .setFilterList(viewModel.filterList)
+            .setListener(this)
+            .simpleShow(childFragmentManager)
+    }
+
+    override fun onSelectedFilter(data: GalleryFilterData) {
+        Timber.d("onSelectedFilter $data")
+        viewModel.onSelectedFilter(data)
     }
 }

@@ -152,6 +152,8 @@ class GalleryRecyclerView @JvmOverloads constructor(
     fun setCursor(cursor: Cursor?) {
         if (cursor == null) return
 
+        stopScroll()
+        scrollToPosition(0)
         adapter.setCursor(cursor)
         context.contentResolver.unregisterContentObserver(contentsObserver)
         context.contentResolver.registerContentObserver(
