@@ -39,15 +39,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            mavenJava(MavenPublication) {
-//                from components.release
-//                groupId = 'com.github.sieunju.gallery'
-//                artifactId = 'model'
-//                version = deps.release
-//            }
-//        }
-//    }
-//}
+afterEvaluate {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.release
+                groupId = 'com.github.sieunju.gallery'
+                artifactId = 'model'
+                version = deps.release
+            }
+        }
+    }
+}

@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":core-coroutines"))
     implementation(project(":edit"))
     implementation(project(":ui"))
+    implementation(project(":model"))
 
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)

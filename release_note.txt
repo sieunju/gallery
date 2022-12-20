@@ -1,5 +1,5 @@
-Version: 0.0.1-beta03
-Title: v0.0.1-beta03
+Version: 0.0.1-beta04
+Title: v0.0.1-beta04
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
@@ -10,6 +10,9 @@ ex.) core, edit, ui
 > core 모듈을 ReactiveX로 간단히 사용할수 있는 core-rx 를 추가했어요!
 > core 모듈을 Coroutines 간단히 사용할수 있는 core-coroutines 를 추가했어요!
 
+### 이슈를 수정 했어요.
+> model 모듈을 못가져오는 이슈 처리
+
 EN-US
 ### Introduction
 > It is a library that helps you retrieve images from the gallery and edit them all at once.
@@ -19,3 +22,6 @@ ex.) core, edit, ui
 ### Additional details
 > We added core-rx, which can easily use core module as ReactiveX!
 > We added core-coroutines that can easily use core modules as Coroutines!
+
+### Issue
+> Handling issues that fail to import model modules
