@@ -1,4 +1,4 @@
-package com.gallery.model
+package com.gallery.ui.model
 
 /**
  * Description : Gallery RecyclerView Item Data Model
