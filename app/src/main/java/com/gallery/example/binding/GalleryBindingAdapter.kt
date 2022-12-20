@@ -1,10 +1,8 @@
 package com.gallery.example.binding
 
 import android.database.Cursor
-import android.graphics.Bitmap
 import androidx.databinding.BindingAdapter
-import com.gallery.edit.CropImageEditView
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.GalleryItem
 import com.gallery.ui.GalleryListener
 import com.gallery.ui.GalleryRecyclerView
 

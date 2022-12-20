@@ -9,7 +9,7 @@ import com.gallery.core.GalleryProvider
 import com.gallery.core_rx.*
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.FlexibleStateItem
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single

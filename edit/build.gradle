@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    api(project(":model"))
+    implementation(project(":model"))
 
     implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)

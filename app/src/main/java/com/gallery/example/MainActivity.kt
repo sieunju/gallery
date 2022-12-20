@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             )
             .build { b, strings -> }
 
-        moveToFragment(FlexibleEditFragment())
+        // moveToFragment(FlexibleEditFragment())
     }
 
     private fun performExtendFabButton() {
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount > 1) {
+        if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         } else {
             finishAffinity()

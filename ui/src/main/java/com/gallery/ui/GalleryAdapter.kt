@@ -6,7 +6,10 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -23,9 +26,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.gallery.model.BaseGalleryItem
-import com.gallery.model.CameraOpenItem
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.BaseGalleryItem
+import com.gallery.ui.model.CameraOpenItem
+import com.gallery.ui.model.GalleryItem
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.isAndOperatorTrue
@@ -95,7 +98,24 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             prevCursor.close()
         }
         photoCursor = newCursor
-        notifyItemRangeChanged(0, 10)
+        notifyDataSetChanged()
+    }
+
+    /**
+     * Selected PickerMap Clear 함수
+     */
+    fun clearPickerMap(layoutManager: RecyclerView.LayoutManager?) {
+        pickerMap.forEach { it.value.isSelected = false }
+        pickerMap.clear()
+        if (layoutManager == null) {
+            notifyDataSetChanged()
+        } else {
+            if (layoutManager is LinearLayoutManager) {
+                val firstPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastPosition = layoutManager.findLastVisibleItemPosition()
+                notifyItemRangeChanged(firstPosition, lastPosition)
+            }
+        }
     }
 
     /**

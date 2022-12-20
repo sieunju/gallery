@@ -1,6 +1,6 @@
 package com.gallery.ui
 
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.GalleryItem
 
 /**
  * Description : GalleryRecyclerView Listener

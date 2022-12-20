@@ -15,12 +15,11 @@ import com.gallery.core_coroutines.fetchGalleryCo
 import com.gallery.core_coroutines.pathToBitmapCo
 import com.gallery.core_coroutines.saveGalleryPictureCo
 import com.gallery.example.SingleLiveEvent
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel

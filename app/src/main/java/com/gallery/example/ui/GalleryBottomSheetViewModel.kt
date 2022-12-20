@@ -6,10 +6,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
+import com.gallery.core.model.GalleryFilterData
+import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.core_rx.*
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.FlexibleStateItem
-import com.gallery.model.GalleryItem
+import com.gallery.ui.model.GalleryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
@@ -44,18 +46,39 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
 
     // 현재 편집창에서 처리되는 위치값들
     private val currentFlexibleStateItem: FlexibleStateItem by lazy { FlexibleStateItem() }
+    private var currentFilterItem: GalleryFilterData? = null
+    val filterList: MutableList<GalleryFilterData> by lazy { mutableListOf() }
+    private val queryParameter: GalleryQueryParameter by lazy { GalleryQueryParameter() }
+    private val _selectedFilterTitle: MutableLiveData<String> by lazy { MutableLiveData() }
+    val selectedFilterTitle: LiveData<String> get() = _selectedFilterTitle
 
     fun start() {
-        galleryProvider.fetchGalleryRx()
+        galleryProvider.fetchDirectoriesRx()
+            .map {
+                filterList.clear()
+                filterList.addAll(it)
+                currentFilterItem = it[0]
+                queryParameter.filterId = it[0].bucketId
+                _selectedFilterTitle.postValue(it[0].bucketName)
+            }
+            .flatMap { galleryProvider.fetchGalleryRx(queryParameter) }
             .delay(500, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Timber.d("SUCC $it")
+            .doOnSuccess {
                 _cursor.value = it
                 performClickPosition()
-            }, {
-                Timber.d("ERROR $it")
-            }).addTo(disposable)
+            }
+            .subscribe().addTo(disposable)
+    }
+
+    fun onSelectedFilter(data: GalleryFilterData) {
+        currentFilterItem = data
+        queryParameter.filterId = data.bucketId
+        _selectedFilterTitle.value = data.bucketName
+        galleryProvider.fetchGalleryRx(queryParameter)
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSuccess { _cursor.value = it }
+            .subscribe().addTo(disposable)
     }
 
     fun onDismiss() {
