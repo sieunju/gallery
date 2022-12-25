@@ -4,6 +4,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -83,6 +84,12 @@ internal class CropImageEditFragmentViewModel @Inject constructor(
         takePictureUrl = galleryProvider.createGalleryPhotoUri("com.gallery.example.provider")
         startCameraOpenEvent.value = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
             putExtra(MediaStore.EXTRA_OUTPUT, takePictureUrl)
+            // 1 은 전면 카메라, 0 은 후면 카메라?
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                putExtra("android.intent.extras.LENS_FACING_FRONT", 0)
+            } else {
+                putExtra("android.intent.extras.CAMERA_FACING", 0)
+            }
         }
     }
 
