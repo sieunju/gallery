@@ -90,7 +90,7 @@ internal class GalleryProviderImpl constructor(
                     sort
                 ) ?: break@loop
 
-                if (cursor.moveToLast()) {
+                if (cursor.moveToFirst()) {
                     val contentId = getContentsId(cursor)
                     val photoUri = getPhotoUri(contentId)
                     val bucketId = getBucketId(cursor)
