@@ -1,5 +1,6 @@
 package com.gallery.example.ui
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -70,8 +71,18 @@ internal class FlexibleEditFragment : Fragment() {
                 Snackbar.make(view, it, Snackbar.LENGTH_SHORT).show()
             }
 
+            startSendEditImageBitmap.observe(viewLifecycleOwner) {
+                showCaptureDialog(it)
+            }
+
             start()
         }
+    }
+
+    fun showCaptureDialog(list: List<Bitmap>) {
+        CaptureBottomSheetFragment()
+            .setBitmapList(list)
+            .simpleShow(childFragmentManager)
     }
 
     override fun onDestroyView() {

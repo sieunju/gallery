@@ -5,6 +5,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="vm"
             type="com.gallery.example.ui.FlexibleEditFragmentViewModel" />
@@ -68,23 +70,44 @@
             </androidx.cardview.widget.CardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.gallery.ui.GalleryRecyclerView
-            android:id="@+id/rvGallery"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:cursor="@{vm.cursor}"
-            app:gallerySelectedBgColor="@color/black"
-            app:gallerySelectedBgDim="#80FFFFFF"
-            app:gallerySelectedGravity="right|top"
-            app:gallerySelectedMaxCount="5"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/frame"
-            app:onGalleryIsCurrentPhoto="@{(item) -> vm.isSamePhoto(item)}"
-            app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
-            app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
-            app:spanCount="3"
-            tools:listitem="@layout/vh_child_gallery" />
+            app:layout_constraintTop_toBottomOf="@+id/frame">
+
+            <com.gallery.ui.GalleryRecyclerView
+                android:id="@+id/rvGallery"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cursor="@{vm.cursor}"
+                app:gallerySelectedBgColor="@color/black"
+                app:gallerySelectedBgDim="#80FFFFFF"
+                app:gallerySelectedGravity="right|top"
+                app:gallerySelectedMaxCount="5"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:onGalleryIsCurrentPhoto="@{(item) -> vm.isSamePhoto(item)}"
+                app:onGalleryMaxPicker="@{()->vm.onMaxPhotoClick()}"
+                app:onGalleryPhotoClick="@{(item,isAdd) -> vm.onPhotoClick(item,isAdd)}"
+                app:spanCount="3"
+                tools:listitem="@layout/vh_child_gallery" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="@{vm.isLoading ? View.VISIBLE : View.GONE,default=gone}">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:indeterminate="true" />
+
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
