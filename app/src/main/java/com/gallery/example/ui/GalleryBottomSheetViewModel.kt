@@ -2,6 +2,7 @@ package com.gallery.example.ui
 
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,7 +18,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
-import timber.log.Timber
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -34,6 +35,9 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
 
     private val _cursor: MutableLiveData<Cursor> by lazy { MutableLiveData() }
     val cursor: LiveData<Cursor> get() = _cursor
+
+    private val _isLoading: MutableLiveData<Boolean> by lazy { MutableLiveData(false) }
+    val isLoading: LiveData<Boolean> get() = _isLoading
 
     private val _selectPhotoBitmap: SingleLiveEvent<Pair<Bitmap, FlexibleStateItem?>> by lazy { SingleLiveEvent() }
     val selectPhotoBitmap: LiveData<Pair<Bitmap, FlexibleStateItem?>> get() = _selectPhotoBitmap
@@ -54,21 +58,26 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
 
     fun start() {
         galleryProvider.fetchDirectoriesRx()
-            .map {
-                filterList.clear()
-                filterList.addAll(it)
-                currentFilterItem = it[0]
-                queryParameter.filterId = it[0].bucketId
-                _selectedFilterTitle.postValue(it[0].bucketName)
-            }
-            .flatMap { galleryProvider.fetchGalleryRx(queryParameter) }
+            .doOnSubscribe { showLoading(true) }
+            .map { initParameter(it) }
+            .flatMap { galleryProvider.fetchGalleryRx(it) }
             .delay(500, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess {
                 _cursor.value = it
                 performClickPosition()
+                showLoading(false)
             }
             .subscribe().addTo(disposable)
+    }
+
+    private fun initParameter(list: List<GalleryFilterData>): GalleryQueryParameter {
+        filterList.clear()
+        filterList.addAll(list)
+        currentFilterItem = list[0]
+        queryParameter.filterId = list[0].bucketId
+        _selectedFilterTitle.postValue(list[0].bucketName)
+        return queryParameter
     }
 
     fun onSelectedFilter(data: GalleryFilterData) {
@@ -109,51 +118,69 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     /**
      * FlexibleImageView 에 변경 하기 위한 함수
      */
-    private fun performChangeBitmap(newImagePath: String) {
+    private fun handleChangeBitmap(newImagePath: String) {
         savePreviewStateItem()
-        galleryProvider.pathToBitmapRx(newImagePath)
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess {
-                val cacheStateItem = selectPhotoMap[newImagePath]
-                // 이미 존재하는 경우
-                if (cacheStateItem != null) {
-                    _selectPhotoBitmap.value = it to cacheStateItem
-                } else {
-                    selectPhotoMap[newImagePath] = FlexibleStateItem()
-                    _selectPhotoBitmap.value = it to null
-                }
-                prevImagePath = newImagePath
-            }
+            .doOnSubscribe { showLoading(true) }
+            .flatMap { galleryProvider.pathToBitmapRx(newImagePath) }
+            .flatMap { handleChangeBitmapSuccess(newImagePath, it) }
+            .delay(200, TimeUnit.MILLISECONDS)
+            .doOnSuccess { showLoading(false) }
             .subscribe().addTo(disposable)
     }
 
-    private fun performRemovePhoto(item: GalleryItem) {
-        selectPhotoMap.remove(item.imagePath)
-        val nextImagePath = selectPhotoMap.keys.lastOrNull()
-        if (nextImagePath != null) {
-            performChangeBitmap(nextImagePath)
+    private fun handleChangeBitmapSuccess(newImagePath: String, bitmap: Bitmap): Single<Unit> {
+        return Single.create { emitter ->
+            val cacheStateItem = selectPhotoMap[newImagePath]
+            // 이미 존재하는 경우
+            if (cacheStateItem != null) {
+                _selectPhotoBitmap.value = bitmap to cacheStateItem
+            } else {
+                selectPhotoMap[newImagePath] = FlexibleStateItem()
+                _selectPhotoBitmap.value = bitmap to null
+            }
+            prevImagePath = newImagePath
+            emitter.onSuccess(Unit)
+        }.subscribeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun showLoading(isVisible: Boolean) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            _isLoading.value = isVisible
         } else {
-            // Empty Selected Photo
+            _isLoading.postValue(isVisible)
         }
     }
 
     /**
      * 다른 사진 선택할때 이전 상태값들 저장하는 함수
      */
-    private fun savePreviewStateItem() {
-        if (prevImagePath.isNotEmpty()) {
-            val stateItem = selectPhotoMap[prevImagePath]
-            if (stateItem != null) {
-                currentFlexibleStateItem.valueCopy(stateItem)
+    private fun savePreviewStateItem(): Single<Unit> {
+        return Single.create { emitter ->
+            if (prevImagePath.isNotEmpty()) {
+                val stateItem = selectPhotoMap[prevImagePath]
+                if (stateItem != null) {
+                    currentFlexibleStateItem.valueCopy(stateItem)
+                }
             }
+            emitter.onSuccess(Unit)
+        }.subscribeOn(Schedulers.io())
+    }
+
+    private fun handleRemovePhoto(item: GalleryItem) {
+        selectPhotoMap.remove(item.imagePath)
+        val nextImagePath = selectPhotoMap.keys.lastOrNull()
+        if (nextImagePath != null) {
+            handleChangeBitmap(nextImagePath)
+        } else {
+            // Empty Selected Photo
         }
     }
 
     fun onPhotoClick(item: GalleryItem, isAdd: Boolean) {
         if (isAdd) {
-            performChangeBitmap(item.imagePath)
+            handleChangeBitmap(item.imagePath)
         } else {
-            performRemovePhoto(item)
+            handleRemovePhoto(item)
         }
     }
 
@@ -166,23 +193,26 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     }
 
     fun sendEditImageBitmap() {
+        var bitmapCount = 0
         savePreviewStateItem()
-        galleryProvider.deleteCacheDirectoryRx()
+            .doOnSubscribe { showLoading(true) }
+            .flatMap { galleryProvider.deleteCacheDirectoryRx() }
             .map {
                 val workList = mutableListOf<Single<Bitmap>>()
                 selectPhotoMap.forEach { entry ->
                     workList.add(galleryProvider.getFlexibleImageToBitmapRx(entry.key, entry.value))
                 }
+                bitmapCount = workList.size
                 return@map workList
             }
             .toFlowable()
-            .flatMap { Single.mergeDelayError(it) }
-            .flatMap { galleryProvider.saveBitmapToFileRx(it).toFlowable() }
-            .subscribe({
-                Timber.d("SUCC $it")
-            }, {
-                Timber.d("ERROR $it")
-            }).addTo(disposable)
+            .flatMap { Single.mergeDelayError(it).buffer(bitmapCount) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext {
+                showLoading(false)
+                _startSendEditImageBitmap.value = it
+            }
+            .subscribe().addTo(disposable)
     }
 
     fun clearDisposable() {

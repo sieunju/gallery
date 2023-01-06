@@ -10,35 +10,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
-import com.bumptech.glide.Glide
-import com.gallery.core.model.GalleryFilterData
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.gallery.example.BR
 import com.gallery.example.R
-import com.gallery.example.databinding.DGalleryBottomSheetBinding
+import com.gallery.example.databinding.FCaptureBottomSheetBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * Description :
  *
- * Created by juhongmin on 2022/12/09
+ * Created by juhongmin on 2023/01/05
  */
 @AndroidEntryPoint
-internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
-    SelectAlbumBottomSheetDialog.Listener {
+internal class CaptureBottomSheetFragment : BottomSheetDialogFragment() {
 
-    private val viewModel: GalleryBottomSheetViewModel by viewModels()
+    private val viewModel: CaptureBottomSheetFragmentViewModel by viewModels()
 
-    private lateinit var binding: DGalleryBottomSheetBinding
+    private lateinit var binding: FCaptureBottomSheetBinding
 
     private val windowManager: WindowManager by lazy { requireContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager }
+
+    private val adapter: Adapter by lazy { Adapter() }
+
+    private val dataList: MutableList<Bitmap> by lazy { mutableListOf() }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -49,24 +51,18 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
         return dialog
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return DataBindingUtil.inflate<DGalleryBottomSheetBinding>(
+        return DataBindingUtil.inflate<FCaptureBottomSheetBinding>(
             inflater,
-            R.layout.d_gallery_bottom_sheet,
-            container,
-            false
+            R.layout.f_capture_bottom_sheet,
+            container, false
         ).run {
             binding = this
-            lifecycleOwner = this@GalleryBottomSheetDialog
+            lifecycleOwner = this@CaptureBottomSheetFragment
             setVariable(BR.vm, viewModel)
             this.root
         }
@@ -74,57 +70,15 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(binding) {
-            rvGallery.setRequestManager(Glide.with(this@GalleryBottomSheetDialog))
-            rvGallery.addItemDecoration(GridDividerItemDecoration(3.dp))
-            rvGallery.setLifecycle(this@GalleryBottomSheetDialog)
-
-            cvCrop.setOnClickListener {
-                if (it.isSelected) {
-                    edit.centerCrop()
-                    it.isSelected = false
-                } else {
-                    edit.fitCenter()
-                    it.isSelected = true
-                }
-            }
-
-            tvSelectedAlbum.setOnClickListener {
-                showSelectAlbumBottomSheet()
-            }
-
-            root.post {
-                Timber.d("RootHeight ${root.height}")
-            }
-        }
-
-        with(viewModel) {
-
-            startViewHolderClickEvent.observe(viewLifecycleOwner) {
-                binding.rvGallery.requestViewHolderClick(it)
-            }
-
-            startSnackBarEvent.observe(viewLifecycleOwner) {
-                androidx.appcompat.app.AlertDialog.Builder(view.context)
-                    .setMessage(it)
-                    .show()
-            }
-
-            startDismissEvent.observe(viewLifecycleOwner) {
-                dismiss()
-            }
-
-            startSendEditImageBitmap.observe(viewLifecycleOwner) {
-                showCaptureDialog(it)
-            }
-
-            start()
-        }
+        binding.rvContents.adapter = adapter
+        val pagerSnap = PagerSnapHelper()
+        pagerSnap.attachToRecyclerView(binding.rvContents)
+        adapter.setDataList(dataList)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewModel.clearDisposable()
+    fun setBitmapList(list: List<Bitmap>): CaptureBottomSheetFragment {
+        dataList.addAll(list)
+        return this
     }
 
     fun simpleShow(fm: FragmentManager) {
@@ -139,13 +93,14 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
             bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as View
         val behavior = BottomSheetBehavior.from(bottomSheet)
         val layoutParams = bottomSheet.layoutParams
-        layoutParams.height = getDeviceHeight()
+        val contentsHeight = getDeviceHeight()
             .minus(getNavigationBarHeight())
             .minus(getStatusBarHeight())
+        layoutParams.height = (contentsHeight * 0.7F).toInt()
         bottomSheet.layoutParams = layoutParams
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed = true
-        behavior.isDraggable = false
+        behavior.isDraggable = true
     }
 
     private fun getDeviceHeight(): Int {
@@ -173,26 +128,41 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
         } else 0
     }
 
-    private fun showSelectAlbumBottomSheet() {
-        SelectAlbumBottomSheetDialog()
-            .setFilterList(viewModel.filterList)
-            .setListener(this)
-            .simpleShow(childFragmentManager)
-    }
+    inner class Adapter : RecyclerView.Adapter<Adapter.ViewHolder>() {
 
-    override fun onSelectedFilter(data: GalleryFilterData) {
-        Timber.d("onSelectedFilter $data")
-        viewModel.onSelectedFilter(data)
-    }
+        private val dataList: MutableList<Bitmap> by lazy { mutableListOf() }
 
-    private fun showCaptureDialog(list: List<Bitmap>) {
-        CaptureBottomSheetFragment()
-            .setBitmapList(list)
-            .simpleShow(childFragmentManager)
-    }
+        fun setDataList(newList: List<Bitmap>?) {
+            if (newList == null) return
+            dataList.clear()
+            dataList.addAll(newList)
+            notifyItemRangeInserted(0, itemCount)
+        }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        viewModel.clearDisposable()
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            return ViewHolder(parent)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            runCatching {
+                if (dataList.size > position) {
+                    holder.onBindView(dataList[position])
+                }
+            }
+        }
+
+        override fun getItemCount(): Int {
+            return dataList.size
+        }
+
+        inner class ViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
+            LayoutInflater.from(parent.context).inflate(R.layout.vh_capture, parent, false)
+        ) {
+            private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
+
+            fun onBindView(bitmap: Bitmap) {
+                ivThumb.setImageBitmap(bitmap)
+            }
+        }
     }
 }
