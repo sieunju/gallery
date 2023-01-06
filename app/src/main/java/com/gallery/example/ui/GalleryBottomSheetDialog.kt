@@ -2,6 +2,7 @@ package com.gallery.example.ui
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
@@ -114,7 +115,7 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
             }
 
             startSendEditImageBitmap.observe(viewLifecycleOwner) {
-
+                showCaptureDialog(it)
             }
 
             start()
@@ -182,5 +183,16 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
     override fun onSelectedFilter(data: GalleryFilterData) {
         Timber.d("onSelectedFilter $data")
         viewModel.onSelectedFilter(data)
+    }
+
+    private fun showCaptureDialog(list: List<Bitmap>) {
+        CaptureBottomSheetFragment()
+            .setBitmapList(list)
+            .simpleShow(childFragmentManager)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.clearDisposable()
     }
 }

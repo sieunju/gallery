@@ -79,7 +79,7 @@ internal class FlexibleEditFragment : Fragment() {
         }
     }
 
-    fun showCaptureDialog(list: List<Bitmap>) {
+    private fun showCaptureDialog(list: List<Bitmap>) {
         CaptureBottomSheetFragment()
             .setBitmapList(list)
             .simpleShow(childFragmentManager)
