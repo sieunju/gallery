@@ -9,7 +9,7 @@ ex.) core, edit, ui
 ### 기능 추가 했어요.
 
 ### 이슈를 수정 했어요.
-> fix(https://github.com/sieunju/gallery/issues/15)
+
 
 EN-US
 ### Introduction
@@ -20,4 +20,3 @@ ex.) core, edit, ui
 ### Additional details
 
 ### Issue
-> fix(https://github.com/sieunju/gallery/issues/15)
