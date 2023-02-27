@@ -60,6 +60,8 @@ class FlexibleImageEditView @JvmOverloads constructor(
         if (isInEditMode) {
             setBackgroundColor(Color.BLACK)
         }
+
+        requestViewMeasure()
     }
 
     /**
@@ -366,8 +368,9 @@ class FlexibleImageEditView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        stateItem.viewWidth = MeasureSpec.getSize(widthMeasureSpec)
-        stateItem.viewHeight = MeasureSpec.getSize(heightMeasureSpec)
+        // ISSUE 19
+        // stateItem.viewWidth = MeasureSpec.getSize(widthMeasureSpec)
+        // stateItem.viewHeight = MeasureSpec.getSize(heightMeasureSpec)
     }
 
 
@@ -377,6 +380,10 @@ class FlexibleImageEditView @JvmOverloads constructor(
      * @return 알맞게 Scale 한 비트맵, 해당 비트맵과 뷰의 Max Scale 값
      */
     private fun cropBitmap(bitmap: Bitmap): Pair<Bitmap, Float> {
+        // 초기 View Width or Height 값이 정의 안된 경우 한번더 처리
+        if (stateItem.viewWidth == -1 || stateItem.viewHeight == -1) {
+            requestViewMeasure()
+        }
         var xScale: Float = stateItem.viewWidth.toFloat() / bitmap.width.toFloat()
         var yScale: Float = stateItem.viewHeight.toFloat() / bitmap.height.toFloat()
         // 가장 큰 비율 가져옴
@@ -388,12 +395,16 @@ class FlexibleImageEditView @JvmOverloads constructor(
         xScale = scaledWidth / stateItem.viewWidth.toFloat()
         yScale = scaledHeight / stateItem.viewHeight.toFloat()
         maxScale = xScale.coerceAtLeast(yScale)
-        return Bitmap.createScaledBitmap(
-            bitmap,
-            scaledWidth.toInt(),
-            scaledHeight.toInt(),
-            true
-        ) to maxScale
+        return if (scaledWidth > 0 && scaledHeight > 0) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                scaledWidth.toInt(),
+                scaledHeight.toInt(),
+                true
+            ) to maxScale
+        } else {
+            bitmap to maxScale
+        }
     }
 
     /**
@@ -505,6 +516,16 @@ class FlexibleImageEditView @JvmOverloads constructor(
                 isTouchLock = false
             }
             start()
+        }
+    }
+
+    /**
+     * 해당 뷰의 너비 / 높이값을 stateItem 에 셋팅 하는 함수
+     */
+    private fun requestViewMeasure() {
+        post {
+            stateItem.viewWidth = width
+            stateItem.viewHeight = height
         }
     }
 
