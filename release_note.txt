@@ -1,5 +1,5 @@
-Version: 0.0.1
-Title: v0.0.1
+Version: 0.0.2
+Title: v0.0.2
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
@@ -9,7 +9,7 @@ ex.) core, edit, ui
 ### 기능 추가 했어요.
 
 ### 이슈를 수정 했어요.
-
+- [FIX] https://github.com/sieunju/gallery/issues/19
 
 EN-US
 ### Introduction
@@ -20,3 +20,4 @@ ex.) core, edit, ui
 ### Additional details
 
 ### Issue
+- [FIX] https://github.com/sieunju/gallery/issues/19
