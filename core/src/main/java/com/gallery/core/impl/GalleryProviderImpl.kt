@@ -15,7 +15,14 @@ import android.provider.MediaStore
 import androidx.annotation.WorkerThread
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
+import com.gallery.core.CropImageEditExtensions
+import com.gallery.core.Extensions
+import com.gallery.core.Extensions.getBucketId
+import com.gallery.core.Extensions.getBucketName
+import com.gallery.core.Extensions.getContentsId
+import com.gallery.core.Extensions.getDisplayName
 import com.gallery.core.GalleryProvider
+import com.gallery.core.enums.ImageType
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
@@ -31,7 +38,6 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.*
 
 /**
  * Description : Gallery Provider 구현체 클래스
@@ -57,6 +63,8 @@ internal class GalleryProviderImpl constructor(
 
         @SuppressLint("InlinedApi")
         val BUCKET_NAME = MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+
+        val DISPLAY_NAME = MediaStore.Images.Media.DISPLAY_NAME
     }
 
     /**
@@ -91,10 +99,10 @@ internal class GalleryProviderImpl constructor(
                 ) ?: break@loop
 
                 if (cursor.moveToFirst()) {
-                    val contentId = getContentsId(cursor)
-                    val photoUri = getPhotoUri(contentId)
-                    val bucketId = getBucketId(cursor)
-                    val bucketName = getBucketName(cursor)
+                    val contentId = cursor.getContentsId()
+                    val photoUri = Extensions.getPhotoUri(contentId)
+                    val bucketId = cursor.getBucketId()
+                    val bucketName = cursor.getBucketName()
                     val count = cursor.count
 
                     if (!cursor.isClosed) {
@@ -174,7 +182,9 @@ internal class GalleryProviderImpl constructor(
     @Throws(IllegalStateException::class, NullPointerException::class)
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("Permissions PERMISSION_DENIED")
-        val projection = arrayOf(ID)
+        val projection = arrayOf(
+            ID, BUCKET_ID, BUCKET_NAME
+        )
         val order = "$ID ${params.order}"
         val selection = "$BUCKET_ID ==?"
 
@@ -202,7 +212,7 @@ internal class GalleryProviderImpl constructor(
     @Throws(NullPointerException::class, IllegalArgumentException::class)
     override fun cursorToPhotoUri(cursor: Cursor): String {
         return try {
-            getPhotoUri(getContentsId(cursor))
+            Extensions.getPhotoUri(cursor.getContentsId())
         } catch (ex: Exception) {
             throw ex
         }
@@ -246,10 +256,7 @@ internal class GalleryProviderImpl constructor(
                 ExifInterface.TAG_ORIENTATION,
                 ExifInterface.ORIENTATION_NORMAL
             )
-            setRotate(
-                orientation = orientation,
-                matrix = matrix
-            )
+            Extensions.setRotate(orientation, matrix)
 
             it.close()
         }
@@ -317,7 +324,7 @@ internal class GalleryProviderImpl constructor(
         suffix: String
     ): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
-        bitmap.compress(toCompressFormat(suffix), 100, stream)
+        bitmap.compress(Extensions.toCompressFormat(suffix), 100, stream)
         return MultipartBody.Part.createFormData(
             name = name,
             filename = "${filename}$suffix",
@@ -493,8 +500,8 @@ internal class GalleryProviderImpl constructor(
         flexibleItem: FlexibleStateItem,
         multipartKey: String
     ): MultipartBody.Part {
-        val bitmap = getFlexibleImageToBitmap(originalImagePath,flexibleItem)
-        return bitmapToMultipart(bitmap,multipartKey)
+        val bitmap = getFlexibleImageToBitmap(originalImagePath, flexibleItem)
+        return bitmapToMultipart(bitmap, multipartKey)
     }
 
     @Throws(
@@ -541,7 +548,7 @@ internal class GalleryProviderImpl constructor(
         if (originalBitmap == null) {
             throw NullPointerException("originalBitmap is Null")
         }
-        var croppedBitmap = cropBitmapObjectHandleOOM(
+        var croppedBitmap = CropImageEditExtensions.cropBitmapObjectHandleOOM(
             originalBitmap,
             points,
             degreesRotated,
@@ -551,7 +558,7 @@ internal class GalleryProviderImpl constructor(
             flipHorizontally,
             flipVertically
         )
-        croppedBitmap = resizeBitmap(
+        croppedBitmap = CropImageEditExtensions.resizeBitmap(
             croppedBitmap,
             0,
             0,
@@ -622,11 +629,58 @@ internal class GalleryProviderImpl constructor(
         }
     }
 
-    private fun toCompressFormat(suffix: String): Bitmap.CompressFormat {
-        return if (suffix == ".png") {
-            Bitmap.CompressFormat.PNG
-        } else {
-            Bitmap.CompressFormat.JPEG
+    override fun getImageType(imagePath: String): ImageType {
+        return try {
+            // content://media/external/images/media/1
+            val contentUrl = Uri.parse(imagePath)
+            val input = contentResolver.openInputStream(contentUrl) ?: return ImageType.UN_KNOWN
+            val exifInterface = ExifInterface(input)
+            input.close()
+
+            // TAG_MODEL -> 휴대폰 단말기 모델, TAG_F_NUMBER -> 빛의 양, TAG_PHOTOGRAPHIC_SENSITIVITY -> Camera ISO,
+            // TAG_EXPOSURE_TIME -> 노출 시간, TAG_APERTURE_VALUE -> 조리개 값
+            // 기타 카메라 정보들이 있는 경우 캡처된 이미지 X
+            if (exifInterface.getAttribute(ExifInterface.TAG_MODEL) != null && (
+                        exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER) != null ||
+                                exifInterface.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY) != null ||
+                                exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME) != null ||
+                                exifInterface.getAttribute(ExifInterface.TAG_APERTURE_VALUE) != null
+                        )
+            ) {
+                return ImageType.CAMERA
+            }
+
+            val projection = arrayOf(
+                ID,
+                BUCKET_ID,
+                BUCKET_NAME,
+                DISPLAY_NAME
+            )
+
+            val contentId = contentUrl.lastPathSegment ?: return ImageType.ETC
+
+            val cursor = contentResolver.query(
+                CONTENT_URI,
+                projection,
+                "$ID ==?",
+                arrayOf(contentId),
+                null
+            ) ?: return ImageType.UN_KNOWN
+            cursor.moveToNext()
+            val displayName = cursor.getDisplayName().lowercase()
+            val bucketName = cursor.getBucketName().lowercase()
+            cursor.close()
+
+            // ScreenShot
+            if (bucketName.contains("screenshots") ||
+                displayName.startsWith("screenshot_")
+            ) {
+                return ImageType.SCREENSHOT
+            }
+
+            return ImageType.ETC
+        } catch (ex: Exception) {
+            ImageType.UN_KNOWN
         }
     }
 
@@ -639,366 +693,5 @@ internal class GalleryProviderImpl constructor(
             Manifest.permission.READ_EXTERNAL_STORAGE,
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    /**
-     * 저장소 쓰기 권한 체크
-     * @return true 쓰기 권한 허용, false 쓰기 권한 거부 상태
-     */
-    private fun isWriteStoragePermissionsGranted(): Boolean {
-        return context.packageManager.checkPermission(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            context.packageName
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun getContentsId(cursor: Cursor): String {
-        return try {
-            cursor.getString(cursor.getColumnIndexOrThrow(ID))
-        } catch (ex: Exception) {
-            ""
-        }
-    }
-
-    private fun getPhotoUri(id: String): String {
-        return try {
-            Uri.withAppendedPath(CONTENT_URI, id).toString()
-        } catch (ex: NullPointerException) {
-            ""
-        }
-    }
-
-    private fun getBucketId(cursor: Cursor): String {
-        return try {
-            cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_ID))
-        } catch (ex: Exception) {
-            ""
-        }
-    }
-
-    private fun getBucketName(cursor: Cursor): String {
-        return try {
-            cursor.getString(cursor.getColumnIndexOrThrow(BUCKET_NAME))
-        } catch (ex: Exception) {
-            ""
-        }
-    }
-
-    /**
-     * set Image Rotate Func.
-     * @param orientation ExifInterface Orientation
-     * @param matrix Image Matrix
-     *
-     */
-    private fun setRotate(orientation: Int, matrix: Matrix): Boolean {
-        return when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> {
-                matrix.postRotate(0F)
-                true
-            }
-            ExifInterface.ORIENTATION_ROTATE_180 -> {
-                matrix.postRotate(180f)
-                true
-            }
-            ExifInterface.ORIENTATION_ROTATE_270 -> {
-                matrix.postRotate(270f)
-                true
-            }
-            else -> false
-        }
-    }
-
-    /**
-     * Get a rectangle for the given 4 points (x0,y0,x1,y1,x2,y2,x3,y3) by finding the min/max 2
-     * points that contains the given 4 points and is a straight rectangle.
-     */
-    private fun getRectFromPoints(
-        points: FloatArray,
-        imageWidth: Int,
-        imageHeight: Int,
-        fixAspectRatio: Boolean,
-        aspectRatioX: Int,
-        aspectRatioY: Int
-    ): Rect {
-        val left = max(0f, getRectLeft(points)).roundToInt()
-        val top = max(0f, getRectTop(points)).roundToInt()
-        val right = min(imageWidth.toFloat(), getRectRight(points)).roundToInt()
-        val bottom = min(imageHeight.toFloat(), getRectBottom(points)).roundToInt()
-        val rect = Rect(left, top, right, bottom)
-        if (fixAspectRatio) {
-            fixRectForAspectRatio(rect, aspectRatioX, aspectRatioY)
-        }
-        return rect
-    }
-
-    /**
-     * Get left value of the bounding rectangle of the given points.
-     */
-    private fun getRectLeft(points: FloatArray): Float {
-        return min(min(min(points[0], points[2]), points[4]), points[6])
-    }
-
-    /**
-     * Get top value of the bounding rectangle of the given points.
-     */
-    private fun getRectTop(points: FloatArray): Float {
-        return min(min(min(points[1], points[3]), points[5]), points[7])
-    }
-
-    /**
-     * Get right value of the bounding rectangle of the given points.
-     */
-    private fun getRectRight(points: FloatArray): Float {
-        return max(max(max(points[0], points[2]), points[4]), points[6])
-    }
-
-    /**
-     * Get bottom value of the bounding rectangle of the given points.
-     */
-    private fun getRectBottom(points: FloatArray): Float {
-        return max(max(max(points[1], points[3]), points[5]), points[7])
-    }
-
-    /**
-     * Get width of the bounding rectangle of the given points.
-     */
-    private fun getRectWidth(points: FloatArray): Float {
-        return getRectRight(points) - getRectLeft(points)
-    }
-
-    /**
-     * Get height of the bounding rectangle of the given points.
-     */
-    private fun getRectHeight(points: FloatArray): Float {
-        return getRectBottom(points) - getRectTop(points)
-    }
-
-    /**
-     * Get horizontal center value of the bounding rectangle of the given points.
-     */
-    private fun getRectCenterX(points: FloatArray): Float {
-        return (getRectRight(points) + getRectLeft(points)) / 2f
-    }
-
-    /**
-     * Get vertical center value of the bounding rectangle of the given points.
-     */
-    private fun getRectCenterY(points: FloatArray): Float {
-        return (getRectBottom(points) + getRectTop(points)) / 2f
-    }
-
-    /**
-     * Fix the given rectangle if it doesn't confirm to aspect ration rule.<br></br>
-     * Make sure that width and height are equal if 1:1 fixed aspect ratio is requested.
-     */
-    private fun fixRectForAspectRatio(rect: Rect, aspectRatioX: Int, aspectRatioY: Int) {
-        if (aspectRatioX == aspectRatioY && rect.width() != rect.height()) {
-            if (rect.height() > rect.width()) {
-                rect.bottom -= rect.height() - rect.width()
-            } else {
-                rect.right -= rect.width() - rect.height()
-            }
-        }
-    }
-
-    /**
-     * Special crop of bitmap rotated by not stright angle, in this case the original crop bitmap
-     * contains parts beyond the required crop area, this method crops the already cropped and rotated
-     * bitmap to the final rectangle.<br></br>
-     * Note: rotating by 0, 90, 180 or 270 degrees doesn't require extra cropping.
-     */
-    private fun cropForRotatedImage(
-        bitmap: Bitmap?,
-        points: FloatArray,
-        rect: Rect,
-        degreesRotated: Int,
-        fixAspectRatio: Boolean,
-        aspectRatioX: Int,
-        aspectRatioY: Int
-    ): Bitmap? {
-        var tempBitmap = bitmap
-        if (degreesRotated % 90 != 0) {
-            var adjLeft = 0
-            var adjTop = 0
-            var width = 0
-            var height = 0
-            val rads = Math.toRadians(degreesRotated.toDouble())
-            val compareTo =
-                if (degreesRotated < 90 || degreesRotated in 181..269) rect.left else rect.right
-            var i = 0
-            while (i < points.size) {
-                if (points[i] >= compareTo - 1 && points[i] <= compareTo + 1) {
-                    adjLeft = abs(sin(rads) * (rect.bottom - points[i + 1]))
-                        .toInt()
-                    adjTop = abs(cos(rads) * (points[i + 1] - rect.top))
-                        .toInt()
-                    width = abs((points[i + 1] - rect.top) / sin(rads))
-                        .toInt()
-                    height = abs((rect.bottom - points[i + 1]) / cos(rads))
-                        .toInt()
-                    break
-                }
-                i += 2
-            }
-            rect[adjLeft, adjTop, adjLeft + width] = adjTop + height
-            if (fixAspectRatio) {
-                fixRectForAspectRatio(rect, aspectRatioX, aspectRatioY)
-            }
-            val bitmapTmp = tempBitmap
-            tempBitmap = Bitmap.createBitmap(
-                bitmap!!,
-                rect.left,
-                rect.top,
-                rect.width(),
-                rect.height()
-            )
-            if (bitmapTmp != tempBitmap) {
-                bitmapTmp?.recycle()
-            }
-        }
-        return tempBitmap
-    }
-
-    /**
-     * Crop image bitmap from given bitmap using the given points in the original bitmap and the given
-     * rotation.<br></br>
-     * if the rotation is not 0,90,180 or 270 degrees then we must first crop a larger area of the
-     * image that contains the requires rectangle, rotate and then crop again a sub rectangle.<br></br>
-     * If crop fails due to OOM we scale the cropping image by 0.5 every time it fails until it is
-     * small enough.
-     */
-    private fun cropBitmapObjectHandleOOM(
-        bitmap: Bitmap,
-        points: FloatArray,
-        degreesRotated: Int,
-        fixAspectRatio: Boolean,
-        aspectRatioX: Int,
-        aspectRatioY: Int,
-        flipHorizontally: Boolean,
-        flipVertically: Boolean
-    ): Bitmap? {
-        var scale = 1
-        while (true) {
-            try {
-                return cropBitmapObjectWithScale(
-                    bitmap,
-                    points,
-                    degreesRotated,
-                    fixAspectRatio,
-                    aspectRatioX,
-                    aspectRatioY,
-                    1 / scale.toFloat(),
-                    flipHorizontally,
-                    flipVertically
-                )
-            } catch (e: OutOfMemoryError) {
-                scale *= 2
-                if (scale > 8) {
-                    throw e
-                }
-            }
-        }
-    }
-
-    /**
-     * Crop image bitmap from given bitmap using the given points in the original bitmap and the given
-     * rotation.<br></br>
-     * if the rotation is not 0,90,180 or 270 degrees then we must first crop a larger area of the
-     * image that contains the requires rectangle, rotate and then crop again a sub rectangle.
-     *
-     * @param scale how much to scale the cropped image part, use 0.5 to lower the image by half (OOM
-     * handling)
-     */
-    private fun cropBitmapObjectWithScale(
-        bitmap: Bitmap,
-        points: FloatArray,
-        degreesRotated: Int,
-        fixAspectRatio: Boolean,
-        aspectRatioX: Int,
-        aspectRatioY: Int,
-        scale: Float,
-        flipHorizontally: Boolean,
-        flipVertically: Boolean
-    ): Bitmap? {
-        // get the rectangle in original image that contains the required cropped area (larger for non
-        // rectangular crop)
-        val rect = getRectFromPoints(
-            points,
-            bitmap.width,
-            bitmap.height,
-            fixAspectRatio,
-            aspectRatioX,
-            aspectRatioY
-        )
-        // crop and rotate the cropped image in one operation
-        val matrix = Matrix()
-        matrix.setRotate(degreesRotated.toFloat(), bitmap.width / 2.0f, bitmap.height / 2.0f)
-        matrix.postScale(
-            if (flipHorizontally) -scale else scale,
-            if (flipVertically) -scale else scale
-        )
-        var result = Bitmap.createBitmap(
-            bitmap,
-            rect.left,
-            rect.top,
-            rect.width(),
-            rect.height(),
-            matrix,
-            true
-        )
-        if (result == bitmap) {
-            // corner case when all bitmap is selected, no worth optimizing for it
-            result = bitmap.copy(bitmap.config, false)
-        }
-        // rotating by 0, 90, 180 or 270 degrees doesn't require extra cropping
-        if (degreesRotated % 90 != 0) {
-            // extra crop because non rectangular crop cannot be done directly on the image without
-            // rotating first
-            result = cropForRotatedImage(
-                result, points, rect, degreesRotated, fixAspectRatio, aspectRatioX, aspectRatioY
-            )
-        }
-        return result
-    }
-
-    /**
-     * Resize the given bitmap to the given width/height by the given option.<br></br>
-     */
-    private fun resizeBitmap(
-        bitmap: Bitmap?,
-        reqWidth: Int,
-        reqHeight: Int,
-        options: RequestSizeOptions
-    ): Bitmap {
-        try {
-            if (reqWidth > 0 &&
-                reqHeight > 0 &&
-                (options === RequestSizeOptions.RESIZE_FIT ||
-                        options === RequestSizeOptions.RESIZE_INSIDE ||
-                        options === RequestSizeOptions.RESIZE_EXACT)
-            ) {
-                var resized: Bitmap? = null
-                if (options === RequestSizeOptions.RESIZE_EXACT) {
-                    resized = Bitmap.createScaledBitmap(bitmap!!, reqWidth, reqHeight, false)
-                } else {
-                    val width = bitmap!!.width
-                    val height = bitmap.height
-                    val scale = max(width / reqWidth.toFloat(), height / reqHeight.toFloat())
-                    if (scale > 1 || options === RequestSizeOptions.RESIZE_FIT) {
-                        resized = Bitmap.createScaledBitmap(
-                            bitmap, (width / scale).toInt(), (height / scale).toInt(), false
-                        )
-                    }
-                }
-                if (resized != null) {
-                    if (resized != bitmap) {
-                        bitmap.recycle()
-                    }
-                    return resized
-                }
-            }
-        } catch (e: Exception) {
-        }
-        return bitmap!!
     }
 }
