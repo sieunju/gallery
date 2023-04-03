@@ -33,13 +33,11 @@ android {
 
 dependencies {
     implementation(project(":model"))
-    implementation(deps.androidx.core)
     implementation(deps.androidx.appCompat)
     implementation(deps.androidx.exif)
 
-    implementation(deps.javax.inject)
     implementation(deps.retrofit.okhttp)
-    implementation(deps.timber)
+    // implementation(deps.timber)
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
