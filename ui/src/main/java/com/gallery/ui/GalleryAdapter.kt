@@ -6,10 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -26,12 +23,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.gallery.ui.model.BaseGalleryItem
-import com.gallery.ui.model.CameraOpenItem
-import com.gallery.ui.model.GalleryItem
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.isAndOperatorTrue
+import com.gallery.ui.model.BaseGalleryItem
+import com.gallery.ui.model.CameraOpenItem
+import com.gallery.ui.model.GalleryItem
 
 /**
  * Description : Gallery RecyclerView 전용 Adapter Class
@@ -131,7 +128,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         val item = dataList[searchPos]
         if (item is GalleryItem) {
             if (item.imagePath != imagePath) {
-                dataList.add(searchPos, GalleryItem(imagePath))
+                dataList.add(searchPos, GalleryItem(imagePath, bucketName = ""))
                 notifyItemInserted(searchPos)
             } else {
                 notifyItemChanged(searchPos)
@@ -299,6 +296,11 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 } catch (ex: IllegalArgumentException) {
                     0
                 }
+                val bucketName = try {
+                    getString(getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                } catch (ex: IllegalArgumentException) {
+                    ""
+                }
                 val contentId = getLong(mediaId)
                 val uri = Uri.withAppendedPath(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -310,7 +312,7 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 if (selectGalleryItem != null) {
                     dataList.add(selectGalleryItem)
                 } else {
-                    dataList.add(GalleryItem(uri.toString()))
+                    dataList.add(GalleryItem(uri.toString(), bucketName = bucketName))
                 }
             }
         }
