@@ -1,5 +1,5 @@
-Version: 0.0.2
-Title: v0.0.2
+Version: 0.0.3
+Title: v0.0.3
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
@@ -7,9 +7,10 @@ KO-KR
 ex.) core, edit, ui
 
 ### 기능 추가 했어요.
+- [FEATURE] 이미지 타입을 리턴하는 함수를 추가 했어요. ex) 카메라로 찍은 타입, 스크린샷 타입.
+- [CHORE] fetchGallery 리턴하는 함수에 앨범명, 앨볌 아이디 컬럼값 추가 했어요.
 
 ### 이슈를 수정 했어요.
-- [FIX] https://github.com/sieunju/gallery/issues/19
 
 EN-US
 ### Introduction
@@ -18,6 +19,7 @@ EN-US
 ex.) core, edit, ui
 
 ### Additional details
+- [FEATURE] I added a function that returns the image type. eg) camera, screenshot
+- [CHORE] I added the album name and album ID column value to the fetchGallery return function.
 
 ### Issue
-- [FIX] https://github.com/sieunju/gallery/issues/19

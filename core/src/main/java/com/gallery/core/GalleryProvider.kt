@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
+import com.gallery.core.enums.ImageType
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
@@ -295,4 +296,15 @@ interface GalleryProvider {
      */
     @Throws(Exception::class)
     fun saveGalleryPicture(pictureUri: String, name: String): Pair<Boolean, String>
+
+    /**
+     * 어떤 이미지 타입인지 리턴하는 함수
+     * @param imagePath content://media/external/images/media/1
+     *
+     * @see ImageType.UN_KNOWN 이미지 타입 체크하던중 에러 발생시
+     * @see ImageType.CAMERA 카메라로 찍은 이미지
+     * @see ImageType.SCREENSHOT 스크린샷
+     * @see ImageType.ETC 외부에서 다운로드 하거나, 다른 앱에서 다운로드 받은 경우
+     */
+    fun getImageType(imagePath: String): ImageType
 }
