@@ -20,6 +20,7 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.addTo
 import io.reactivex.rxjava3.schedulers.Schedulers
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -85,7 +86,11 @@ internal class FlexibleEditFragmentViewModel @Inject constructor(
             .flatMap { galleryProvider.pathToBitmapRx(newImagePath) }
             .flatMap { handleChangeBitmapSuccess(newImagePath, it) }
             .delay(200, TimeUnit.MILLISECONDS)
-            .doOnSuccess { showLoading(false) }
+            .doOnSuccess {
+                showLoading(false)
+                Timber.d("이미지 타입 ${galleryProvider.getImageType(newImagePath)}")
+            }
+            .doOnError { Timber.d("ERROR $it") }
             .subscribe().addTo(disposable)
     }
 

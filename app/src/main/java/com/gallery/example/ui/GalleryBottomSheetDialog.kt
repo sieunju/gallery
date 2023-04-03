@@ -2,6 +2,7 @@ package com.gallery.example.ui
 
 import android.app.Dialog
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -139,9 +140,13 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
             bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as View
         val behavior = BottomSheetBehavior.from(bottomSheet)
         val layoutParams = bottomSheet.layoutParams
-        layoutParams.height = getDeviceHeight()
-            .minus(getNavigationBarHeight())
-            .minus(getStatusBarHeight())
+        var realHeight = getDeviceHeight()
+        if (isShowNavigationBar()) {
+            realHeight -= getNavigationBarHeight()
+        }
+        realHeight -= getStatusBarHeight()
+
+        layoutParams.height = realHeight
         bottomSheet.layoutParams = layoutParams
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed = true
@@ -154,8 +159,17 @@ internal class GalleryBottomSheetDialog : BottomSheetDialogFragment(),
         } else {
             val displayMetrics = DisplayMetrics()
             @Suppress("DEPRECATION")
-            windowManager.defaultDisplay.getMetrics(displayMetrics)
+            windowManager.defaultDisplay.getRealMetrics(displayMetrics)
             displayMetrics.heightPixels
+        }
+    }
+
+    private fun isShowNavigationBar(): Boolean {
+        val id = resources.getIdentifier("config_showNavigationBar", "bool", "android")
+        return try {
+            resources.getBoolean(id)
+        } catch (ex: Resources.NotFoundException) {
+            true
         }
     }
 

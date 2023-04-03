@@ -55,9 +55,7 @@ internal class CropImageEditFragmentViewModel @Inject constructor(
     private fun changeBitmap(imagePath: String) {
         viewModelScope.launch(Dispatchers.Main) {
             galleryProvider.pathToBitmapCo(imagePath)
-                .onSuccess {
-                    _selectPhotoBitmap.value = it
-                }
+                .onSuccess { _selectPhotoBitmap.value = it }
         }
     }
 

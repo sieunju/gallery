@@ -8,5 +8,6 @@ package com.gallery.ui.model
 data class GalleryItem(
     val imagePath: String,
     var isSelected: Boolean = false,
-    var selectedNum: String = "1"
+    var selectedNum: String = "1",
+    val bucketName: String
 ) : BaseGalleryItem()
