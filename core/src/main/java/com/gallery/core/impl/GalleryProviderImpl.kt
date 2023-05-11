@@ -182,16 +182,11 @@ internal class GalleryProviderImpl constructor(
     @Throws(IllegalStateException::class, NullPointerException::class)
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("Permissions PERMISSION_DENIED")
-        val projection = arrayOf(
-            ID, BUCKET_ID, BUCKET_NAME
-        )
         val order = "$ID ${params.order}"
-        val selection = "$BUCKET_ID ==?"
-
         return contentResolver.query(
             CONTENT_URI,
-            projection,
-            if (params.isAll) null else selection,
+            params.getColumns(),
+            if (params.isAll) null else "$BUCKET_ID ==?",
             params.selectionArgs,
             order
         ) ?: throw NullPointerException("Cursor NullPointerException")
@@ -603,6 +598,7 @@ internal class GalleryProviderImpl constructor(
                 values.clear()
                 values.put(MediaStore.Images.Media.IS_PENDING, 0)
                 contentResolver.update(item, values, null, null)
+                parcelFile.close()
                 true to pictureUri
             } else {
                 // Legacy Version
