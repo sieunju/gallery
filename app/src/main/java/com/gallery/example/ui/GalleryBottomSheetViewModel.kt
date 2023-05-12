@@ -3,6 +3,7 @@ package com.gallery.example.ui
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.os.Looper
+import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -77,6 +78,7 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
         filterList.addAll(list)
         currentFilterItem = list[0]
         queryParameter.filterId = list[0].bucketId
+        queryParameter.addColumns(MediaStore.Images.ImageColumns.ORIENTATION)
         _selectedFilterTitle.postValue(list[0].bucketName)
         return queryParameter
     }
