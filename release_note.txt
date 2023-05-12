@@ -1,5 +1,5 @@
-Version: 0.0.3
-Title: v0.0.3
+Version: 0.0.4
+Title: v0.0.4
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
@@ -7,10 +7,10 @@ KO-KR
 ex.) core, edit, ui
 
 ### 기능 추가 했어요.
-- [FEATURE] 이미지 타입을 리턴하는 함수를 추가 했어요. ex) 카메라로 찍은 타입, 스크린샷 타입.
-- [CHORE] fetchGallery 리턴하는 함수에 앨범명, 앨볌 아이디 컬럼값 추가 했어요.
+- [FEATURE] 갤러리 데이터 가져올때 제한적으로 볼수 있는 것을 자유롭게 보고 싶은 Column을 조회 할수 있도록 수정했어요. ex.) GalleryQueryParameter 참고
 
 ### 이슈를 수정 했어요.
+- [FIX] pathToBitmap 함수 이미지 회전 이슈 처리
 
 EN-US
 ### Introduction
@@ -19,7 +19,7 @@ EN-US
 ex.) core, edit, ui
 
 ### Additional details
-- [FEATURE] I added a function that returns the image type. eg) camera, screenshot
-- [CHORE] I added the album name and album ID column value to the fetchGallery return function.
+- [FEATURE] I modified it so that you can freely look up the columns that you want to see when you import gallery data. Ref) GalleryQueryParameter
 
 ### Issue
+- [FIX] pathToBitmap Function Image Rotation Issue Processing
