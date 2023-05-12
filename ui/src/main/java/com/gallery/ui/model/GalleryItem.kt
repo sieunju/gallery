@@ -9,5 +9,6 @@ data class GalleryItem(
     val imagePath: String,
     var isSelected: Boolean = false,
     var selectedNum: String = "1",
-    val bucketName: String
+    val bucketName: String,
+    val rotation: Int = 0
 ) : BaseGalleryItem()

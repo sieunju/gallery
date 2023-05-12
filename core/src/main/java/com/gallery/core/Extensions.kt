@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 
 /**
@@ -102,27 +103,79 @@ internal object Extensions {
 
     /**
      * set Image Rotate Func.
-     * @param orientation ExifInterface Orientation
+     * @param exifOrientation ExifInterface Orientation
      * @param matrix Image Matrix
      *
      * @return true 정의된 Rotate 방식입니다.
      * @return false 정의되지 않은 Rotate 방식입니다.
      */
-    fun setRotate(orientation: Int, matrix: Matrix): Boolean {
-        return when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> {
-                matrix.postRotate(0F)
-                true
+    fun setExifRotation(
+        exifOrientation: Int,
+        matrix: Matrix
+    ) {
+        Log.d("JLOGGER", "setRotate ${exifOrientation}")
+        when (exifOrientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
+                matrix.setRotate(180f)
+                matrix.postScale(-1f, 1f)
             }
-            ExifInterface.ORIENTATION_ROTATE_180 -> {
-                matrix.postRotate(180f)
-                true
+
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.setRotate(90f)
+                matrix.postScale(-1f, 1f)
             }
-            ExifInterface.ORIENTATION_ROTATE_270 -> {
-                matrix.postRotate(270f)
-                true
+
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.setRotate(-90f)
+                matrix.postScale(-1f, 1f)
             }
-            else -> false
+
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+            else -> {}
+        }
+    }
+
+    /**
+     * Glide 라이브러리에서 따옴
+     */
+    fun getExifOrientationDegrees(exifOrientation: Int): Int {
+        val degreesToRotate: Int = when (exifOrientation) {
+            ExifInterface.ORIENTATION_TRANSPOSE, ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_FLIP_VERTICAL -> 180
+            ExifInterface.ORIENTATION_TRANSVERSE, ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
+        }
+        return degreesToRotate
+    }
+
+    /**
+     * Glide 라이브러리에서 따옴
+     */
+    fun initializeMatrixForRotation(exifOrientation: Int, matrix: Matrix) {
+        when (exifOrientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
+                matrix.setRotate(180f)
+                matrix.postScale(-1f, 1f)
+            }
+
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.setRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.setRotate(-90f)
+                matrix.postScale(-1f, 1f)
+            }
+
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+            else -> {}
         }
     }
 }
