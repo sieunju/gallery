@@ -224,10 +224,22 @@ internal class GalleryProviderImpl constructor(
 
     /**
      * Converter Local Path -> Bitmap
+     *
+     * 이미지 회전을 따로 처리 안해도 제대로 노출 되어 주석 처리
+     *
+     * 만약 해당 함수를 사용 할때 이미지 회전 이슈가 발생 한다면 Glide 라이브러리 사용 권장
+     *
+     * Ex.) Glide.with(context).asBitmap().load(path).submit().get()
      * @param path Local Path content://...
+     * @param limitWidth 리사이징할 너비값
+     * @exception IOException
+     * @exception IllegalArgumentException
+     * @exception FileNotFoundException
+     * @return Bitmap
      */
     @Throws(IOException::class, IllegalArgumentException::class, FileNotFoundException::class)
     override fun pathToBitmap(path: String, limitWidth: Int): Bitmap {
+        // return Glide.with(context).asBitmap().load(path).submit().get()
         val uri = Uri.parse(path)
         var bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ImageDecoder.decodeBitmap(
@@ -245,16 +257,16 @@ internal class GalleryProviderImpl constructor(
 
         val matrix = Matrix()
         // 이미지 회전 이슈 처리.
-        contentResolver.openInputStream(uri)?.let {
-            val exif = ExifInterface(it)
-            val orientation = exif.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-            Extensions.setRotate(orientation, matrix)
-
-            it.close()
-        }
+//        contentResolver.openInputStream(uri)?.let {
+//            val exif = ExifInterface(it)
+//            val orientation = exif.getAttributeInt(
+//                ExifInterface.TAG_ORIENTATION,
+//                ExifInterface.ORIENTATION_NORMAL
+//            )
+//            Extensions.setRotate(orientation, matrix)
+//
+//            it.close()
+//        }
 
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
