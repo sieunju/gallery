@@ -3,6 +3,7 @@ package com.gallery.core.impl
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Size
 import androidx.annotation.WorkerThread
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
@@ -701,5 +703,27 @@ internal class GalleryProviderImpl constructor(
             Manifest.permission.READ_EXTERNAL_STORAGE,
             context.packageName
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    override fun getThumbnail(imageId: Long): Bitmap {
+        return getThumbnail(imageId, 300, 300)
+    }
+
+    override fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentResolver.loadThumbnail(
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId),
+                Size(width, height),
+                null
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            MediaStore.Images.Thumbnails.getThumbnail(
+                contentResolver,
+                imageId,
+                MediaStore.Images.Thumbnails.MINI_KIND,
+                BitmapFactory.Options()
+            )
+        }
     }
 }

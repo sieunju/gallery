@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.net.Uri
+import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
@@ -307,4 +308,30 @@ interface GalleryProvider {
      * @see ImageType.ETC 외부에서 다운로드 하거나, 다른 앱에서 다운로드 받은 경우
      */
     fun getImageType(imagePath: String): ImageType
+
+    /**
+     * Get Gallery ImageThumbnail
+     *
+     * Target SDK [Build.VERSION_CODES.Q] Thumbnail 기본 사이즈 300, 300
+     * Thumbnail 기본 사이즈 자유롭게 하고 싶다면 getThumbnail(imageId, width, height) 함수 사용
+     * @param imageId Cursor Image ID
+     *
+     * @throws java.io.IOException
+     * @throws RuntimeException
+     */
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getThumbnail(imageId: Long): Bitmap
+
+    /**
+     * Get Gallery ImageThumbnail
+     *
+     * @param imageId Cursor Image ID
+     * @param width Request Thumbnail Width
+     * @param height Request Thumbnail Height
+     *
+     * @throws java.io.IOException
+     * @throws RuntimeException
+     */
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getThumbnail(imageId: Long,width: Int, height: Int): Bitmap
 }
