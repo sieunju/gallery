@@ -2,6 +2,7 @@ package com.gallery.example.ui
 
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Looper
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
@@ -10,7 +11,12 @@ import androidx.lifecycle.ViewModel
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
-import com.gallery.core_rx.*
+import com.gallery.core_rx.deleteCacheDirectoryRx
+import com.gallery.core_rx.fetchDirectoriesRx
+import com.gallery.core_rx.fetchGalleryRx
+import com.gallery.core_rx.getFlexibleImageToBitmapRx
+import com.gallery.core_rx.pathToBitmapRx
+import com.gallery.example.ListLiveData
 import com.gallery.example.SingleLiveEvent
 import com.gallery.model.FlexibleStateItem
 import com.gallery.ui.model.GalleryItem
@@ -35,8 +41,18 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
     val startSnackBarEvent: SingleLiveEvent<String> by lazy { SingleLiveEvent() }
     val startViewHolderClickEvent: SingleLiveEvent<Int> by lazy { SingleLiveEvent() }
 
-    private val _cursor: MutableLiveData<Cursor> by lazy { MutableLiveData() }
-    val cursor: LiveData<Cursor> get() = _cursor
+
+    private val _dataList: ListLiveData<GalleryBottomSheetDialog.GalleryExampleItem> by lazy { ListLiveData() }
+    val dataList: ListLiveData<GalleryBottomSheetDialog.GalleryExampleItem> get() = _dataList
+
+    // [s] Parameter
+    val pageModel: GalleryBottomSheetDialog.GalleryExamplePagingModel by lazy { GalleryBottomSheetDialog.GalleryExamplePagingModel() }
+
+    //    private val _cursor: MutableLiveData<Cursor> by lazy { MutableLiveData() }
+//    val cursor: LiveData<Cursor> get() = _cursor
+    private var cursor: Cursor? = null
+    private var dataCount: Int = -1
+    // [e] Parameter
 
     private val _isLoading: MutableLiveData<Boolean> by lazy { MutableLiveData(false) }
     val isLoading: LiveData<Boolean> get() = _isLoading
@@ -63,14 +79,42 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
             .doOnSubscribe { showLoading(true) }
             .map { initParameter(it) }
             .flatMap { galleryProvider.fetchGalleryRx(it) }
-            .delay(500, TimeUnit.MILLISECONDS)
+            .flatMap {
+                cursor = it
+                reqPhotoList(it)
+            }
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess {
-                _cursor.value = it
-                performClickPosition()
+            .doOnSuccess { _dataList.addAll(it) }
+            .doFinally {
                 showLoading(false)
+                handleCursorState()
             }
             .subscribe().addTo(disposable)
+        Single.just(galleryProvider.fetchGallery())
+            .doOnSubscribe { showLoading(true) }
+            .flatMap {
+                cursor = it
+                reqPhotoList(it)
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSuccess { _dataList.addAll(it) }
+            .doFinally {
+                showLoading(false)
+                handleCursorState()
+            }
+            .subscribe().addTo(disposable)
+//        galleryProvider.fetchDirectoriesRx()
+//            .doOnSubscribe { showLoading(true) }
+//            .map { initParameter(it) }
+//            .flatMap { galleryProvider.fetchGalleryRx(it) }
+//            .delay(500, TimeUnit.MILLISECONDS)
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .doOnSuccess {
+//                cursor = it
+//                performClickPosition()
+//                showLoading(false)
+//            }
+//            .subscribe().addTo(disposable)
     }
 
     private fun initParameter(list: List<GalleryFilterData>): GalleryQueryParameter {
@@ -78,7 +122,6 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
         filterList.addAll(list)
         currentFilterItem = list[0]
         queryParameter.filterId = list[0].bucketId
-        queryParameter.addColumns(MediaStore.Images.ImageColumns.ORIENTATION)
         _selectedFilterTitle.postValue(list[0].bucketName)
         return queryParameter
     }
@@ -89,7 +132,7 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
         _selectedFilterTitle.value = data.bucketName
         galleryProvider.fetchGalleryRx(queryParameter)
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess { _cursor.value = it }
+            .doOnSuccess { cursor = it }
             .subscribe().addTo(disposable)
     }
 
@@ -220,6 +263,76 @@ internal class GalleryBottomSheetViewModel @Inject constructor(
                 _startSendEditImageBitmap.value = it
             }
             .subscribe().addTo(disposable)
+    }
+
+    fun onLoadPage() {
+        Timber.d("onLoadPage!!!! ")
+//        reqPhotoList(cursor)
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .doOnSuccess { _dataList.addAll(it) }
+//            .doFinally { handleCursorState() }
+//            .subscribe().addTo(disposable)
+    }
+
+    private fun reqPhotoList(cursor: Cursor?): Single<List<GalleryBottomSheetDialog.GalleryExampleItem>> {
+        return if (cursor != null) {
+            Single.just(cursor)
+                .doOnSubscribe { pageModel.isLoading = true }
+                .map { it.toUiModels() }
+        } else {
+            handleCursorState()
+            Single.just(emptyList())
+        }.subscribeOn(Schedulers.io())
+    }
+
+    /**
+     * Cursor to GalleryUiMoel
+     */
+    private fun Cursor?.toUiModels(pageSize: Int = 100): List<GalleryBottomSheetDialog.GalleryExampleItem> {
+        val list = mutableListOf<GalleryBottomSheetDialog.GalleryExampleItem>()
+        if (this == null) {
+            pageModel.isLoading = false
+            pageModel.isLast = true
+            return list
+        }
+
+        for (idx in 0 until pageSize) {
+            if (moveToNext()) {
+                runCatching {
+                    val mediaId = try {
+                        getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                    } catch (ex: IllegalArgumentException) {
+                        0
+                    }
+                    val contentId = getLong(mediaId)
+                    val uri = Uri.withAppendedPath(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentId.toString()
+                    )
+                    val item = GalleryBottomSheetDialog.GalleryExampleItem(uri.toString())
+                    item.thumbnailBitmap = galleryProvider.getThumbnail(contentId)
+                    Timber.d("Bitmap ${item.thumbnailBitmap}")
+                    list.add(item)
+                }.onFailure {
+                    Timber.d("ERROR $it")
+                }
+            } else {
+                pageModel.isLoading = false
+                pageModel.isLast = true
+                break
+            }
+        }
+        return list
+    }
+
+    private fun handleCursorState() {
+        if (dataCount == dataList.size) {
+            pageModel.isLoading = false
+            pageModel.isLast = true
+            cursor = null
+        } else {
+            pageModel.isLoading = false
+        }
     }
 
     fun clearDisposable() {
