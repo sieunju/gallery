@@ -30,7 +30,6 @@ import java.text.DecimalFormat
  *
  * Created by juhongmin on 2022/12/18
  */
-@AndroidEntryPoint
 internal class SelectAlbumBottomSheetDialog : BottomSheetDialogFragment() {
 
     interface Listener {

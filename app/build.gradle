@@ -54,14 +54,15 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":model"))
 
-    implementation(deps.androidx.core)
-    implementation(deps.androidx.appCompat)
-    implementation(deps.androidx.fragment)
-    implementation(deps.androidx.constraintLayout)
-    implementation(deps.androidx.multidex)
-    implementation(deps.androidx.material)
+    implementation("androidx.appcompat:appcompat:1.3.0")
+    implementation("androidx.fragment:fragment-ktx:1.5.2")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("com.google.android.material:material:1.3.0")
 
-    implementation(deps.lifecycle.base)
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+
     implementation(deps.lifecycle.viewmodel)
     implementation(deps.lifecycle.livedata)
 
@@ -83,7 +84,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44.2")
     kapt("com.google.dagger:hilt-android-compiler:2.44.2")
 
-    implementation("com.github.sieunju:SimplePermissions:1.0.1-beta02")
+    implementation("com.github.sieunju.SimplePermissions:core:1.1.0")
 
     implementation(deps.glide.base)
 

@@ -13,7 +13,6 @@ import com.gallery.example.BR
 import com.gallery.example.R
 import com.gallery.example.databinding.FFlexibleEditBinding
 import com.google.android.material.snackbar.Snackbar
-import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -49,7 +48,7 @@ internal class FlexibleEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
             rvGallery.setRequestManager(Glide.with(this@FlexibleEditFragment))
-            rvGallery.addItemDecoration(GridDividerItemDecoration(2.dp))
+            rvGallery.addItemDecoration(GridDividerItemDecoration(25))
             rvGallery.setLifecycle(this@FlexibleEditFragment)
             cvCrop.setOnClickListener {
                 if (it.isSelected) {

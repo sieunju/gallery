@@ -1,6 +1,6 @@
 package com.gallery.example
 
-import androidx.multidex.MultiDexApplication
+import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import io.reactivex.rxjava3.exceptions.UndeliverableException
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
@@ -14,7 +14,7 @@ import java.net.SocketException
  * Created by juhongmin on 2022/09/13
  */
 @HiltAndroidApp
-class ExampleApplication : MultiDexApplication() {
+class ExampleApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
@@ -67,12 +67,12 @@ class ExampleApplication : MultiDexApplication() {
     private fun initTimber() {
         Timber.plant(object : Timber.DebugTree() {
             override fun createStackElementTag(element: StackTraceElement): String {
-                return "JLOGGER ${element.className.substringAfterLast(".")}:${element.methodName.substringAfterLast(".")}"
-                // return super.createStackElementTag(element)
-            }
-
-            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                super.log(priority, tag, message, t)
+                val str = StringBuilder()
+                str.append("JLOGGER")
+                str.append(element.className.substringAfterLast("."))
+                str.append(":")
+                str.append(element.methodName.substringAfterLast("."))
+                return str.toString()
             }
         })
     }

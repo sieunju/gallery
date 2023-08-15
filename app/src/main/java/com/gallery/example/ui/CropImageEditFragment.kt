@@ -14,7 +14,6 @@ import com.gallery.example.BR
 import com.gallery.example.R
 import com.gallery.example.databinding.FCropEditBinding
 import com.google.android.material.snackbar.Snackbar
-import com.hmju.permissions.extension.dp
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -58,7 +57,7 @@ internal class CropImageEditFragment : Fragment() {
 
         with(binding) {
             rvGallery.setRequestManager(Glide.with(this@CropImageEditFragment))
-            rvGallery.addItemDecoration(GridDividerItemDecoration(2.dp))
+            rvGallery.addItemDecoration(GridDividerItemDecoration(25))
             rvGallery.setLifecycle(this@CropImageEditFragment)
         }
 
