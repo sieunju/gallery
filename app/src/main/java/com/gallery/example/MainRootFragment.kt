@@ -16,12 +16,14 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             findNavController().navigate(R.id.action_root_to_gallery)
         }
 
+        view.findViewById<CardView>(R.id.cvEditFlexible).setOnClickListener {
+            findNavController().navigate(R.id.action_root_to_editFlexibleImage)
+        }
+
         SPermissions(this)
             .requestPermissions(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.CAMERA)
-            .build { b, strings ->
-
-            }
+            .build { b, strings -> }
     }
 }

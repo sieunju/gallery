@@ -15,14 +15,21 @@
         <action
             android:id="@+id/action_root_to_gallery"
             app:destination="@id/gallery" />
+        <action
+            android:id="@+id/action_root_to_editFlexibleImage"
+            app:destination="@id/editFlexibleImage" />
     </fragment>
 
     <fragment
         android:id="@+id/gallery"
         android:name="com.gallery.example.ui.gallery.GeneralGalleryFragment"
         android:label="GeneralGallery"
-        tools:layout="@layout/f_general_gallery">
+        tools:layout="@layout/f_general_gallery" />
 
-    </fragment>
+    <fragment
+        android:id="@+id/editFlexibleImage"
+        android:name="com.gallery.example.ui.flexible.EditFlexibleImageFragment"
+        android:label="EditFlexibleImage"
+        tools:layout="@layout/f_edit_flexible_image" />
 
 </navigation>

@@ -51,6 +51,7 @@ internal class GeneralGalleryFragment : Fragment(
     private val queryParameter: GalleryQueryParameter by lazy { GalleryQueryParameter() }
     private val dataList: MutableList<GeneralGalleryItem> by lazy { mutableListOf() }
     private var currentAlbum: GalleryFilterData? = null
+    private var isLast: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,11 +76,9 @@ internal class GeneralGalleryFragment : Fragment(
     private fun initData() {
         flow {
             cursor = galleryProvider.fetchGallery(queryParameter)
-            Timber.d("GalleryCount ${cursor.count}")
             emit(reqPagingList(cursor))
         }
             .flowOn(Dispatchers.IO)
-            .catch { Timber.d("ERROR? $it") }
             .onEach {
                 dataList.clear()
                 dataList.addAll(it)
@@ -100,7 +99,9 @@ internal class GeneralGalleryFragment : Fragment(
     }
 
     private fun reqPagingList(cursor: Cursor): List<GeneralGalleryItem> {
-        if (cursor.isLast) return listOf()
+        isLast = cursor.isLast
+        if (isLast) return listOf()
+
         val list = mutableListOf<GeneralGalleryItem>()
         for (idx in 0 until 100) {
             if (cursor.moveToNext()) {
@@ -159,6 +160,7 @@ internal class GeneralGalleryFragment : Fragment(
         rvContents.adapter = adapter
         rvContents.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (isLast) return
                 if (!rv.canScrollVertically(1)) {
                     // 맨 마지막 스크롤
                     onLoadNextPage()

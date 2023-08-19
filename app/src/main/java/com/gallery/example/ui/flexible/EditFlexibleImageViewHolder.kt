@@ -1,4 +1,4 @@
-package com.gallery.example.ui.gallery
+package com.gallery.example.ui.flexible
 
 import android.view.LayoutInflater
 import android.view.View
@@ -13,28 +13,28 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gallery.example.R
 
-internal class GeneralGalleryViewHolder(
+internal class EditFlexibleImageViewHolder(
     private val requestManager: RequestManager,
     parent: ViewGroup,
     delegate: Listener
 ) : RecyclerView.ViewHolder(
     LayoutInflater.from(parent.context)
         .inflate(
-            R.layout.vh_child_general_gallery,
+            R.layout.vh_child_edit_flexible_image,
             parent,
             false
         )
 ) {
 
     interface Listener {
-        fun onSelectPhoto(data: GeneralGalleryItem): List<GeneralGalleryItem>
+        fun onSelectPhoto(data: EditFlexibleImageItem): List<EditFlexibleImageItem>
     }
 
     private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
     private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
     private val cvSelected: CardView by lazy { itemView.findViewById(R.id.cvSelected) }
     private val tvSelectedNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
-    private var tempData: GeneralGalleryItem? = null
+    private var tempData: EditFlexibleImageItem? = null
 
     init {
         ivThumb.setOnClickListener {
@@ -43,7 +43,7 @@ internal class GeneralGalleryViewHolder(
         }
     }
 
-    fun onBindView(data: GeneralGalleryItem) {
+    fun onBindView(data: EditFlexibleImageItem) {
         tempData = data
         requestManager
             .load(data.imageUrl)
@@ -55,7 +55,7 @@ internal class GeneralGalleryViewHolder(
         setSelectedUI(data)
     }
 
-    private fun setSelectedUI(data: GeneralGalleryItem) {
+    private fun setSelectedUI(data: EditFlexibleImageItem) {
         if (data.selectedNum != null) {
             vSelected.changeVisible(View.VISIBLE)
             cvSelected.changeVisible(View.VISIBLE)
@@ -69,7 +69,7 @@ internal class GeneralGalleryViewHolder(
     fun onPayloadBindView(list: List<*>) {
         val currentData = tempData ?: return
         for (element in list) {
-            if (element is GeneralGalleryItem) {
+            if (element is EditFlexibleImageItem) {
                 if (element.imageUrl == currentData.imageUrl) {
                     setSelectedUI(element)
                     tempData = element
@@ -85,7 +85,7 @@ internal class GeneralGalleryViewHolder(
         }
     }
 
-    private fun rangeNotifyPayload(notifyList: List<GeneralGalleryItem>) {
+    private fun rangeNotifyPayload(notifyList: List<EditFlexibleImageItem>) {
         if (itemView.parent is RecyclerView) {
             val rv = itemView.parent as RecyclerView
             val lm = rv.layoutManager ?: return
