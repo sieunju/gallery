@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -26,7 +27,7 @@ class GeneralGalleryViewHolder(
 ) {
 
     interface Listener {
-        fun onSelectedImage(data: GeneralGalleryItem)
+        fun onSelectPhoto(data: GeneralGalleryItem): List<GeneralGalleryItem>
     }
 
     private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
@@ -38,7 +39,7 @@ class GeneralGalleryViewHolder(
     init {
         ivThumb.setOnClickListener {
             val data = tempData ?: return@setOnClickListener
-            delegate.onSelectedImage(data)
+            rangeNotifyPayload(delegate.onSelectPhoto(data))
         }
     }
 
@@ -65,16 +66,42 @@ class GeneralGalleryViewHolder(
         }
     }
 
-    fun onPayloadBindView(newData: GeneralGalleryItem) {
+    fun onPayloadBindView(list: List<*>) {
         val currentData = tempData ?: return
-        if (currentData.imageUrl == newData.imageUrl) {
-            setSelectedUI(newData)
+        for (element in list) {
+            if (element is GeneralGalleryItem) {
+                if (element.imageUrl == currentData.imageUrl) {
+                    setSelectedUI(element)
+                    tempData = element
+                    break
+                }
+            }
         }
     }
 
     private fun View.changeVisible(visible: Int) {
         if (visibility != visible) {
             visibility = visible
+        }
+    }
+
+    private fun rangeNotifyPayload(notifyList: List<GeneralGalleryItem>) {
+        if (itemView.parent is RecyclerView) {
+            val rv = itemView.parent as RecyclerView
+            val lm = rv.layoutManager ?: return
+            val adapter = rv.adapter ?: return
+            val firstPos = if (lm is LinearLayoutManager) {
+                lm.findFirstVisibleItemPosition()
+            } else {
+                0
+            }
+            val lastPos = if (lm is LinearLayoutManager) {
+                lm.findLastVisibleItemPosition()
+            } else {
+                lm.itemCount
+            }
+
+            adapter.notifyItemRangeChanged(firstPos, lastPos, notifyList)
         }
     }
 }

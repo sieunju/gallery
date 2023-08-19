@@ -20,8 +20,10 @@ import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.example.R
+import com.gallery.example.ui.capture.CaptureImagesBottomSheet
 import com.gallery.example.ui.select_album.SelectAlbumBottomSheetDialog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -73,9 +75,11 @@ internal class GeneralGalleryFragment : Fragment(
     private fun initData() {
         flow {
             cursor = galleryProvider.fetchGallery(queryParameter)
+            Timber.d("GalleryCount ${cursor.count}")
             emit(reqPagingList(cursor))
         }
             .flowOn(Dispatchers.IO)
+            .catch { Timber.d("ERROR? $it") }
             .onEach {
                 dataList.clear()
                 dataList.addAll(it)
@@ -146,6 +150,11 @@ internal class GeneralGalleryFragment : Fragment(
                 .setListener(this)
                 .simpleShow(childFragmentManager)
         }
+        view.findViewById<AppCompatTextView>(R.id.tvConfirm).setOnClickListener {
+            CaptureImagesBottomSheet()
+                .setData(adapter.getSelectedImages())
+                .simpleShow(childFragmentManager)
+        }
         rvContents.layoutManager = GridLayoutManager(view.context, 3)
         rvContents.adapter = adapter
         rvContents.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -178,13 +187,24 @@ internal class GeneralGalleryFragment : Fragment(
             }
         }
 
+        private val selectedPhotoMap: MutableMap<String, GeneralGalleryItem> by lazy { mutableMapOf() }
+
         private val viewHolderListener: GeneralGalleryViewHolder.Listener =
             object : GeneralGalleryViewHolder.Listener {
 
-                override fun onSelectedImage(data: GeneralGalleryItem) {
-                    Timber.d("onSelectedImage $data")
+                override fun onSelectPhoto(
+                    data: GeneralGalleryItem
+                ): List<GeneralGalleryItem> {
+                    val updateList = selectedPhotoMap.map { it.value }.toMutableList()
+                    updateList.add(data)
+                    sortedPickerMap(data.selectedNum == null, data, selectedPhotoMap)
+                    return updateList
                 }
             }
+
+        fun getSelectedImages(): List<String> {
+            return selectedPhotoMap.map { it.value.imageUrl }
+        }
 
         override fun submitList(list: MutableList<GeneralGalleryItem>?) {
             super.submitList(list?.toMutableList())
@@ -199,6 +219,46 @@ internal class GeneralGalleryFragment : Fragment(
 
         override fun onBindViewHolder(holder: GeneralGalleryViewHolder, position: Int) {
             holder.onBindView(getItem(position))
+        }
+
+        override fun onBindViewHolder(
+            holder: GeneralGalleryViewHolder,
+            position: Int,
+            payloads: MutableList<Any>
+        ) {
+            if (payloads.size == 0) {
+                this.onBindViewHolder(holder, position)
+            } else {
+                if (payloads[0] is List<*>) {
+                    holder.onPayloadBindView(payloads[0] as List<*>)
+                }
+            }
+        }
+
+        /**
+         * 사진을 선택 / 해제 후
+         * 선택한 숫자들을 다시 재 정렬 처리하는 함수
+         * @param isAdd 추가 or 제거
+         * @param item 갤러리 선택 아이템
+         * @param map 현재 선택한 사진들
+         */
+        private fun sortedPickerMap(
+            isAdd: Boolean,
+            item: GeneralGalleryItem,
+            map: MutableMap<String, GeneralGalleryItem>
+        ) {
+            if (isAdd) {
+                item.selectedNum = map.size.plus(1)
+                map[item.imageUrl] = item
+            } else {
+                item.selectedNum = null
+                map.remove(item.imageUrl)
+                var idx = 1
+                map.forEach {
+                    it.value.selectedNum = idx
+                    idx++
+                }
+            }
         }
     }
 }

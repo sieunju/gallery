@@ -562,8 +562,6 @@ class GalleryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 }
             }
         }
-
-
     }
 
     inner class CameraOpenViewHolder(

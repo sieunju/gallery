@@ -19,10 +19,9 @@
 
     <fragment
         android:id="@+id/gallery"
+        android:name="com.gallery.example.ui.gallery.GeneralGalleryFragment"
         android:label="GeneralGallery"
-        tools:layout="@layout/f_general_gallery"
-        android:name="com.gallery.example.ui.gallery.GeneralGalleryFragment">
-
+        tools:layout="@layout/f_general_gallery">
 
     </fragment>
 
