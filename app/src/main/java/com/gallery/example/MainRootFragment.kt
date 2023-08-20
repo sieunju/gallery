@@ -22,7 +22,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
     private val baseImagePath = "https://raw.githubusercontent.com/sieunju/gallery/develop/storage"
     private val requestManager: RequestManager by lazy { Glide.with(this) }
     private val imgEditFlexibleUrl = "${baseImagePath}/example_edit_flexible_image.webp"
-    private val imgCropUrl = "${baseImagePath}/example_edit_crop_image.webp"
+    private val imgEditCropUrl = "${baseImagePath}/example_edit_crop_image.webp"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -50,10 +50,17 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
     private fun initThumb(view: View){
         val ivEditFlexible = view.findViewById<AppCompatImageView>(R.id.ivEditFlexible)
+        val ivEditCrop = view.findViewById<AppCompatImageView>(R.id.ivEditCrop)
         requestManager
             .load(imgEditFlexibleUrl)
             .optionalTransform(FitCenter())
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
             .into(ivEditFlexible)
+        requestManager
+            .load(imgEditCropUrl)
+            .optionalTransform(FitCenter())
+            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
+            .into(ivEditCrop)
+
     }
 }
