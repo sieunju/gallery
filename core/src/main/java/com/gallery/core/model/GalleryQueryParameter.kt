@@ -8,7 +8,7 @@ import com.gallery.core.impl.GalleryProviderImpl
  *
  * Created by juhongmin on 2022/09/13
  */
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class GalleryQueryParameter {
     var filterId: String = "" // bucket id
     var isAscOrder: Boolean = false // is Ascending order

@@ -334,4 +334,6 @@ interface GalleryProvider {
      */
     @Throws(java.io.IOException::class, RuntimeException::class)
     fun getThumbnail(imageId: Long,width: Int, height: Int): Bitmap
+
+
 }
