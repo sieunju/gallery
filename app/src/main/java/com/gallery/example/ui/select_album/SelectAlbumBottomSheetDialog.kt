@@ -55,7 +55,7 @@ internal class SelectAlbumBottomSheetDialog : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.d_select_album_bottom_sheet_v2, container, false)
+        return inflater.inflate(R.layout.d_select_album_bottom_sheet, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

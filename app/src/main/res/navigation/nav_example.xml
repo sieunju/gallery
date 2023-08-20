@@ -18,6 +18,9 @@
         <action
             android:id="@+id/action_root_to_editFlexibleImage"
             app:destination="@id/editFlexibleImage" />
+        <action
+            android:id="@+id/action_root_to_editCropImage"
+            app:destination="@id/editCropImage" />
     </fragment>
 
     <fragment
@@ -31,5 +34,11 @@
         android:name="com.gallery.example.ui.flexible.EditFlexibleImageFragment"
         android:label="EditFlexibleImage"
         tools:layout="@layout/f_edit_flexible_image" />
+
+    <fragment
+        android:id="@+id/editCropImage"
+        android:name="com.gallery.example.ui.crop.EditCropImageFragment"
+        android:label="EditCropImage"
+        tools:layout="@layout/f_edit_crop_image" />
 
 </navigation>
