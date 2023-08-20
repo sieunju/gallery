@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.cardview.widget.CardView
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -27,7 +26,7 @@ internal class EditFlexibleImageViewHolder(
 ) {
 
     interface Listener {
-        fun onSelectPhoto(data: EditFlexibleImageItem): List<EditFlexibleImageItem>
+        fun onSelectPhoto(data: EditFlexibleImageItem)
     }
 
     private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
@@ -39,7 +38,7 @@ internal class EditFlexibleImageViewHolder(
     init {
         ivThumb.setOnClickListener {
             val data = tempData ?: return@setOnClickListener
-            rangeNotifyPayload(delegate.onSelectPhoto(data))
+            delegate.onSelectPhoto(data)
         }
     }
 
@@ -82,26 +81,6 @@ internal class EditFlexibleImageViewHolder(
     private fun View.changeVisible(visible: Int) {
         if (visibility != visible) {
             visibility = visible
-        }
-    }
-
-    private fun rangeNotifyPayload(notifyList: List<EditFlexibleImageItem>) {
-        if (itemView.parent is RecyclerView) {
-            val rv = itemView.parent as RecyclerView
-            val lm = rv.layoutManager ?: return
-            val adapter = rv.adapter ?: return
-            val firstPos = if (lm is LinearLayoutManager) {
-                lm.findFirstVisibleItemPosition()
-            } else {
-                0
-            }
-            val lastPos = if (lm is LinearLayoutManager) {
-                lm.findLastVisibleItemPosition()
-            } else {
-                lm.itemCount
-            }
-
-            adapter.notifyItemRangeChanged(firstPos, lastPos, notifyList)
         }
     }
 }
