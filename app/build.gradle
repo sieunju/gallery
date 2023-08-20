@@ -87,6 +87,7 @@ dependencies {
     implementation("com.github.sieunju.SimplePermissions:core:1.1.0")
 
     implementation(deps.glide.base)
+    implementation("com.zlc.glide:webpdecoder:1.6.4.11.0")
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
