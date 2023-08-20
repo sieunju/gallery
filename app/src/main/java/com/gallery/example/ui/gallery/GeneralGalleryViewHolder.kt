@@ -1,5 +1,8 @@
 package com.gallery.example.ui.gallery
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.provider.CalendarContract.Colors
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +37,8 @@ internal class GeneralGalleryViewHolder(
     private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
     private val cvSelected: CardView by lazy { itemView.findViewById(R.id.cvSelected) }
     private val tvSelectedNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
+    private val placeHolder : ColorDrawable by lazy { ColorDrawable(Color.parseColor("#EFEFEF")) }
+
     private var tempData: GeneralGalleryItem? = null
 
     init {
@@ -47,6 +52,7 @@ internal class GeneralGalleryViewHolder(
         tempData = data
         requestManager
             .load(data.imageUrl)
+            .placeholder(placeHolder)
             .thumbnail(0.1F)
             .transition(DrawableTransitionOptions.withCrossFade())
             .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
