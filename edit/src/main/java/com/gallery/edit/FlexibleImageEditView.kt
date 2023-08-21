@@ -566,7 +566,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
             return true
         }
 
-        override fun onScaleEnd(detector: ScaleGestureDetector?) {
+        override fun onScaleEnd(detector: ScaleGestureDetector) {
             // 이미지 확대 축소 제한
             if (prevScale < stateItem.minScale) {
                 fitCenter()

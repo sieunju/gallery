@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 
 /**
@@ -113,7 +112,6 @@ internal object Extensions {
         exifOrientation: Int,
         matrix: Matrix
     ) {
-        Log.d("JLOGGER", "setRotate ${exifOrientation}")
         when (exifOrientation) {
             ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
             ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)

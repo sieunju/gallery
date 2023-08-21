@@ -9,6 +9,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.WorkerThread
 import com.gallery.core.enums.ImageType
+import com.gallery.core.model.GalleryData
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
@@ -36,14 +37,36 @@ interface GalleryProvider {
      * Fetch Selected FilterId Gallery
      * @param params QueryParameter
      */
+    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor(params)"))
     @Throws(IllegalStateException::class, NullPointerException::class)
     fun fetchGallery(params: GalleryQueryParameter): Cursor
 
     /**
      * Fetch All Gallery
      */
+    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor()"))
     @Throws(IllegalStateException::class, NullPointerException::class)
     fun fetchGallery(): Cursor
+
+    /**
+     * Fetch All Gallery
+     */
+    @Throws(IllegalStateException::class, NullPointerException::class)
+    fun fetchCursor(params: GalleryQueryParameter): Cursor
+
+    /**
+     * Fetch All Gallery
+     */
+    @Throws(IllegalStateException::class, NullPointerException::class)
+    fun fetchCursor(): Cursor
+
+    /**
+     * [GalleryQueryParameter.pageSize] 만큼 Cursor 에 데이터를 뽑아 처리 하는 함수
+     *
+     * @param cursor fetchGallery 에서 전달 받은 Cursor 값
+     * @param params QueryParameter
+     */
+    fun fetchList(cursor: Cursor, params: GalleryQueryParameter): List<GalleryData>
 
     /**
      * Converter Current Cursor -> Images Local Uri content://
@@ -333,7 +356,5 @@ interface GalleryProvider {
      * @throws RuntimeException
      */
     @Throws(java.io.IOException::class, RuntimeException::class)
-    fun getThumbnail(imageId: Long,width: Int, height: Int): Bitmap
-
-
+    fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap
 }

@@ -2,6 +2,7 @@ package com.gallery.example
 
 import android.Manifest
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
@@ -40,15 +41,24 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             findNavController().navigate(R.id.action_root_to_editCropImage)
         }
 
-        SPermissions(this)
-            .requestPermissions(
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.CAMERA
+            )
+        } else {
+            arrayOf(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.CAMERA
             )
+        }
+        SPermissions(this)
+            .requestPermissions(*permissions)
             .build { b, strings -> }
     }
 
-    private fun initThumb(view: View){
+    private fun initThumb(view: View) {
         val ivEditFlexible = view.findViewById<AppCompatImageView>(R.id.ivEditFlexible)
         val ivEditCrop = view.findViewById<AppCompatImageView>(R.id.ivEditCrop)
         requestManager
