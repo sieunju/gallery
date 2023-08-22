@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.util.Size
 import androidx.annotation.WorkerThread
 import androidx.core.content.FileProvider
@@ -25,6 +26,7 @@ import com.gallery.core.Extensions.getContentsId
 import com.gallery.core.Extensions.getDisplayName
 import com.gallery.core.GalleryProvider
 import com.gallery.core.enums.ImageType
+import com.gallery.core.model.GalleryData
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
@@ -59,14 +61,13 @@ internal class GalleryProviderImpl constructor(
         const val ID = MediaStore.Images.Media._ID
         const val DEFAULT_GALLERY_FILTER_ID = "ALL"
         const val DEFAULT_GALLERY_FILTER_NAME = "최근 항목"
+        const val DISPLAY_NAME = MediaStore.Images.Media.DISPLAY_NAME
 
         @SuppressLint("InlinedApi")
-        val BUCKET_ID = MediaStore.Images.Media.BUCKET_ID
+        private val BUCKET_ID = MediaStore.Images.Media.BUCKET_ID
 
         @SuppressLint("InlinedApi")
-        val BUCKET_NAME = MediaStore.Images.Media.BUCKET_DISPLAY_NAME
-
-        val DISPLAY_NAME = MediaStore.Images.Media.DISPLAY_NAME
+        private val BUCKET_NAME = MediaStore.Images.Media.BUCKET_DISPLAY_NAME
     }
 
     /**
@@ -181,12 +182,26 @@ internal class GalleryProviderImpl constructor(
      * Fetch Selected FilterId Gallery
      * @param params QueryParameter
      */
+    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor(params)"))
     @Throws(IllegalStateException::class, NullPointerException::class)
     override fun fetchGallery(params: GalleryQueryParameter): Cursor {
+        return fetchCursor(params)
+    }
+
+    /**
+     * Fetch All Gallery
+     */
+    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor()"))
+    @Throws(IllegalStateException::class, NullPointerException::class)
+    override fun fetchGallery(): Cursor {
+        return fetchCursor(GalleryQueryParameter())
+    }
+
+    override fun fetchCursor(params: GalleryQueryParameter): Cursor {
         if (!isReadStoragePermissionsGranted()) throw IllegalStateException("Permissions PERMISSION_DENIED")
         val order = "$ID ${params.order}"
         return contentResolver.query(
-            CONTENT_URI,
+            params.uri,
             params.getColumns(),
             if (params.isAll) null else "$BUCKET_ID ==?",
             params.selectionArgs,
@@ -194,12 +209,24 @@ internal class GalleryProviderImpl constructor(
         ) ?: throw NullPointerException("Cursor NullPointerException")
     }
 
-    /**
-     * Fetch All Gallery
-     */
-    @Throws(IllegalStateException::class, NullPointerException::class)
-    override fun fetchGallery(): Cursor {
-        return fetchGallery(GalleryQueryParameter())
+    override fun fetchCursor(): Cursor {
+        return fetchCursor(GalleryQueryParameter())
+    }
+
+    override fun fetchList(cursor: Cursor, params: GalleryQueryParameter): List<GalleryData> {
+        val list = mutableListOf<GalleryData>()
+        for (idx in 0 until params.pageSize) {
+            if (cursor.moveToNext()) {
+                runCatching {
+                    list.add(GalleryData(cursor, params))
+                }
+            } else {
+                params.isLast = true
+                break
+            }
+        }
+        params.pageNo++
+        return list
     }
 
     /**
@@ -699,10 +726,18 @@ internal class GalleryProviderImpl constructor(
      * @return true 읽기 권한 허용, false 읽기 권한 거부 상태
      */
     private fun isReadStoragePermissionsGranted(): Boolean {
-        return context.packageManager.checkPermission(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            context.packageName
-        ) == PackageManager.PERMISSION_GRANTED
+        val pm = context.packageManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.checkPermission(
+                Manifest.permission.READ_MEDIA_IMAGES,
+                context.packageName
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            pm.checkPermission(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                context.packageName
+            ) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
     override fun getThumbnail(imageId: Long): Bitmap {

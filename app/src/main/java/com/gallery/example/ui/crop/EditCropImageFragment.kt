@@ -1,9 +1,7 @@
 package com.gallery.example.ui.crop
 
 import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
@@ -19,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
+import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.edit.CropImageEditView
 import com.gallery.example.R
 import com.gallery.example.ui.capture.CaptureImagesBottomSheet
@@ -31,7 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Description : [CropImageEditView] 의 사용방법을 안내하는 Fragment
@@ -52,9 +50,9 @@ internal class EditCropImageFragment : Fragment(
 
     private val galleryProvider: GalleryProvider by lazy { Factory.create(requireContext().applicationContext) }
     private val dataList: MutableList<EditCropImageItem> by lazy { mutableListOf() }
+    private val queryParameter: GalleryQueryParameter by lazy { GalleryQueryParameter() }
     private lateinit var cursor: Cursor
 
-    private var isLast: Boolean = false
     private val viewHolderListener: EditCropImageViewHolder.Listener =
         object : EditCropImageViewHolder.Listener {
             override fun onSelectPhoto(data: EditCropImageItem) {
@@ -95,7 +93,7 @@ internal class EditCropImageFragment : Fragment(
         rvContents.adapter = adapter
         rvContents.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                if (isLast) return
+                if (queryParameter.isLast) return
                 if (!rv.canScrollVertically(1)) {
                     // 맨 마지막 스크롤
                     onLoadNextPage()
@@ -106,7 +104,7 @@ internal class EditCropImageFragment : Fragment(
 
     private fun initData() {
         flow {
-            cursor = galleryProvider.fetchGallery()
+            cursor = galleryProvider.fetchCursor(queryParameter)
             emit(reqPagingList(cursor))
         }
             .flowOn(Dispatchers.IO)
@@ -119,21 +117,8 @@ internal class EditCropImageFragment : Fragment(
     }
 
     private fun reqPagingList(cursor: Cursor): List<EditCropImageItem> {
-        isLast = cursor.isLast
-        if (isLast) return listOf()
-
-        val list = mutableListOf<EditCropImageItem>()
-        for (idx in 0 until 100) {
-            if (cursor.moveToNext()) {
-                runCatching {
-                    val imageUri = cursor.getImageUri()
-                    list.add(EditCropImageItem(imageUri.toString()))
-                }
-            } else {
-                break
-            }
-        }
-        return list
+        return galleryProvider.fetchList(cursor, queryParameter)
+            .map { EditCropImageItem(it.uri.toString()) }
     }
 
     private fun onLoadNextPage() {
@@ -142,18 +127,6 @@ internal class EditCropImageFragment : Fragment(
             .flowOn(Dispatchers.IO)
             .onEach { adapter.submitList(dataList) }
             .launchIn(lifecycleScope)
-    }
-
-    private fun Cursor.getImageUri(): Uri {
-        val columnId = try {
-            cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-        } catch (ex: IllegalArgumentException) {
-            0
-        }
-        return Uri.withAppendedPath(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            getLong(columnId).toString()
-        )
     }
 
     private fun showSelectedImagesBottomSheet() {

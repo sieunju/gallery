@@ -2,7 +2,6 @@ package com.gallery.example.ui.gallery
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.provider.CalendarContract.Colors
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +14,7 @@ import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gallery.example.R
+import timber.log.Timber
 
 internal class GeneralGalleryViewHolder(
     private val requestManager: RequestManager,
@@ -37,7 +37,7 @@ internal class GeneralGalleryViewHolder(
     private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
     private val cvSelected: CardView by lazy { itemView.findViewById(R.id.cvSelected) }
     private val tvSelectedNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
-    private val placeHolder : ColorDrawable by lazy { ColorDrawable(Color.parseColor("#EFEFEF")) }
+    private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#EFEFEF")) }
 
     private var tempData: GeneralGalleryItem? = null
 
@@ -76,6 +76,7 @@ internal class GeneralGalleryViewHolder(
         val currentData = tempData ?: return
         for (element in list) {
             if (element is GeneralGalleryItem) {
+                Timber.d("Gallery ${element.imageUrl} ${currentData.imageUrl}")
                 if (element.imageUrl == currentData.imageUrl) {
                     setSelectedUI(element)
                     tempData = element
@@ -92,22 +93,19 @@ internal class GeneralGalleryViewHolder(
     }
 
     private fun rangeNotifyPayload(notifyList: List<GeneralGalleryItem>) {
-        if (itemView.parent is RecyclerView) {
-            val rv = itemView.parent as RecyclerView
-            val lm = rv.layoutManager ?: return
-            val adapter = rv.adapter ?: return
-            val firstPos = if (lm is LinearLayoutManager) {
-                lm.findFirstVisibleItemPosition()
-            } else {
-                0
-            }
-            val lastPos = if (lm is LinearLayoutManager) {
-                lm.findLastVisibleItemPosition()
-            } else {
-                lm.itemCount
-            }
-
-            adapter.notifyItemRangeChanged(firstPos, lastPos, notifyList)
+        val rv = itemView.parent as? RecyclerView ?: return
+        val lm = rv.layoutManager ?: return
+        val adapter = rv.adapter ?: return
+        val firstPos = if (lm is LinearLayoutManager) {
+            lm.findFirstVisibleItemPosition()
+        } else {
+            0
         }
+        val lastPos = if (lm is LinearLayoutManager) {
+            lm.findLastVisibleItemPosition()
+        } else {
+            lm.itemCount - 1
+        }
+        adapter.notifyItemRangeChanged(firstPos, lastPos.plus(1), notifyList)
     }
 }
