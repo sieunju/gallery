@@ -2,12 +2,10 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'dagger.hilt.android.plugin'
 }
 
 android {
     compileSdkVersion buildVersions.compileSdk
-    buildToolsVersion buildVersions.buildTools
 
     defaultConfig {
         applicationId "com.gallery.example"
@@ -55,38 +53,27 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":model"))
 
-    implementation(deps.androidx.core)
-    implementation(deps.androidx.appCompat)
-    implementation(deps.androidx.fragment)
-    implementation(deps.androidx.constraintLayout)
-    implementation(deps.androidx.multidex)
-    implementation(deps.androidx.material)
+    implementation("androidx.appcompat:appcompat:1.3.0")
+    implementation("androidx.fragment:fragment-ktx:1.5.2")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("com.google.android.material:material:1.3.0")
 
-    implementation(deps.lifecycle.base)
-    implementation(deps.lifecycle.viewmodel)
-    implementation(deps.lifecycle.livedata)
-
-    implementation(deps.rx.base)
-    implementation(deps.rx.kotlin)
-    implementation(deps.rx.android)
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 
     implementation(deps.coroutines.base)
     implementation(deps.coroutines.android)
 
     implementation(deps.timber)
-    implementation(deps.retrofit.okhttp)
-    implementation(deps.retrofit.base)
-    implementation(deps.retrofit.rxjava)
 
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.google.code.gson:gson:2.9.1")
 
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44.2")
+    implementation("com.github.sieunju.SimplePermissions:core:1.1.0")
 
-    implementation("com.github.sieunju:SimplePermissions:1.0.1-beta02")
-
-    implementation(deps.glide.base)
+    implementation("com.github.bumptech.glide:glide:4.11.0")
+    implementation("com.github.zjupure:webpdecoder:2.0.4.11.0")
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

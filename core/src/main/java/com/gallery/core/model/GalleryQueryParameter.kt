@@ -1,5 +1,6 @@
 package com.gallery.core.model
 
+import android.net.Uri
 import android.provider.MediaStore
 import com.gallery.core.impl.GalleryProviderImpl
 
@@ -8,8 +9,14 @@ import com.gallery.core.impl.GalleryProviderImpl
  *
  * Created by juhongmin on 2022/09/13
  */
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class GalleryQueryParameter {
+    // uri 에는 MediaStore.Images.Media.EXTERNAL_CONTENT_URI or
+    // MediaStore.Video.Media.EXTERNAL_CONTENT_URI 로만 들어와야 한다
+    var uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    var pageNo = 1
+    var pageSize = 100
+    var isLast = false
     var filterId: String = "" // bucket id
     var isAscOrder: Boolean = false // is Ascending order
 
@@ -45,5 +52,10 @@ class GalleryQueryParameter {
         columns.add(MediaStore.Images.Media._ID)
         columns.add(MediaStore.Images.Media.BUCKET_ID)
         columns.add(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+    }
+
+    fun initParams() {
+        pageNo = 1
+        isLast = false
     }
 }

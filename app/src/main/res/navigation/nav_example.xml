@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_example"
+    app:startDestination="@id/root">
+
+    <fragment
+        android:id="@+id/root"
+        android:name="com.gallery.example.MainRootFragment"
+        android:label="root"
+        tools:layout="@layout/f_main_root">
+
+
+        <action
+            android:id="@+id/action_root_to_gallery"
+            app:destination="@id/gallery" />
+        <action
+            android:id="@+id/action_root_to_editFlexibleImage"
+            app:destination="@id/editFlexibleImage" />
+        <action
+            android:id="@+id/action_root_to_editCropImage"
+            app:destination="@id/editCropImage" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/gallery"
+        android:name="com.gallery.example.ui.gallery.GeneralGalleryFragment"
+        android:label="GeneralGallery"
+        tools:layout="@layout/f_general_gallery" />
+
+    <fragment
+        android:id="@+id/editFlexibleImage"
+        android:name="com.gallery.example.ui.flexible.EditFlexibleImageFragment"
+        android:label="EditFlexibleImage"
+        tools:layout="@layout/f_edit_flexible_image" />
+
+    <fragment
+        android:id="@+id/editCropImage"
+        android:name="com.gallery.example.ui.crop.EditCropImageFragment"
+        android:label="EditCropImage"
+        tools:layout="@layout/f_edit_crop_image" />
+
+</navigation>

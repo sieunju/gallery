@@ -17,6 +17,10 @@ allprojects {
 
 - We have classified it by 'features' so that only the necessary features can be added and used. (AKA. Multi-module)
 
+### Example
+![Example](https://raw.githubusercontent.com/sieunju/gallery/develop/storage/example_readme.gif)
+
+
 ## Core Module
 
 > [Wiki](https://github.com/sieunju/gallery/wiki/Core-Module-Wiki)
@@ -30,20 +34,20 @@ dependencies {
 ```
 
 #### Simple Description
-- GalleryProviderImpl Example
+- GalleryProviderImpl Example (Using Hilt Library!!)
 ```kotlin
-Using Hilt Library!!
 import com.gallery.core.Factory
-        import com.gallery.core.GalleryProvider
-        @InstallIn(SingletonComponent::class)
-        @Module
-        internal class CoreModule {
-          @Singleton
-          @Provides
-          fun provideGalleryCore(
-            @ApplicationContext context: Context
-          ): GalleryProvider = Factory.create(context)
-        }
+import com.gallery.core.GalleryProvider
+
+@InstallIn(SingletonComponent::class)
+@Module
+internal class CoreModule {
+  @Singleton
+  @Provides
+  fun provideGalleryCore(
+    @ApplicationContext context: Context
+  ): GalleryProvider = Factory.create(context)
+}
 ```
 
 ## Core-rx Module
@@ -53,9 +57,9 @@ This module is converted from core module to ReactiveX and processed.
 
 ```groovy
 dependencies {
-        implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
-        implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
-    	implementation 'com.github.sieunju.gallery:core-rx:$latestVersion' // optional
+  implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
+  implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
+  implementation 'com.github.sieunju.gallery:core-rx:$latestVersion' // optional
 }
 ```
 
@@ -66,9 +70,9 @@ This module is converted from core module to Coroutines and processed.
 
 ```groovy
 dependencies {
-        implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
-        implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
-        implementation 'com.github.sieunju.gallery:core-coroutines:$latestVersion' // optional
+  implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
+  implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
+  implementation 'com.github.sieunju.gallery:core-coroutines:$latestVersion' // optional
 }
 ```
 
