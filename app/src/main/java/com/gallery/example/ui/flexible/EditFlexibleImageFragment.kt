@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
+import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.edit.FlexibleImageEditListener
 import com.gallery.edit.FlexibleImageEditView
 import com.gallery.example.R
@@ -63,17 +64,19 @@ internal class EditFlexibleImageFragment : Fragment(
     private val adapter: Adapter by lazy { Adapter(requestManager, viewHolderListener) }
 
     private val galleryProvider: GalleryProvider by lazy { Factory.create(requireContext().applicationContext) }
+    private val queryParameter: GalleryQueryParameter by lazy { GalleryQueryParameter() }
     private lateinit var cursor: Cursor
     private val dataList: MutableList<EditFlexibleImageItem> by lazy { mutableListOf() }
     private val selectedPhotoMap: MutableMap<String, SaveEditFlexibleModel> by lazy { mutableMapOf() }
     private var currentItem: SaveEditFlexibleModel? = null
     private val MAX_COUNT = 5
 
-    private var isLast: Boolean = false
     private val viewHolderListener: EditFlexibleImageViewHolder.Listener =
         object : EditFlexibleImageViewHolder.Listener {
             override fun onSelectPhoto(data: EditFlexibleImageItem) {
-                if (selectedPhotoMap.size == MAX_COUNT && data.selectedNum == null) {
+                if (selectedPhotoMap.size == MAX_COUNT &&
+                    data.selectedNum == null
+                ) {
                     Snackbar.make(requireView(), "최대 5개까지 선택 가능합니다.", Snackbar.LENGTH_SHORT).show()
                     return
                 }
@@ -124,7 +127,7 @@ internal class EditFlexibleImageFragment : Fragment(
         rvContents.adapter = adapter
         rvContents.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                if (isLast) return
+                if (queryParameter.isLast) return
                 if (!rv.canScrollVertically(1)) {
                     // 맨 마지막 스크롤
                     onLoadNextPage()
@@ -135,7 +138,7 @@ internal class EditFlexibleImageFragment : Fragment(
 
     private fun initData() {
         flow {
-            cursor = galleryProvider.fetchGallery()
+            cursor = galleryProvider.fetchCursor(queryParameter)
             emit(reqPagingList(cursor))
         }
             .flowOn(Dispatchers.IO)
@@ -148,21 +151,8 @@ internal class EditFlexibleImageFragment : Fragment(
     }
 
     private fun reqPagingList(cursor: Cursor): List<EditFlexibleImageItem> {
-        isLast = cursor.isLast
-        if (isLast) return listOf()
-
-        val list = mutableListOf<EditFlexibleImageItem>()
-        for (idx in 0 until 100) {
-            if (cursor.moveToNext()) {
-                runCatching {
-                    val imageUri = cursor.getImageUri()
-                    list.add(EditFlexibleImageItem(imageUri.toString()))
-                }
-            } else {
-                break
-            }
-        }
-        return list
+        return galleryProvider.fetchList(cursor, queryParameter)
+            .map { EditFlexibleImageItem(it.uri.toString()) }
     }
 
     private fun onLoadNextPage() {
@@ -171,18 +161,6 @@ internal class EditFlexibleImageFragment : Fragment(
             .flowOn(Dispatchers.IO)
             .onEach { adapter.submitList(dataList) }
             .launchIn(lifecycleScope)
-    }
-
-    private fun Cursor.getImageUri(): Uri {
-        val columnId = try {
-            cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-        } catch (ex: IllegalArgumentException) {
-            0
-        }
-        return Uri.withAppendedPath(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            getLong(columnId).toString()
-        )
     }
 
     private suspend fun handleBitmap(

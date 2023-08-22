@@ -1,10 +1,7 @@
 package com.gallery.example.ui.gallery
 
 import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.provider.MediaStore.Images.Media
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
@@ -29,7 +26,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import timber.log.Timber
 import java.text.DecimalFormat
 
 /**
@@ -63,7 +59,7 @@ internal class GeneralGalleryFragment : Fragment(
         queryParameter.initParams()
         queryParameter.filterId = data.bucketId
         flow {
-            cursor = galleryProvider.fetchGallery(queryParameter)
+            cursor = galleryProvider.fetchCursor(queryParameter)
             emit(reqPagingList(cursor))
         }.flowOn(Dispatchers.IO)
             .onEach {
@@ -77,8 +73,7 @@ internal class GeneralGalleryFragment : Fragment(
         flow {
             cursor = galleryProvider.fetchCursor(queryParameter)
             emit(reqPagingList(cursor))
-        }
-            .flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
             .onEach {
                 dataList.clear()
                 dataList.addAll(it)
@@ -101,21 +96,6 @@ internal class GeneralGalleryFragment : Fragment(
     private fun reqPagingList(cursor: Cursor): List<GeneralGalleryItem> {
         return galleryProvider.fetchList(cursor, queryParameter)
             .map { GeneralGalleryItem(it.uri.toString()) }
-//        isLast = cursor.isLast
-//        if (isLast) return listOf()
-//
-//        val list = mutableListOf<GeneralGalleryItem>()
-//        for (idx in 0 until 100) {
-//            if (cursor.moveToNext()) {
-//                runCatching {
-//                    val imageUri = cursor.getImageUri()
-//                    list.add(GeneralGalleryItem(imageUri.toString()))
-//                }
-//            } else {
-//                break
-//            }
-//        }
-//        return list
     }
 
     private fun bindingSelectAlbum(data: GalleryFilterData) {
@@ -129,18 +109,6 @@ internal class GeneralGalleryFragment : Fragment(
             .flowOn(Dispatchers.IO)
             .onEach { adapter.submitList(dataList) }
             .launchIn(lifecycleScope)
-    }
-
-    private fun Cursor.getImageUri(): Uri {
-        val columnId = try {
-            cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-        } catch (ex: IllegalArgumentException) {
-            0
-        }
-        return Uri.withAppendedPath(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            getLong(columnId).toString()
-        )
     }
 
     private fun initView(view: View) {
