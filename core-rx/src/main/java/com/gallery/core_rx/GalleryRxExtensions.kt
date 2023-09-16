@@ -7,6 +7,8 @@ import android.net.Uri
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import com.gallery.core.GalleryProvider
+import com.gallery.core.enums.ImageType
+import com.gallery.core.model.GalleryData
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.model.CropImageEditModel
@@ -48,10 +50,18 @@ fun GalleryProvider.fetchDirectoriesRx(): Single<List<GalleryFilterData>> {
  * @see GalleryProvider.fetchGallery()
  */
 @Suppress("unused")
-fun GalleryProvider.fetchGalleryRx(
+fun GalleryProvider.fetchCursorRx(
     params: GalleryQueryParameter = GalleryQueryParameter()
 ): Single<Cursor> {
-    return simpleRx { fetchGallery(params) }
+    return simpleRx { fetchCursor(params) }
+}
+
+@Suppress("unused")
+fun GalleryProvider.fetchListRx(
+    cursor: Cursor,
+    params: GalleryQueryParameter = GalleryQueryParameter()
+): Single<List<GalleryData>> {
+    return simpleRx { fetchList(cursor, params) }
 }
 
 /**
@@ -340,4 +350,39 @@ fun GalleryProvider.saveGalleryPictureRx(
     pictureUri: String, name: String
 ): Single<Pair<Boolean, String>> {
     return simpleRx { saveGalleryPicture(pictureUri, name) }
+}
+
+/**
+ * Rx ImageType
+ * @see GalleryProvider.getImageType
+ */
+@Suppress("unused")
+fun GalleryProvider.getImageTypeRx(
+    imagePath: String
+): Single<ImageType> {
+    return simpleRx { getImageType(imagePath) }
+}
+
+/**
+ * Rx getThumbnail
+ * @see GalleryProvider.getThumbnail
+ */
+@Suppress("unused")
+fun GalleryProvider.getThumbnailRx(
+    imageId: Long
+): Single<Bitmap> {
+    return simpleRx { getThumbnail(imageId) }
+}
+
+/**
+ * Rx getThumbnail
+ * @see GalleryProvider.getThumbnail
+ */
+@Suppress("unused")
+fun GalleryProvider.getThumbnailRx(
+    imageId: Long,
+    width: Int,
+    height: Int
+): Single<Bitmap> {
+    return simpleRx { getThumbnail(imageId, width, height) }
 }
