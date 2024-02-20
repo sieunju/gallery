@@ -45,13 +45,12 @@ suspend inline fun <reified T : GalleryProvider> T.fetchDirectoriesCo(): Result<
 
 /**
  * Coroutines Extensions
- * @see GalleryProvider.fetchGallery()
  */
 @Suppress("unused")
 suspend inline fun <reified T : GalleryProvider> T.fetchGalleryCo(
     params: GalleryQueryParameter = GalleryQueryParameter()
 ): Result<Cursor> {
-    return simpleCoroutines { fetchGallery(params) }
+    return simpleCoroutines { fetchCursor(params) }
 }
 
 /**

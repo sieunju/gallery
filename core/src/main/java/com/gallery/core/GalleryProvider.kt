@@ -34,21 +34,6 @@ interface GalleryProvider {
     fun fetchDirectories(): List<GalleryFilterData>
 
     /**
-     * Fetch Selected FilterId Gallery
-     * @param params QueryParameter
-     */
-    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor(params)"))
-    @Throws(IllegalStateException::class, NullPointerException::class)
-    fun fetchGallery(params: GalleryQueryParameter): Cursor
-
-    /**
-     * Fetch All Gallery
-     */
-    @Deprecated("함수명 변경 합니다.", replaceWith = ReplaceWith("fetchCursor()"))
-    @Throws(IllegalStateException::class, NullPointerException::class)
-    fun fetchGallery(): Cursor
-
-    /**
      * Fetch All Gallery
      */
     @Throws(IllegalStateException::class, NullPointerException::class)
