@@ -112,14 +112,14 @@ internal object CropImageEditExtensions {
      * Note: rotating by 0, 90, 180 or 270 degrees doesn't require extra cropping.
      */
     private fun cropForRotatedImage(
-        bitmap: Bitmap?,
+        bitmap: Bitmap,
         points: FloatArray,
         rect: Rect,
         degreesRotated: Int,
         fixAspectRatio: Boolean,
         aspectRatioX: Int,
         aspectRatioY: Int
-    ): Bitmap? {
+    ): Bitmap {
         var tempBitmap = bitmap
         if (degreesRotated % 90 != 0) {
             var adjLeft = 0
@@ -150,14 +150,14 @@ internal object CropImageEditExtensions {
             }
             val bitmapTmp = tempBitmap
             tempBitmap = Bitmap.createBitmap(
-                bitmap!!,
+                bitmap,
                 rect.left,
                 rect.top,
                 rect.width(),
                 rect.height()
             )
             if (bitmapTmp != tempBitmap) {
-                bitmapTmp?.recycle()
+                bitmapTmp.recycle()
             }
         }
         return tempBitmap
@@ -213,7 +213,7 @@ internal object CropImageEditExtensions {
      * @param scale how much to scale the cropped image part, use 0.5 to lower the image by half (OOM
      * handling)
      */
-    fun cropBitmapObjectWithScale(
+    private fun cropBitmapObjectWithScale(
         bitmap: Bitmap,
         points: FloatArray,
         degreesRotated: Int,
@@ -223,7 +223,7 @@ internal object CropImageEditExtensions {
         scale: Float,
         flipHorizontally: Boolean,
         flipVertically: Boolean
-    ): Bitmap? {
+    ): Bitmap {
         // get the rectangle in original image that contains the required cropped area (larger for non
         // rectangular crop)
         val rect = getRectFromPoints(
@@ -259,7 +259,13 @@ internal object CropImageEditExtensions {
             // extra crop because non rectangular crop cannot be done directly on the image without
             // rotating first
             result = cropForRotatedImage(
-                result, points, rect, degreesRotated, fixAspectRatio, aspectRatioX, aspectRatioY
+                result,
+                points,
+                rect,
+                degreesRotated,
+                fixAspectRatio,
+                aspectRatioX,
+                aspectRatioY
             )
         }
         return result

@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace = "com.gallery.example"
     compileSdkVersion buildVersions.compileSdk
 
     defaultConfig {
@@ -28,11 +29,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
     buildFeatures {
         dataBinding = true
@@ -47,8 +48,6 @@ dependencies {
 //    implementation("com.github.sieunju.gallery:ui:${deps.release}")
 
     implementation(project(":core"))
-    implementation(project(":core-rx"))
-    implementation(project(":core-coroutines"))
     implementation(project(":edit"))
     implementation(project(":ui"))
     implementation(project(":model"))

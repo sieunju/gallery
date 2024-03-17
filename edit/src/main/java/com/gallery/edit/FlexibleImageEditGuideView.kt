@@ -39,7 +39,7 @@ class FlexibleImageEditGuideView @JvmOverloads constructor(
         setBackgroundColor(Color.TRANSPARENT)
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawGuideLine(canvas)
     }
