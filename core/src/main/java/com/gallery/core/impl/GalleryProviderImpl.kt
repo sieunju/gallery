@@ -631,7 +631,7 @@ internal class GalleryProviderImpl constructor(
                 val bitmap = pathToBitmap(pictureUri)
                 val imageOut = contentResolver.openOutputStream(url)
                 try {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOut)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOut!!)
                 } finally {
                     imageOut?.close()
                 }

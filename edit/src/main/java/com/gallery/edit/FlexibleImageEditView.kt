@@ -354,7 +354,7 @@ class FlexibleImageEditView @JvmOverloads constructor(
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         if (translationX != stateItem.focusX) {
             translationX = stateItem.focusX
         }
