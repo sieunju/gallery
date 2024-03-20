@@ -11,7 +11,7 @@ ext.buildVersions = buildVersions
 
 def deps = [:]
 
-deps.release = "0.0.7-beta03"
+deps.release = "0.0.7-beta04"
 
 /* lifecycle */
 def lifecycle = [:]
