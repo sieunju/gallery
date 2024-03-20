@@ -1,5 +1,5 @@
-Version: 0.0.7-beta02
-Title: v0.0.7-beta02
+Version: 0.0.7-beta03
+Title: v0.0.7-beta03
 KO-KR
 ### 소개
 > 갤러리에서 이미지를 불러와 편집까지 처리를 한꺼번에 도와주는 라이브러리 입니다.
