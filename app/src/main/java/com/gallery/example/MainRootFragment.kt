@@ -15,6 +15,7 @@ import com.bumptech.glide.integration.webp.decoder.WebpDrawable
 import com.bumptech.glide.integration.webp.decoder.WebpDrawableTransformation
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.resource.bitmap.FitCenter
+import com.gallery.ui.PhotoPickerBottomSheet
 import hmju.permissions.core.SPermissions
 
 
@@ -39,6 +40,11 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvEditCrop).setOnClickListener {
             findNavController().navigate(R.id.action_root_to_editCropImage)
+        }
+
+        view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
+            PhotoPickerBottomSheet()
+                .simpleShow(parentFragmentManager)
         }
 
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

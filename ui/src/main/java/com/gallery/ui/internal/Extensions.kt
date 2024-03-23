@@ -1,8 +1,12 @@
 package com.gallery.ui.internal
 
+import android.content.Context
 import android.content.res.Resources
+import android.os.Build
+import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.View
+import android.view.WindowManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 
@@ -30,6 +34,25 @@ internal val Int.dp: Int
         this.toFloat(),
         Resources.getSystem().displayMetrics
     ).toInt()
+
+internal val Float.dp: Float
+    get() = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        this,
+        Resources.getSystem().displayMetrics
+    )
+
+internal fun Context.getDeviceWidth(): Int {
+    val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        windowManager.currentWindowMetrics.bounds.width()
+    } else {
+        val displayMetrics = DisplayMetrics()
+        @Suppress("DEPRECATION")
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        displayMetrics.widthPixels
+    }
+}
 
 /**
  * 비트연산자 And 타입

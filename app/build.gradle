@@ -45,11 +45,9 @@ android {
 }
 
 dependencies {
-//    implementation("com.github.sieunju.gallery:core:${deps.release}")
-//    implementation("com.github.sieunju.gallery:core-rx:${deps.release}")
-//    implementation("com.github.sieunju.gallery:core-coroutines:${deps.release}")
-//    implementation("com.github.sieunju.gallery:edit:${deps.release}")
-//    implementation("com.github.sieunju.gallery:ui:${deps.release}")
+//    implementation("com.github.sieunju.gallery:core:0.0.7-beta04")
+//    implementation("com.github.sieunju.gallery:edit:0.0.7-beta04")
+//    implementation("com.github.sieunju.gallery:ui:0.0.7-beta04")
 
     implementation(project(":core"))
     implementation(project(":edit"))

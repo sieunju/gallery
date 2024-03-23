@@ -36,11 +36,20 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":model"))
 
-    implementation(deps.androidx.core)
-    implementation(deps.androidx.recyclerview)
-    implementation(deps.androidx.constraintLayout)
-    implementation(deps.androidx.material)
-    implementation(deps.glide.base)
+    /**
+     * Android X
+     */
+    implementation("androidx.core:core-ktx:1.6.0")
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("com.google.android.material:material:1.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
+
+    /**
+     * Glide
+     */
+    implementation("com.github.bumptech.glide:glide:4.11.0")
+    implementation("com.jakewharton.timber:timber:5.0.1")
 }
 
 afterEvaluate {

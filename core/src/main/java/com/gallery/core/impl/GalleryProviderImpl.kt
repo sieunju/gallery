@@ -47,7 +47,7 @@ import java.util.*
  * Created by juhongmin on 2022/09/13
  */
 @Suppress("unused")
-internal class GalleryProviderImpl constructor(
+internal class GalleryProviderImpl(
     private val context: Context
 ) : GalleryProvider {
 
@@ -699,6 +699,13 @@ internal class GalleryProviderImpl constructor(
 
     override fun getThumbnail(imageId: Long): Bitmap {
         return getThumbnail(imageId, 300, 300)
+    }
+
+    override fun getThumbnail(
+        imageId: Long,
+        size: Int
+    ): Bitmap {
+        return getThumbnail(imageId, size, size)
     }
 
     override fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap {

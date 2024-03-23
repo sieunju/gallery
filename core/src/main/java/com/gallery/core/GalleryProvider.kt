@@ -334,6 +334,18 @@ interface GalleryProvider {
      * Get Gallery ImageThumbnail
      *
      * @param imageId Cursor Image ID
+     * @param size Request Thumbnail Width & Height
+     *
+     * @throws java.io.IOException
+     * @throws RuntimeException
+     */
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getThumbnail(imageId: Long, size: Int): Bitmap
+
+    /**
+     * Get Gallery ImageThumbnail
+     *
+     * @param imageId Cursor Image ID
      * @param width Request Thumbnail Width
      * @param height Request Thumbnail Height
      *
