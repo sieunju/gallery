@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.AppCompatTextView
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
@@ -36,27 +39,77 @@ import timber.log.Timber
  */
 class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
 
+    // [s] Core
     private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
     private var cursor: Cursor? = null
     private val queryParams: GalleryQueryParameter by lazy { GalleryQueryParameter() }
-    private val dataList : MutableList<PhotoPicker> by lazy { mutableListOf() }
+    private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
+    private var isLoading: Boolean = false
+    // [e] Core
+
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
+
+    // [s] View
     private var rvContents: RecyclerView? = null
     private var rvSelected: RecyclerView? = null
-    private var isLoading: Boolean = false
+    private var tvSelectFilter: AppCompatTextView? = null
+    // [e] View
+
+    // [s] Config
+    private var maxCount: Int = 3
+    private var submitListener: OnSubmitListener? = null
+    private var cancelListener: OnCancelListener? = null
+    // [e] Config
+
+    fun interface OnSubmitListener {
+        fun callback()
+    }
+
+    fun interface OnCancelListener {
+        fun callback()
+    }
+
+    /**
+     * Set Submit Listener
+     * @param l Listener
+     */
+    fun setSubmitListener(
+        l: OnSubmitListener
+    ): PhotoPickerBottomSheet {
+        submitListener = l
+        return this
+    }
+
+    /**
+     * Set Cancel Listener
+     * @param l Listener
+     */
+    fun setCancelListener(
+        l: OnCancelListener
+    ): PhotoPickerBottomSheet {
+        cancelListener = l
+        return this
+    }
+
+    /**
+     * Set MaxCount
+     * @param count
+     */
+    fun setMaxCount(count: Int): PhotoPickerBottomSheet {
+        maxCount = count
+        return this
+    }
 
     /**
      * BottomSheet Show
      * @param fm FragmentManager
      */
     fun simpleShow(fm: FragmentManager) {
-        try {
+        runCatching {
             // 이미 보여지고 있는 Dialog 인경우 스킵
             if (!isAdded) {
                 super.show(fm, "PhotoPickerBottomSheet")
             }
-        } catch (ex: Exception) {
-            // ignore
         }
     }
 
@@ -75,14 +128,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        initData()
         return inflater.inflate(R.layout.d_photo_picker, container)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView(view)
+        initData()
         dialog?.setOnShowListener { onShow(it) }
+        dialog?.setOnDismissListener { cancelListener?.callback() }
     }
 
     private fun initData() {
@@ -106,8 +160,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun printMemory(){
-        val maxMem = Runtime.getRuntime().maxMemory()/1024/1024
+    private fun printMemory() {
+        val maxMem = Runtime.getRuntime().maxMemory() / 1024 / 1024
         val totalMem = Runtime.getRuntime().totalMemory() / 1024 / 1024
         val freeMem = Runtime.getRuntime().freeMemory() / 1024 / 1024
         Timber.d("Used Mem ${totalMem.minus(freeMem)}")
@@ -122,12 +176,38 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun initView(view: View) {
-        rvContents = view.findViewById<RecyclerView>(R.id.rvContents).also {
-            it.layoutManager = GridLayoutManager(it.context, 3)
-            it.addItemDecoration(GridItemDecoration(1.dp))
-            it.adapter = photoAdapter
-            it.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    /**
+     * initView
+     * @param view Parent View
+     */
+    private fun initView(
+        view: View
+    ) {
+        initContents(view)
+        initSelectedContents(view)
+        tvSelectFilter = view.findViewById(R.id.tvSelectFilter)
+        view.findViewById<AppCompatImageView>(R.id.ivClose).setOnClickListener {
+            cancelListener?.callback()
+            dismiss()
+        }
+        view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
+            submitListener?.callback()
+            dismiss()
+        }
+    }
+
+    /**
+     * init Main Contents
+     * @param parentView ParentView
+     */
+    private fun initContents(
+        parentView: View
+    ) {
+        rvContents = parentView.findViewById<RecyclerView>(R.id.rvContents).apply {
+            layoutManager = GridLayoutManager(context, 3)
+            addItemDecoration(GridItemDecoration(1.dp))
+            adapter = photoAdapter
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (queryParams.isLast || isLoading) return
                     val itemCount = recyclerView.adapter?.itemCount ?: 0
@@ -143,7 +223,18 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
                 }
             })
         }
-        rvSelected = view.findViewById(R.id.rvSelected)
+    }
+
+    /**
+     * init Selected Contents
+     * @param parentView ParentView
+     */
+    private fun initSelectedContents(
+        parentView: View
+    ) {
+        rvSelected = parentView.findViewById<RecyclerView>(R.id.rvSelected).apply {
+
+        }
     }
 
     private fun onShow(dialogInterface: DialogInterface) {

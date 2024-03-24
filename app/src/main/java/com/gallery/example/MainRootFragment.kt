@@ -17,6 +17,7 @@ import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.gallery.ui.PhotoPickerBottomSheet
 import hmju.permissions.core.SPermissions
+import timber.log.Timber
 
 
 class MainRootFragment : Fragment(R.layout.f_main_root) {
@@ -44,6 +45,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
+                .setCancelListener { Timber.d("Cancel") }
                 .simpleShow(parentFragmentManager)
         }
 

@@ -183,19 +183,19 @@ internal class PhotoPickerAdapter(
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Photo) return
-            requestManager.load(provider.getThumbnail(item.id, overrideSize))
-                .transition(crossFadeTransition)
-                .placeholder(placeHolder)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .into(ivThumb)
-
-//            requestManager
-//                .load(item.imagePath)
+//            requestManager.load(provider.getThumbnail(item.id, overrideSize))
 //                .transition(crossFadeTransition)
 //                .placeholder(placeHolder)
 //                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-//                .override(overrideSize)
 //                .into(ivThumb)
+
+            requestManager
+                .load(item.imagePath)
+                .transition(crossFadeTransition)
+                .placeholder(placeHolder)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .override(overrideSize)
+                .into(ivThumb)
         }
     }
 }
