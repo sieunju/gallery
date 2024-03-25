@@ -3,6 +3,8 @@ package com.gallery.ui
 import android.content.DialogInterface
 import android.database.Cursor
 import android.os.Bundle
+import android.provider.MediaStore
+import android.provider.MediaStore.MediaColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +21,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
+import com.gallery.core.model.GalleryData
+import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
 import com.gallery.ui.internal.PhotoPickerAdapter
@@ -28,6 +32,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -41,8 +48,21 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
 
     // [s] Core
     private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
-    private var cursor: Cursor? = null
-    private val queryParams: GalleryQueryParameter by lazy { GalleryQueryParameter() }
+    private val directoryList: MutableList<GalleryFilterData> by lazy { mutableListOf() }
+    private var photoCursor: Cursor? = null
+    private val photoQueryParams: GalleryQueryParameter by lazy {
+        GalleryQueryParameter().apply {
+            addColumns(MediaColumns.DATE_TAKEN)
+        }
+    }
+    private var videoCursor: Cursor? = null
+    private val videoQueryParams: GalleryQueryParameter by lazy {
+        GalleryQueryParameter().apply {
+            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            addColumns(MediaColumns.DURATION)
+            addColumns(MediaColumns.DATE_TAKEN)
+        }
+    }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
     private var isLoading: Boolean = false
     // [e] Core
@@ -116,6 +136,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PhotoPickerBottomSheet)
+        photoCursor = coreProvider.fetchCursor(photoQueryParams)
+        videoCursor = coreProvider.fetchCursor(videoQueryParams)
     }
 
     override fun onStart() {
@@ -140,23 +162,127 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initData() {
-        lifecycleScope.launch {
-            isLoading = true
-            cursor = coreProvider.fetchCursor()
-            dataList.add(PhotoPicker.Camera)
-            dataList.addAll(getPhotoList(cursor!!))
-            photoAdapter.submitList(dataList)
-            isLoading = false
+        // TODO Permissions Check
+        isLoading = true
+        val directoryJob = flow { emit(reqDirectories()) }
+        val photoJob = flow { emit(reqPhotoList(photoCursor, photoQueryParams)) }
+        val videoJob = flow { emit(reqVideoList(videoCursor,videoQueryParams)) }
+        directoryJob.combine(photoJob) { directoryList, photoList ->
+            handleInitSuccess(directoryList, photoList)
+        }.launchIn(lifecycleScope)
+    }
+
+    /**
+     * Handle Init Data Response Success
+     *
+     * @param directoryList Directory List
+     * @param photoList PhotoList
+     */
+    private fun handleInitSuccess(
+        directoryList: List<GalleryFilterData>,
+        photoList: List<PhotoPicker>
+    ) {
+        this.directoryList.clear()
+        this.directoryList.addAll(directoryList)
+        this.dataList.clear()
+        this.dataList.addAll(photoList)
+
+        directoryList.getOrNull(0)?.let {
+            tvSelectFilter?.text = it.bucketName
         }
+        photoAdapter.submitList(this.dataList)
+        isLoading = false
+    }
+
+    private suspend fun reqGalleryList() : List<PhotoPicker> {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                val photoList = reqPhotoList(photoCursor,photoQueryParams)
+                val videoList = reqVideoList(videoCursor,videoQueryParams)
+                photoList + videoList.map {  }
+            } catch (ex: Exception) {
+                listOf()
+            }
+        }
+    }
+
+    /**
+     * Request PhotoList
+     */
+    private suspend fun reqPhotoList(
+        cursor: Cursor?,
+        params: GalleryQueryParameter
+    ): List<PhotoPicker> {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                if (cursor == null) throw NullPointerException("Cursor is Null")
+                if (params.pageNo == 1) {
+                    val list = mutableListOf<PhotoPicker>()
+                    list.add(PhotoPicker.Camera)
+                    list.addAll(coreProvider.fetchList(
+                        cursor,
+                        params
+                    ).map { it.toUi() })
+                    list
+                } else {
+                    coreProvider.fetchList(cursor, params).map { it.toUi() }
+                }
+            } catch (ex: Exception) {
+                listOf()
+            }
+        }
+    }
+
+    private suspend fun reqVideoList(
+        cursor: Cursor?,
+        params: GalleryQueryParameter
+    ): List<PhotoPicker> {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                if (cursor == null) throw NullPointerException("Cursor is Null")
+                if (params.pageNo == 1) {
+                    val list = mutableListOf<PhotoPicker>()
+                    list.add(PhotoPicker.Camera)
+                    list.addAll(coreProvider.fetchList(
+                        cursor,
+                        params
+                    ).map { it.toUi() })
+                    list
+                } else {
+                    coreProvider.fetchList(cursor, params).map { it.toUi() }
+                }
+            } catch (ex: Exception) {
+                listOf()
+            }
+        }
+    }
+
+    private fun GalleryData.toUi(): PhotoPicker {
+        Timber.d("UiData ${getField<Long>(MediaColumns.DURATION)}")
+        return if (getField<Long>(MediaColumns.DURATION) == null) {
+            PhotoPicker.Photo(this)
+        } else {
+            PhotoPicker.Video(this)
+        }
+    }
+
+    private suspend fun reqDirectories(): List<GalleryFilterData> {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                coreProvider.fetchDirectories()
+            } catch (ex: Exception) {
+                listOf()
+            }
+        }
+
     }
 
     private fun onLoadPage() {
         lifecycleScope.launch {
             isLoading = true
-            dataList.addAll(getPhotoList(cursor!!))
+            dataList.addAll(reqPhotoList(cursor, queryParams))
             photoAdapter.submitList(dataList)
             isLoading = false
-            printMemory()
         }
     }
 
@@ -165,15 +291,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         val totalMem = Runtime.getRuntime().totalMemory() / 1024 / 1024
         val freeMem = Runtime.getRuntime().freeMemory() / 1024 / 1024
         Timber.d("Used Mem ${totalMem.minus(freeMem)}")
-    }
-
-    private suspend fun getPhotoList(
-        cursor: Cursor
-    ): List<PhotoPicker> {
-        return withContext(Dispatchers.IO) {
-            return@withContext coreProvider.fetchList(cursor, queryParams)
-                .map { PhotoPicker.Photo(it) }
-        }
     }
 
     /**

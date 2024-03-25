@@ -55,16 +55,16 @@ internal class GalleryProviderImpl(
 
     companion object {
         val CONTENT_URI: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        const val ID = MediaStore.Images.Media._ID
+        const val ID = MediaStore.MediaColumns._ID
         const val DEFAULT_GALLERY_FILTER_ID = "ALL"
-        const val DEFAULT_GALLERY_FILTER_NAME = "최근 항목"
-        const val DISPLAY_NAME = MediaStore.Images.Media.DISPLAY_NAME
+        const val DEFAULT_GALLERY_FILTER_NAME = "전체보기"
+        const val DISPLAY_NAME = MediaStore.MediaColumns.DISPLAY_NAME
 
         @SuppressLint("InlinedApi")
-        private val BUCKET_ID = MediaStore.Images.Media.BUCKET_ID
+        private val BUCKET_ID = MediaStore.MediaColumns.BUCKET_ID
 
         @SuppressLint("InlinedApi")
-        private val BUCKET_NAME = MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+        private val BUCKET_NAME = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
     }
 
     /**
@@ -73,7 +73,6 @@ internal class GalleryProviderImpl(
      */
     @Throws(IllegalStateException::class, Exception::class)
     override fun fetchDirectories(): List<GalleryFilterData> {
-        // Permissions Check
         val dataList = mutableListOf<GalleryFilterData>()
         val projection = arrayOf(
             ID,
@@ -175,7 +174,8 @@ internal class GalleryProviderImpl(
     }
 
     override fun fetchCursor(params: GalleryQueryParameter): Cursor {
-        val order = "$ID ${params.order}"
+        // val order = "$ID ${params.order}"
+        val order = "${MediaStore.MediaColumns.DATE_TAKEN} ${params.order}"
         return contentResolver.query(
             params.uri,
             params.getColumns(),

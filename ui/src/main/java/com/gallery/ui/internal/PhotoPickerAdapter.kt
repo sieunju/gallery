@@ -11,7 +11,6 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -22,9 +21,6 @@ import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Description : Photo Picker Adapter
@@ -68,6 +64,7 @@ internal class PhotoPickerAdapter(
         return when (viewType) {
             R.layout.vh_child_camera -> CameraViewHolder(parent)
             R.layout.vh_child_photo -> PhotoViewHolder(parent)
+            R.layout.vh_child_video -> VideoViewHolder(parent)
             else -> throw IllegalArgumentException("Invalid ViewType")
         }
     }
@@ -95,6 +92,7 @@ internal class PhotoPickerAdapter(
         return when (item) {
             is PhotoPicker.Camera -> R.layout.vh_child_camera
             is PhotoPicker.Photo -> R.layout.vh_child_photo
+            is PhotoPicker.Video -> R.layout.vh_child_video
         }
     }
 
@@ -119,6 +117,8 @@ internal class PhotoPickerAdapter(
             val newItem = newList[newPosition]
             return if (oldItem is PhotoPicker.Photo && newItem is PhotoPicker.Photo) {
                 oldItem.imagePath == newItem.imagePath
+            } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
+                oldItem.imagePath == newItem.imagePath
             } else if (oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera) {
                 true
             } else {
@@ -130,6 +130,8 @@ internal class PhotoPickerAdapter(
             val oldItem = oldList[oldPosition]
             val newItem = newList[newPosition]
             return if (oldItem is PhotoPicker.Photo && newItem is PhotoPicker.Photo) {
+                oldItem == newItem
+            } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
                 oldItem == newItem
             } else if (oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera) {
                 true
@@ -196,6 +198,52 @@ internal class PhotoPickerAdapter(
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .override(overrideSize)
                 .into(ivThumb)
+        }
+    }
+
+    inner class VideoViewHolder(
+        parent: ViewGroup
+    ) : BaseViewHolder(parent, R.layout.vh_child_video) {
+
+        private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
+        private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
+        private val clSelectedNum: ConstraintLayout by lazy { itemView.findViewById(R.id.clSelectedNum) }
+        private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
+        private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
+        private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
+        private val tvDuration: AppCompatTextView by lazy { itemView.findViewById(R.id.tvDuration) }
+        private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
+
+        init {
+            clSelectedNum.background = GradientDrawable(
+                GradientDrawable.Orientation.BL_TR,
+                intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT)
+            ).apply {
+                cornerRadius = 10F.dp
+            }
+            clSelectedNum.clipToOutline = true
+            tvDuration.background = GradientDrawable(
+                GradientDrawable.Orientation.BL_TR,
+                intArrayOf(
+                    Color.parseColor("#4D000000"),
+                    Color.parseColor("#4D000000")
+                )
+            ).apply { cornerRadius = 10F.dp }
+        }
+
+        override fun onBindView(item: PhotoPicker) {
+            if (item !is PhotoPicker.Video) return
+
+            requestManager
+                .asGif()
+                .load(item.imagePath)
+                .transition(crossFadeTransition)
+                .placeholder(placeHolder)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .override(overrideSize)
+                .into(ivThumb)
+
+            tvDuration.text = item.durationText
         }
     }
 }
