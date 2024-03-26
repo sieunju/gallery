@@ -175,13 +175,16 @@ internal class GalleryProviderImpl(
 
     override fun fetchCursor(params: GalleryQueryParameter): Cursor {
         // val order = "$ID ${params.order}"
-        val order = "${MediaStore.MediaColumns.DATE_TAKEN} ${params.order}"
+        val order = StringBuilder()
+        order.append("${MediaStore.MediaColumns.DATE_TAKEN} ${params.order}, ")
+        order.append("${MediaStore.MediaColumns.DATE_ADDED} ${params.order}, ")
+        order.append("${MediaStore.MediaColumns._ID} ${params.order} ")
         return contentResolver.query(
             params.uri,
             params.getColumns(),
             if (params.isAll) null else "$BUCKET_ID ==?",
             params.selectionArgs,
-            order
+            order.toString()
         ) ?: throw NullPointerException("Cursor NullPointerException")
     }
 
