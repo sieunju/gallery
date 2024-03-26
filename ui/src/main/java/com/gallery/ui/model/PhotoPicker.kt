@@ -18,13 +18,15 @@ internal sealed interface PhotoPicker {
      * @param isSelected Selected
      * @param selectedNum Selected Number
      * @param albumName Album Name
+     * @param dateTaken Content Date (Sort)
      */
     data class Photo(
         val id: Long,
         val imagePath: String,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
-        val albumName: String
+        val albumName: String,
+        val dateTaken: Int
     ) : PhotoPicker {
         constructor(
             data: GalleryData
@@ -33,7 +35,8 @@ internal sealed interface PhotoPicker {
             imagePath = data.uri.toString(),
             isSelected = false,
             selectedNum = "1",
-            albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: ""
+            albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
+            dateTaken = data.getField(MediaStore.MediaColumns.DATE_TAKEN) ?: -1
         )
     }
 
@@ -44,6 +47,7 @@ internal sealed interface PhotoPicker {
      * @param selectedNum Selected Number
      * @param albumName Album Name
      * @param duration Video Duration
+     * @param dateTaken Content Date (Sort)
      */
     data class Video(
         val id: Long,
@@ -51,7 +55,8 @@ internal sealed interface PhotoPicker {
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
         val albumName: String,
-        val duration: Long,
+        val duration: Int,
+        val dateTaken: Int
     ) : PhotoPicker {
         constructor(
             data: GalleryData
@@ -61,12 +66,13 @@ internal sealed interface PhotoPicker {
             isSelected = false,
             selectedNum = "1",
             albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
-            duration = data.getField(MediaStore.MediaColumns.DURATION) ?: -1
+            duration = data.getField(MediaStore.MediaColumns.DURATION) ?: -1,
+            dateTaken = data.getField(MediaStore.MediaColumns.DATE_TAKEN) ?: -1
         )
 
         var durationText: String? = null
             get() {
-                if (duration == -1L) {
+                if (duration == -1) {
                     field = "00:00"
                 } else {
                     val sec = duration / 1000

@@ -21,6 +21,7 @@ import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
+import timber.log.Timber
 
 /**
  * Description : Photo Picker Adapter
@@ -228,14 +229,12 @@ internal class PhotoPickerAdapter(
                     Color.parseColor("#4D000000"),
                     Color.parseColor("#4D000000")
                 )
-            ).apply { cornerRadius = 10F.dp }
+            ).apply { cornerRadius = 5F.dp }
         }
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Video) return
-
             requestManager
-                .asGif()
                 .load(item.imagePath)
                 .transition(crossFadeTransition)
                 .placeholder(placeHolder)

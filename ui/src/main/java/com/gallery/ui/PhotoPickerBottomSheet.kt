@@ -52,7 +52,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     private var photoCursor: Cursor? = null
     private val photoQueryParams: GalleryQueryParameter by lazy {
         GalleryQueryParameter().apply {
-            addColumns(MediaColumns.DATE_TAKEN)
+            addColumns(MediaColumns.DATE_ADDED)
         }
     }
     private var videoCursor: Cursor? = null
@@ -60,11 +60,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         GalleryQueryParameter().apply {
             uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
             addColumns(MediaColumns.DURATION)
-            addColumns(MediaColumns.DATE_TAKEN)
+            addColumns(MediaColumns.DATE_ADDED)
         }
     }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
     private var isLoading: Boolean = false
+    private val isAllLast: Boolean
+        get() = photoQueryParams.isLast && videoQueryParams.isLast
     // [e] Core
 
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
@@ -165,10 +167,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         // TODO Permissions Check
         isLoading = true
         val directoryJob = flow { emit(reqDirectories()) }
-        val photoJob = flow { emit(reqPhotoList(photoCursor, photoQueryParams)) }
-        val videoJob = flow { emit(reqVideoList(videoCursor,videoQueryParams)) }
-        directoryJob.combine(photoJob) { directoryList, photoList ->
-            handleInitSuccess(directoryList, photoList)
+        val galleryJob = flow { emit(reqGalleryList()) }
+        directoryJob.combine(galleryJob) { directoryList, galleryList ->
+            handleInitSuccess(directoryList, galleryList)
         }.launchIn(lifecycleScope)
     }
 
@@ -185,6 +186,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         this.directoryList.clear()
         this.directoryList.addAll(directoryList)
         this.dataList.clear()
+        this.dataList.add(PhotoPicker.Camera)
         this.dataList.addAll(photoList)
 
         directoryList.getOrNull(0)?.let {
@@ -194,12 +196,20 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         isLoading = false
     }
 
-    private suspend fun reqGalleryList() : List<PhotoPicker> {
+    private suspend fun reqGalleryList(): List<PhotoPicker> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
-                val photoList = reqPhotoList(photoCursor,photoQueryParams)
-                val videoList = reqVideoList(videoCursor,videoQueryParams)
-                photoList + videoList.map {  }
+                val list = mutableListOf<PhotoPicker>()
+                list.addAll(reqPhotoList(photoCursor, photoQueryParams))
+                list.addAll(reqVideoList(videoCursor, videoQueryParams))
+                list.sortByDescending { item ->
+                    when (item) {
+                        is PhotoPicker.Photo -> item.dateTaken
+                        is PhotoPicker.Video -> item.dateTaken
+                        is PhotoPicker.Camera -> Int.MAX_VALUE
+                    }
+                }
+                list
             } catch (ex: Exception) {
                 listOf()
             }
@@ -216,17 +226,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
-                if (params.pageNo == 1) {
-                    val list = mutableListOf<PhotoPicker>()
-                    list.add(PhotoPicker.Camera)
-                    list.addAll(coreProvider.fetchList(
-                        cursor,
-                        params
-                    ).map { it.toUi() })
-                    list
-                } else {
-                    coreProvider.fetchList(cursor, params).map { it.toUi() }
-                }
+                coreProvider.fetchList(cursor, params).map { it.toUi() }
             } catch (ex: Exception) {
                 listOf()
             }
@@ -240,17 +240,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
-                if (params.pageNo == 1) {
-                    val list = mutableListOf<PhotoPicker>()
-                    list.add(PhotoPicker.Camera)
-                    list.addAll(coreProvider.fetchList(
-                        cursor,
-                        params
-                    ).map { it.toUi() })
-                    list
-                } else {
-                    coreProvider.fetchList(cursor, params).map { it.toUi() }
-                }
+                coreProvider.fetchList(cursor, params).map { it.toUi() }
             } catch (ex: Exception) {
                 listOf()
             }
@@ -258,8 +248,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun GalleryData.toUi(): PhotoPicker {
-        Timber.d("UiData ${getField<Long>(MediaColumns.DURATION)}")
-        return if (getField<Long>(MediaColumns.DURATION) == null) {
+        return if (getField<Int>(MediaColumns.DURATION) == null) {
             PhotoPicker.Photo(this)
         } else {
             PhotoPicker.Video(this)
@@ -280,7 +269,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     private fun onLoadPage() {
         lifecycleScope.launch {
             isLoading = true
-            dataList.addAll(reqPhotoList(cursor, queryParams))
+            dataList.addAll(reqGalleryList())
             photoAdapter.submitList(dataList)
             isLoading = false
         }
@@ -326,7 +315,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
             adapter = photoAdapter
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (queryParams.isLast || isLoading) return
+                    if (isAllLast || isLoading) return
                     val itemCount = recyclerView.adapter?.itemCount ?: 0
                     var pos = 0
                     when (val lm = recyclerView.layoutManager) {
