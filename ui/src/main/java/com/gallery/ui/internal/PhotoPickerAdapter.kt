@@ -40,15 +40,17 @@ internal class PhotoPickerAdapter(
 
         /**
          * 선택 사진
+         * @param pos 선택한 위치값
          * @param item
          */
-        fun addPicker(item: PhotoPicker)
+        fun addPicker(pos: Int, item: PhotoPicker)
 
         /**
          * 선택 해제 사진
+         * @param pos 선택한 위치값
          * @param item
          */
-        fun removePicker(item: PhotoPicker)
+        fun removePicker(pos: Int, item: PhotoPicker)
     }
 
     private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
@@ -184,9 +186,9 @@ internal class PhotoPickerAdapter(
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
                 if (data.isSelected) {
-                    listener.removePicker(data)
+                    listener.removePicker(bindingAdapterPosition, data)
                 } else {
-                    listener.addPicker(data)
+                    listener.addPicker(bindingAdapterPosition, data)
                 }
             }
         }
@@ -280,9 +282,9 @@ internal class PhotoPickerAdapter(
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
                 if (data.isSelected) {
-                    listener.removePicker(data)
+                    listener.removePicker(bindingAdapterPosition, data)
                 } else {
-                    listener.addPicker(data)
+                    listener.addPicker(bindingAdapterPosition, data)
                 }
             }
         }

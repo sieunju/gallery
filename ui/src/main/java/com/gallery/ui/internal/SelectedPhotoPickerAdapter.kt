@@ -113,8 +113,8 @@ internal class SelectedPhotoPickerAdapter(
             ).apply {
                 cornerRadius = 8F.dp
             }
-            ivThumb.setOnClickListener { data?.let { listener.removePicker(it) } }
-            clRemove.setOnClickListener { data?.let { listener.removePicker(it) } }
+            ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
+            clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
         }
 
         override fun onBindView(item: PhotoPicker) {
@@ -145,8 +145,8 @@ internal class SelectedPhotoPickerAdapter(
             ).apply {
                 cornerRadius = 8F.dp
             }
-            ivThumb.setOnClickListener { data?.let { listener.removePicker(it) } }
-            clRemove.setOnClickListener { data?.let { listener.removePicker(it) } }
+            ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
+            clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
         }
 
         override fun onBindView(item: PhotoPicker) {

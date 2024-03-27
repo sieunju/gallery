@@ -1,5 +1,6 @@
 package com.gallery.ui
 
+import android.animation.ObjectAnimator
 import android.content.DialogInterface
 import android.database.Cursor
 import android.os.Bundle
@@ -12,7 +13,10 @@ import android.view.WindowManager
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
@@ -42,7 +46,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Description : PhotoPicker BottomSheet
@@ -194,22 +197,24 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
     }
 
-    override fun addPicker(item: PhotoPicker) {
-        Timber.d("AddPicker $item")
+    override fun addPicker(pos: Int, item: PhotoPicker) {
         if (item is PhotoPicker.Photo) {
             item.isSelected = true
         } else if (item is PhotoPicker.Video) {
             item.isSelected = true
         }
-        selectedList.add(0, item)
-        rvSelected?.scrollToPosition(0)
+        selectedList.add(item)
         selectedAdapter.submitList(selectedList)
+        rvSelected?.scrollToPosition(selectedAdapter.itemCount.minus(1))
         reSortNumber()
         notifySelectionItem(selectedList)
+        handleSelectedPickerAni()
+        if (pos != -1 && pos < 3) {
+            rvContents?.scrollToPosition(pos)
+        }
     }
 
-    override fun removePicker(item: PhotoPicker) {
-        Timber.d("RemovePicker $item")
+    override fun removePicker(pos: Int, item: PhotoPicker) {
         if (item is PhotoPicker.Photo) {
             item.isSelected = false
         } else if (item is PhotoPicker.Video) {
@@ -219,19 +224,28 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         selectedAdapter.submitList(selectedList)
         reSortNumber()
         notifySelectionItem(selectedList + listOf(item))
+        handleSelectedPickerAni()
+        if (pos != -1 && pos < 3) {
+            rvContents?.scrollToPosition(pos)
+        }
     }
 
+    /**
+     * 선택한 Picker 순서 정렬 하는 함수
+     */
     private fun reSortNumber() {
         selectedList.forEachIndexed { index, picker ->
-            val pos = selectedList.size.minus(index)
             if (picker is PhotoPicker.Photo) {
-                picker.selectedNum = "$pos"
+                picker.selectedNum = "${index.plus(1)}"
             } else if (picker is PhotoPicker.Video) {
-                picker.selectedNum = "$pos"
+                picker.selectedNum = "${index.plus(1)}"
             }
         }
     }
 
+    /**
+     * 선택한 아이템 자동 갱신 처리하는 함수
+     */
     private fun notifySelectionItem(
         notifyList: List<PhotoPicker>
     ) {
@@ -243,6 +257,35 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         photoAdapter.notifyItemRangeChanged(firstPos, lastPos, notifyList)
     }
 
+    /**
+     * 선택한 UI 노출 및 애니메이션 처리
+     */
+    private fun handleSelectedPickerAni() {
+        val rvSelected = rvSelected ?: return
+        val rvContents = rvContents ?: return
+        // 선택한 Picker 노출
+        if (selectedList.isNotEmpty()) {
+            if (rvSelected.translationY != 0F) {
+                ObjectAnimator.ofFloat(rvSelected, View.TRANSLATION_Y, (-70F).dp, 0F).apply {
+                    duration = 200
+                    start()
+                }
+            }
+            rvContents.updatePadding(top = 70.dp)
+        } else {
+            if (rvSelected.translationY != (-70F).dp) {
+                ObjectAnimator.ofFloat(rvSelected, View.TRANSLATION_Y, 0F.dp, (-70F).dp).apply {
+                    duration = 200
+                    start()
+                }
+            }
+            rvContents.updatePadding(top = 0.dp)
+        }
+    }
+
+    /**
+     * init Data Start
+     */
     private fun initData() {
         // TODO Permissions Check
         isLoading = true
@@ -276,6 +319,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         isLoading = false
     }
 
+    /**
+     * 갤러리 리스트 가져오는 함수
+     * @return PhotoPicker List (Photo or Video)
+     */
     private suspend fun reqGalleryList(): List<PhotoPicker> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
