@@ -46,7 +46,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
                 .setCancelListener { Timber.d("Cancel") }
-                .simpleShow(parentFragmentManager)
+                .simpleShow(childFragmentManager)
         }
 
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

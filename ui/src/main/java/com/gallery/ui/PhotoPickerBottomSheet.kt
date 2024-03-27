@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Description : PhotoPicker BottomSheet
@@ -69,7 +70,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoQueryParams.isLast && videoQueryParams.isLast
-    private val requestManager: RequestManager by lazy { Glide.with(this) }
     // [e] Core
 
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
@@ -165,7 +165,12 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
         initView(view)
         initData()
         dialog?.setOnShowListener { onShow(it) }
-        dialog?.setOnDismissListener { cancelListener?.callback() }
+        dialog?.setOnDismissListener { dismiss() }
+    }
+
+    override fun dismiss() {
+        cancelListener?.callback()
+        super.dismiss()
     }
 
     override fun asyncSaveCache(item: PhotoPicker) {
@@ -302,10 +307,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
         initSelectedContents(view)
         tvSelectFilter = view.findViewById(R.id.tvSelectFilter)
         view.findViewById<AppCompatImageView>(R.id.ivClose).setOnClickListener {
-            cancelListener?.callback()
             dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
+            cancelListener = null
             submitListener?.callback()
             dismiss()
         }
