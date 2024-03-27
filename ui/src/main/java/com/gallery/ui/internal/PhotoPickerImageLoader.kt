@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
  *
  * Created by juhongmin on 3/27/24
  */
-object PhotoPickerImageLoader {
+internal object PhotoPickerImageLoader {
 
     private val cache: LruCache<String, Bitmap> by lazy { initCache() }
     private lateinit var provider: GalleryProvider

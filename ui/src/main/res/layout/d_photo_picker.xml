@@ -83,7 +83,13 @@
             android:id="@+id/rvSelected"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" />
+            android:clipToPadding="false"
+            android:focusable="false"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp"
+            android:splitMotionEvents="false"
+            tools:itemCount="1"
+            tools:listitem="@layout/vh_child_selected_photo" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -91,8 +97,12 @@
         android:id="@+id/rvContents"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:focusable="false"
         android:scrollbars="vertical"
+        android:splitMotionEvents="false"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/llHeader" />
+        app:layout_constraintTop_toBottomOf="@+id/llHeader"
+        tools:itemCount="1"
+        tools:listitem="@layout/vh_child_photo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

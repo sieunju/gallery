@@ -29,6 +29,7 @@ import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
 import com.gallery.ui.internal.PhotoPickerAdapter
 import com.gallery.ui.internal.PhotoPickerImageLoader
+import com.gallery.ui.internal.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.model.PhotoPicker
@@ -48,7 +49,8 @@ import timber.log.Timber
  *
  * Created by juhongmin on 3/21/24
  */
-class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.Listener {
+class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
+    PhotoPickerAdapter.Listener {
 
     // [s] Core
     private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
@@ -67,12 +69,16 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
         }
     }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
+    private val selectedList: MutableList<PhotoPicker> by lazy { mutableListOf() }
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoQueryParams.isLast && videoQueryParams.isLast
     // [e] Core
 
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
+    private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
+        SelectedPhotoPickerAdapter(this, coreProvider)
+    }
 
     // [s] View
     private val overrideSize: Int by lazy { requireContext().getDeviceWidth() / 3 }
@@ -173,6 +179,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
         super.dismiss()
     }
 
+    override fun getRequestManager(): RequestManager {
+        return Glide.with(this)
+    }
+
     override fun asyncSaveCache(item: PhotoPicker) {
         if (item is PhotoPicker.Camera) return
         lifecycleScope.launch {
@@ -182,6 +192,55 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
                 PhotoPickerImageLoader.saveVideoThumbnail(item.id, item.imagePath, overrideSize)
             }
         }
+    }
+
+    override fun addPicker(item: PhotoPicker) {
+        Timber.d("AddPicker $item")
+        if (item is PhotoPicker.Photo) {
+            item.isSelected = true
+        } else if (item is PhotoPicker.Video) {
+            item.isSelected = true
+        }
+        selectedList.add(0, item)
+        rvSelected?.scrollToPosition(0)
+        selectedAdapter.submitList(selectedList)
+        reSortNumber()
+        notifySelectionItem(selectedList)
+    }
+
+    override fun removePicker(item: PhotoPicker) {
+        Timber.d("RemovePicker $item")
+        if (item is PhotoPicker.Photo) {
+            item.isSelected = false
+        } else if (item is PhotoPicker.Video) {
+            item.isSelected = false
+        }
+        selectedList.remove(item)
+        selectedAdapter.submitList(selectedList)
+        reSortNumber()
+        notifySelectionItem(selectedList + listOf(item))
+    }
+
+    private fun reSortNumber() {
+        selectedList.forEachIndexed { index, picker ->
+            val pos = selectedList.size.minus(index)
+            if (picker is PhotoPicker.Photo) {
+                picker.selectedNum = "$pos"
+            } else if (picker is PhotoPicker.Video) {
+                picker.selectedNum = "$pos"
+            }
+        }
+    }
+
+    private fun notifySelectionItem(
+        notifyList: List<PhotoPicker>
+    ) {
+        val lm = rvContents?.layoutManager as? GridLayoutManager ?: return
+        var firstPos = lm.findFirstVisibleItemPosition()
+        firstPos = 0.coerceAtLeast(firstPos.minus(10))
+        var lastPos = lm.findLastVisibleItemPosition()
+        lastPos = photoAdapter.itemCount.coerceAtMost(lastPos)
+        photoAdapter.notifyItemRangeChanged(firstPos, lastPos, notifyList)
     }
 
     private fun initData() {
@@ -284,7 +343,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
                 listOf()
             }
         }
-
     }
 
     private fun onLoadPage() {
@@ -352,7 +410,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.L
         parentView: View
     ) {
         rvSelected = parentView.findViewById<RecyclerView>(R.id.rvSelected).apply {
-
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = selectedAdapter
         }
     }
 

@@ -3,22 +3,17 @@ package com.gallery.ui.internal
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.LayoutRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
-import com.gallery.ui.PhotoPickerBottomSheet
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
 
@@ -29,12 +24,31 @@ import com.gallery.ui.model.PhotoPicker
  * Created by juhongmin on 3/23/24
  */
 internal class PhotoPickerAdapter(
-    private val bottomSheet: PhotoPickerBottomSheet,
+    private val listener: Listener,
     private val provider: GalleryProvider
-) : RecyclerView.Adapter<PhotoPickerAdapter.BaseViewHolder>() {
+) : RecyclerView.Adapter<BasePickerViewHolder>() {
 
     interface Listener {
+
+        fun getRequestManager(): RequestManager
+
+        /**
+         * 비동기 캐싱 처리함수
+         * @param item 캐싱할 아이템
+         */
         fun asyncSaveCache(item: PhotoPicker)
+
+        /**
+         * 선택 사진
+         * @param item
+         */
+        fun addPicker(item: PhotoPicker)
+
+        /**
+         * 선택 해제 사진
+         * @param item
+         */
+        fun removePicker(item: PhotoPicker)
     }
 
     private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
@@ -51,7 +65,7 @@ internal class PhotoPickerAdapter(
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
 
-    private val requestManager: RequestManager by lazy { Glide.with(bottomSheet) }
+    private val requestManager: RequestManager by lazy { listener.getRequestManager() }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
 
     /**
@@ -65,7 +79,7 @@ internal class PhotoPickerAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasePickerViewHolder {
         return when (viewType) {
             R.layout.vh_child_camera -> CameraViewHolder(parent)
             R.layout.vh_child_photo -> PhotoViewHolder(parent)
@@ -74,13 +88,13 @@ internal class PhotoPickerAdapter(
         }
     }
 
-    override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: BasePickerViewHolder, position: Int) {
         val item = dataList.getOrNull(position) ?: return
         holder.onBindView(item)
     }
 
     override fun onBindViewHolder(
-        holder: BaseViewHolder,
+        holder: BasePickerViewHolder,
         position: Int,
         payloads: MutableList<Any>
     ) {
@@ -138,29 +152,16 @@ internal class PhotoPickerAdapter(
         }
     }
 
-    abstract class BaseViewHolder(
-        parent: ViewGroup,
-        @LayoutRes layoutId: Int
-    ) : RecyclerView.ViewHolder(
-        LayoutInflater.from(parent.context)
-            .inflate(layoutId, parent, false)
-    ) {
-        abstract fun onBindView(item: PhotoPicker)
-        open fun onPayloadBindView(payloads: List<Any>) {}
-    }
-
     inner class CameraViewHolder(
         parent: ViewGroup
-    ) : BaseViewHolder(parent, R.layout.vh_child_camera) {
+    ) : BasePickerViewHolder(parent, R.layout.vh_child_camera) {
 
-        override fun onBindView(item: PhotoPicker) {
-
-        }
+        override fun onBindView(item: PhotoPicker) {}
     }
 
     inner class PhotoViewHolder(
         parent: ViewGroup
-    ) : BaseViewHolder(parent, R.layout.vh_child_photo) {
+    ) : BasePickerViewHolder(parent, R.layout.vh_child_photo) {
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
@@ -169,6 +170,7 @@ internal class PhotoPickerAdapter(
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
+        private var data: PhotoPicker.Photo? = null
 
         init {
             clSelectedNum.background = GradientDrawable(
@@ -178,31 +180,76 @@ internal class PhotoPickerAdapter(
                 cornerRadius = 10F.dp
             }
             clSelectedNum.clipToOutline = true
+
+            ivThumb.setOnClickListener {
+                val data = this.data ?: return@setOnClickListener
+                if (data.isSelected) {
+                    listener.removePicker(data)
+                } else {
+                    listener.addPicker(data)
+                }
+            }
         }
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Photo) return
+            data = item
+            bindThumbnail(item)
+            bindSelectionNum(item)
+        }
+
+        override fun onPayloadBindView(payloads: List<Any>) {
+            for (newItem in payloads) {
+                if (newItem is PhotoPicker.Photo && newItem.id == data?.id) {
+                    data?.let { bindSelectionNum(it) }
+                    break
+                }
+            }
+        }
+
+        /**
+         * Binding Thumbnail
+         */
+        private fun bindThumbnail(
+            item: PhotoPicker.Photo
+        ) {
             // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
-            //  UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
+            // TODO UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
             val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
             if (bitmap != null) {
                 requestManager.load(bitmap)
                     .placeholder(placeHolder)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
             } else {
                 requestManager.load(provider.getPhotoThumbnail(item.id, overrideSize))
                     .placeholder(placeHolder)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
-                bottomSheet.asyncSaveCache(item)
+                listener.asyncSaveCache(item)
+            }
+        }
+
+        /**
+         * Binding Handle Selection Num
+         */
+        private fun bindSelectionNum(
+            item: PhotoPicker.Photo
+        ) {
+            if (item.isSelected) {
+                tvSelectNum.changeVisible(true)
+                vBgSelected.changeVisible(true)
+                vBgNotSelected.changeVisible(false)
+                tvSelectNum.text = item.selectedNum
+            } else {
+                tvSelectNum.changeVisible(false)
+                vBgSelected.changeVisible(false)
+                vBgNotSelected.changeVisible(true)
             }
         }
     }
 
     inner class VideoViewHolder(
         parent: ViewGroup
-    ) : BaseViewHolder(parent, R.layout.vh_child_video) {
+    ) : BasePickerViewHolder(parent, R.layout.vh_child_video) {
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
@@ -212,6 +259,7 @@ internal class PhotoPickerAdapter(
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
         private val tvDuration: AppCompatTextView by lazy { itemView.findViewById(R.id.tvDuration) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
+        private var data: PhotoPicker.Video? = null
 
         init {
             clSelectedNum.background = GradientDrawable(
@@ -228,26 +276,76 @@ internal class PhotoPickerAdapter(
                     Color.parseColor("#4D000000")
                 )
             ).apply { cornerRadius = 5F.dp }
+
+            ivThumb.setOnClickListener {
+                val data = this.data ?: return@setOnClickListener
+                if (data.isSelected) {
+                    listener.removePicker(data)
+                } else {
+                    listener.addPicker(data)
+                }
+            }
         }
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Video) return
+            data = item
+            bindThumbnail(item)
+            bindSelectionNum(item)
+            bindDuration(item)
+        }
+
+        override fun onPayloadBindView(payloads: List<Any>) {
+            for (newItem in payloads) {
+                if (newItem is PhotoPicker.Video && newItem.id == data?.id) {
+                    data?.let { bindSelectionNum(it) }
+                    break
+                }
+            }
+        }
+
+        /**
+         * Binding Thumbnail
+         */
+        private fun bindThumbnail(
+            item: PhotoPicker.Video
+        ) {
             // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
-            //  UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
+            // TODO UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
             val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
             if (bitmap != null) {
                 requestManager.load(bitmap)
                     .placeholder(placeHolder)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
             } else {
                 requestManager.load(provider.getVideoThumbnail(item.id, overrideSize))
                     .placeholder(placeHolder)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
-                bottomSheet.asyncSaveCache(item)
+                listener.asyncSaveCache(item)
             }
+        }
 
+        /**
+         * Binding Handle Selection Num
+         */
+        private fun bindSelectionNum(
+            item: PhotoPicker.Video
+        ) {
+            if (item.isSelected) {
+                tvSelectNum.changeVisible(true)
+                vBgSelected.changeVisible(true)
+                vBgNotSelected.changeVisible(false)
+                tvSelectNum.text = item.selectedNum
+            } else {
+                tvSelectNum.changeVisible(false)
+                vBgSelected.changeVisible(false)
+                vBgNotSelected.changeVisible(true)
+            }
+        }
+
+        private fun bindDuration(
+            item: PhotoPicker.Video
+        ) {
             tvDuration.text = item.durationText
         }
     }

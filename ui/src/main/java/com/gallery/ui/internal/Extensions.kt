@@ -10,6 +10,10 @@ import android.view.WindowManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 
+internal fun View.changeVisible(isVisible: Boolean) {
+    changeVisible(if (isVisible) View.VISIBLE else View.GONE)
+}
+
 internal fun View.changeVisible(changeVisible: Int) {
     if (visibility != changeVisible) {
         visibility = changeVisible
