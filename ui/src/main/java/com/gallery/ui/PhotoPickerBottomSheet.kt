@@ -19,14 +19,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryData
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
+import com.gallery.ui.internal.PhotoPickerImageLoader
 import com.gallery.ui.internal.PhotoPickerAdapter
 import com.gallery.ui.internal.dp
+import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.model.PhotoPicker
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -37,7 +41,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Description : PhotoPicker BottomSheet
@@ -57,8 +60,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     }
     private var videoCursor: Cursor? = null
     private val videoQueryParams: GalleryQueryParameter by lazy {
-        GalleryQueryParameter().apply {
-            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        GalleryQueryParameter(MediaStore.Video.Media.EXTERNAL_CONTENT_URI).apply {
             addColumns(MediaColumns.DURATION)
             addColumns(MediaColumns.DATE_ADDED)
         }
@@ -67,6 +69,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoQueryParams.isLast && videoQueryParams.isLast
+    private val requestManager: RequestManager by lazy { Glide.with(this) }
     // [e] Core
 
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
@@ -157,6 +160,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        PhotoPickerImageLoader.setCoreProvider(coreProvider)
         initView(view)
         initData()
         dialog?.setOnShowListener { onShow(it) }
@@ -215,6 +219,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
             }
         }
     }
+
+    private val overrideSize: Int by lazy { requireContext().getDeviceWidth() / 3 }
 
     /**
      * Request PhotoList
@@ -275,13 +281,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun printMemory() {
-        val maxMem = Runtime.getRuntime().maxMemory() / 1024 / 1024
-        val totalMem = Runtime.getRuntime().totalMemory() / 1024 / 1024
-        val freeMem = Runtime.getRuntime().freeMemory() / 1024 / 1024
-        Timber.d("Used Mem ${totalMem.minus(freeMem)}")
-    }
-
     /**
      * initView
      * @param view Parent View
@@ -322,8 +321,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
                         is LinearLayoutManager -> pos = lm.findLastVisibleItemPosition()
                     }
                     // 현재 포지션이 중간 이상 넘어간 경우 페이징 처리
-                    val updatePosition = itemCount - pos / 2
-                    if (pos >= updatePosition) {
+                    if (itemCount.minus(1) <= pos) {
                         onLoadPage()
                     }
                 }

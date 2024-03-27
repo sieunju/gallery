@@ -8,7 +8,7 @@ import com.gallery.core.model.GalleryData
  *
  * Created by juhongmin on 3/23/24
  */
-internal sealed interface PhotoPicker {
+sealed interface PhotoPicker {
 
     object Camera : PhotoPicker
 
@@ -28,6 +28,7 @@ internal sealed interface PhotoPicker {
         val albumName: String,
         val dateTaken: Int
     ) : PhotoPicker {
+
         constructor(
             data: GalleryData
         ) : this(
@@ -58,6 +59,7 @@ internal sealed interface PhotoPicker {
         val duration: Int,
         val dateTaken: Int
     ) : PhotoPicker {
+
         constructor(
             data: GalleryData
         ) : this(

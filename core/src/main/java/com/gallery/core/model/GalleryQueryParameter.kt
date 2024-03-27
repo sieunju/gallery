@@ -9,23 +9,23 @@ import com.gallery.core.impl.GalleryProviderImpl
  *
  * Created by juhongmin on 2022/09/13
  */
+/**
+ * @param uri ContentUri [MediaStore.Images.Media.EXTERNAL_CONTENT_URI], [MediaStore.Video.Media.EXTERNAL_CONTENT_URI]
+ * @param filterId Bucket ID
+ * @param pageNo Page Number
+ * @param pageSize PageSize
+ * @param order Query Order
+ * @param isLast Paging is Last
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class GalleryQueryParameter {
-    // uri 에는 MediaStore.Images.Media.EXTERNAL_CONTENT_URI or
-    // MediaStore.Video.Media.EXTERNAL_CONTENT_URI 로만 들어와야 한다
-    var uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-    var pageNo = 1
-    var pageSize = 100
-    var isLast = false
-    var filterId: String = "" // bucket id
-    var isAscOrder: Boolean = false // is Ascending order
-
-    val order: String
-        get() = if (isAscOrder) {
-            "ASC"
-        } else {
-            "DESC"
-        }
+data class GalleryQueryParameter(
+    val uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    var filterId: String = "", // bucket id
+    var pageNo: Int = 1,
+    val pageSize: Int = 100,
+    val order: String = "${MediaStore.MediaColumns.DATE_TAKEN} DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC",
+    var isLast: Boolean = false
+) {
 
     val selectionArgs: Array<String>?
         get() = if (isAll) null else arrayOf(filterId)
@@ -49,9 +49,9 @@ class GalleryQueryParameter {
     fun getColumns(): Array<String> = columns.toTypedArray()
 
     init {
-        columns.add(MediaStore.Images.Media._ID)
-        columns.add(MediaStore.Images.Media.BUCKET_ID)
-        columns.add(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+        columns.add(MediaStore.MediaColumns._ID)
+        columns.add(MediaStore.MediaColumns.BUCKET_ID)
+        columns.add(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
     }
 
     fun initParams() {

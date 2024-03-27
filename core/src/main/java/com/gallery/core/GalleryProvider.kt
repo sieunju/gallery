@@ -317,30 +317,11 @@ interface GalleryProvider {
      */
     fun getImageType(imagePath: String): ImageType
 
-    /**
-     * Get Gallery ImageThumbnail
-     *
-     * Target SDK [Build.VERSION_CODES.Q] Thumbnail 기본 사이즈 300, 300
-     * Thumbnail 기본 사이즈 자유롭게 하고 싶다면 getThumbnail(imageId, width, height) 함수 사용
-     * @param imageId Cursor Image ID
-     *
-     * @throws java.io.IOException
-     * @throws RuntimeException
-     */
     @Throws(java.io.IOException::class, RuntimeException::class)
-    fun getThumbnail(imageId: Long): Bitmap
+    fun getPhotoThumbnail(imageId: Long) : Bitmap
 
-    /**
-     * Get Gallery ImageThumbnail
-     *
-     * @param imageId Cursor Image ID
-     * @param size Request Thumbnail Width & Height
-     *
-     * @throws java.io.IOException
-     * @throws RuntimeException
-     */
     @Throws(java.io.IOException::class, RuntimeException::class)
-    fun getThumbnail(imageId: Long, size: Int): Bitmap
+    fun getPhotoThumbnail(imageId: Long, size: Int) : Bitmap
 
     /**
      * Get Gallery ImageThumbnail
@@ -353,5 +334,24 @@ interface GalleryProvider {
      * @throws RuntimeException
      */
     @Throws(java.io.IOException::class, RuntimeException::class)
-    fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap
+    fun getPhotoThumbnail(imageId: Long, width: Int, height: Int) : Bitmap
+
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getVideoThumbnail(imageId: Long): Bitmap
+
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getVideoThumbnail(imageId: Long, size: Int): Bitmap
+
+    /**
+     * Get Gallery VideoThumbnail
+     *
+     * @param imageId Cursor Image ID
+     * @param width Request Thumbnail Width
+     * @param height Request Thumbnail Height
+     *
+     * @throws java.io.IOException
+     * @throws RuntimeException
+     */
+    @Throws(java.io.IOException::class, RuntimeException::class)
+    fun getVideoThumbnail(imageId: Long, width: Int, height: Int): Bitmap
 }

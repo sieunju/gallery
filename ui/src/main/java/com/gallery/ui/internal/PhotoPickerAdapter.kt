@@ -11,6 +11,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -21,7 +22,8 @@ import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
-import timber.log.Timber
+import kotlinx.coroutines.launch
+
 
 /**
  * Description : Photo Picker Adapter
@@ -120,11 +122,7 @@ internal class PhotoPickerAdapter(
                 oldItem.imagePath == newItem.imagePath
             } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
                 oldItem.imagePath == newItem.imagePath
-            } else if (oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera) {
-                true
-            } else {
-                false
-            }
+            } else oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera
         }
 
         override fun areContentsTheSame(oldPosition: Int, newPosition: Int): Boolean {
@@ -134,11 +132,7 @@ internal class PhotoPickerAdapter(
                 oldItem == newItem
             } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
                 oldItem == newItem
-            } else if (oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera) {
-                true
-            } else {
-                false
-            }
+            } else oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera
         }
     }
 
@@ -186,19 +180,27 @@ internal class PhotoPickerAdapter(
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Photo) return
-            requestManager.load(provider.getThumbnail(item.id, overrideSize))
-                .transition(crossFadeTransition)
-                .placeholder(placeHolder)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .into(ivThumb)
-
-//            requestManager
-//                .load(item.imagePath)
-//                .transition(crossFadeTransition)
-//                .placeholder(placeHolder)
-//                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-//                .override(overrideSize)
-//                .into(ivThumb)
+            // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
+            //  UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
+            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
+            if (bitmap != null) {
+                requestManager.load(bitmap)
+                    .placeholder(placeHolder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(ivThumb)
+            } else {
+                fragment.lifecycleScope.launch {
+                    PhotoPickerImageLoader.savePhotoThumbnail(
+                        item.id,
+                        item.imagePath,
+                        overrideSize
+                    )
+                }
+                requestManager.load(provider.getPhotoThumbnail(item.id, overrideSize))
+                    .placeholder(placeHolder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(ivThumb)
+            }
         }
     }
 
@@ -234,19 +236,27 @@ internal class PhotoPickerAdapter(
 
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Video) return
-//            requestManager.load(provider.getThumbnail(item.id, overrideSize))
-//                .transition(crossFadeTransition)
-//                .placeholder(placeHolder)
-//                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-//                .into(ivThumb)
-
-            requestManager
-                .load(item.imagePath)
-                .transition(crossFadeTransition)
-                .placeholder(placeHolder)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .override(overrideSize)
-                .into(ivThumb)
+            // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
+            //  UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
+            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
+            if (bitmap != null) {
+                requestManager.load(bitmap)
+                    .placeholder(placeHolder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(ivThumb)
+            } else {
+                requestManager.load(provider.getVideoThumbnail(item.id, overrideSize))
+                    .placeholder(placeHolder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(ivThumb)
+                fragment.lifecycleScope.launch {
+                    PhotoPickerImageLoader.saveVideoThumbnail(
+                        item.id,
+                        item.imagePath,
+                        overrideSize
+                    )
+                }
+            }
 
             tvDuration.text = item.durationText
         }

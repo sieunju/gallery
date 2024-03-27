@@ -174,17 +174,12 @@ internal class GalleryProviderImpl(
     }
 
     override fun fetchCursor(params: GalleryQueryParameter): Cursor {
-        // val order = "$ID ${params.order}"
-        val order = StringBuilder()
-        order.append("${MediaStore.MediaColumns.DATE_TAKEN} ${params.order}, ")
-        order.append("${MediaStore.MediaColumns.DATE_ADDED} ${params.order}, ")
-        order.append("${MediaStore.MediaColumns._ID} ${params.order} ")
         return contentResolver.query(
             params.uri,
             params.getColumns(),
             if (params.isAll) null else "$BUCKET_ID ==?",
             params.selectionArgs,
-            order.toString()
+            params.order
         ) ?: throw NullPointerException("Cursor NullPointerException")
     }
 
@@ -700,18 +695,15 @@ internal class GalleryProviderImpl(
         }
     }
 
-    override fun getThumbnail(imageId: Long): Bitmap {
-        return getThumbnail(imageId, 300, 300)
+    override fun getPhotoThumbnail(imageId: Long): Bitmap {
+        return getPhotoThumbnail(imageId, 300, 300)
     }
 
-    override fun getThumbnail(
-        imageId: Long,
-        size: Int
-    ): Bitmap {
-        return getThumbnail(imageId, size, size)
+    override fun getPhotoThumbnail(imageId: Long, size: Int): Bitmap {
+        return getPhotoThumbnail(imageId,size,size)
     }
 
-    override fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
+    override fun getPhotoThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             contentResolver.loadThumbnail(
                 ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId),
@@ -724,6 +716,35 @@ internal class GalleryProviderImpl(
                 contentResolver,
                 imageId,
                 MediaStore.Images.Thumbnails.MINI_KIND,
+                BitmapFactory.Options()
+            )
+        }
+    }
+
+    override fun getVideoThumbnail(imageId: Long): Bitmap {
+        return getVideoThumbnail(imageId, 300, 300)
+    }
+
+    override fun getVideoThumbnail(
+        imageId: Long,
+        size: Int
+    ): Bitmap {
+        return getVideoThumbnail(imageId, size, size)
+    }
+
+    override fun getVideoThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentResolver.loadThumbnail(
+                ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, imageId),
+                Size(width, height),
+                null
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            MediaStore.Video.Thumbnails.getThumbnail(
+                contentResolver,
+                imageId,
+                MediaStore.Video.Thumbnails.MINI_KIND,
                 BitmapFactory.Options()
             )
         }
