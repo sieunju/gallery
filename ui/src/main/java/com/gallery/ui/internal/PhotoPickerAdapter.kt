@@ -10,8 +10,6 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -20,9 +18,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
+import com.gallery.ui.PhotoPickerBottomSheet
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
-import kotlinx.coroutines.launch
 
 
 /**
@@ -31,9 +29,13 @@ import kotlinx.coroutines.launch
  * Created by juhongmin on 3/23/24
  */
 internal class PhotoPickerAdapter(
-    private val fragment: Fragment,
+    private val bottomSheet: PhotoPickerBottomSheet,
     private val provider: GalleryProvider
 ) : RecyclerView.Adapter<PhotoPickerAdapter.BaseViewHolder>() {
+
+    interface Listener {
+        fun asyncSaveCache(item: PhotoPicker)
+    }
 
     private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
         DrawableCrossFadeFactory
@@ -49,7 +51,7 @@ internal class PhotoPickerAdapter(
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
 
-    private val requestManager: RequestManager by lazy { Glide.with(fragment) }
+    private val requestManager: RequestManager by lazy { Glide.with(bottomSheet) }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
 
     /**
@@ -189,17 +191,11 @@ internal class PhotoPickerAdapter(
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
             } else {
-                fragment.lifecycleScope.launch {
-                    PhotoPickerImageLoader.savePhotoThumbnail(
-                        item.id,
-                        item.imagePath,
-                        overrideSize
-                    )
-                }
                 requestManager.load(provider.getPhotoThumbnail(item.id, overrideSize))
                     .placeholder(placeHolder)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
+                bottomSheet.asyncSaveCache(item)
             }
         }
     }
@@ -249,13 +245,7 @@ internal class PhotoPickerAdapter(
                     .placeholder(placeHolder)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(ivThumb)
-                fragment.lifecycleScope.launch {
-                    PhotoPickerImageLoader.saveVideoThumbnail(
-                        item.id,
-                        item.imagePath,
-                        overrideSize
-                    )
-                }
+                bottomSheet.asyncSaveCache(item)
             }
 
             tvDuration.text = item.durationText

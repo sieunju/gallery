@@ -27,8 +27,8 @@ import com.gallery.core.model.GalleryData
 import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
-import com.gallery.ui.internal.PhotoPickerImageLoader
 import com.gallery.ui.internal.PhotoPickerAdapter
+import com.gallery.ui.internal.PhotoPickerImageLoader
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.model.PhotoPicker
@@ -47,7 +47,7 @@ import kotlinx.coroutines.withContext
  *
  * Created by juhongmin on 3/21/24
  */
-class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
+class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerAdapter.Listener {
 
     // [s] Core
     private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
@@ -75,6 +75,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
 
     // [s] View
+    private val overrideSize: Int by lazy { requireContext().getDeviceWidth() / 3 }
     private var rvContents: RecyclerView? = null
     private var rvSelected: RecyclerView? = null
     private var tvSelectFilter: AppCompatTextView? = null
@@ -167,6 +168,17 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
         dialog?.setOnDismissListener { cancelListener?.callback() }
     }
 
+    override fun asyncSaveCache(item: PhotoPicker) {
+        if (item is PhotoPicker.Camera) return
+        lifecycleScope.launch {
+            if (item is PhotoPicker.Photo) {
+                PhotoPickerImageLoader.savePhotoThumbnail(item.id, item.imagePath, overrideSize)
+            } else if (item is PhotoPicker.Video) {
+                PhotoPickerImageLoader.saveVideoThumbnail(item.id, item.imagePath, overrideSize)
+            }
+        }
+    }
+
     private fun initData() {
         // TODO Permissions Check
         isLoading = true
@@ -219,8 +231,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment() {
             }
         }
     }
-
-    private val overrideSize: Int by lazy { requireContext().getDeviceWidth() / 3 }
 
     /**
      * Request PhotoList
