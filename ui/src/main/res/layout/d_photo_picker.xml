@@ -3,14 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFF">
+    android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHeader"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:elevation="1dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -93,12 +91,12 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSelected"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="wrap_content"
             android:background="#FFF"
             android:clipToPadding="false"
             android:focusable="false"
-            android:orientation="horizontal"
             android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:splitMotionEvents="false"
             android:translationY="-70dp"
             app:layout_constraintTop_toTopOf="parent"

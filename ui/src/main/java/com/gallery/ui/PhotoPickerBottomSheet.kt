@@ -13,12 +13,11 @@ import android.view.WindowManager
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.animation.doOnEnd
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,6 +40,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -56,6 +56,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     PhotoPickerAdapter.Listener {
 
     // [s] Core
+    // CoreModule 의존성을 끊기 위해 ui 모듈 내에서 필요한 부분만 처리하도록 변경 예정
     private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
     private val directoryList: MutableList<GalleryFilterData> by lazy { mutableListOf() }
     private var photoCursor: Cursor? = null
@@ -208,9 +209,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         rvSelected?.scrollToPosition(selectedAdapter.itemCount.minus(1))
         reSortNumber()
         notifySelectionItem(selectedList)
-        handleSelectedPickerAni()
-        if (pos != -1 && pos < 3) {
-            rvContents?.scrollToPosition(pos)
+        lifecycleScope.launch {
+            delay(if (selectedList.size == 1) 200 else 0)
+            handleSelectedPickerAni(pos)
         }
     }
 
@@ -224,10 +225,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         selectedAdapter.submitList(selectedList)
         reSortNumber()
         notifySelectionItem(selectedList + listOf(item))
-        handleSelectedPickerAni()
-        if (pos != -1 && pos < 3) {
-            rvContents?.scrollToPosition(pos)
-        }
+        handleSelectedPickerAni(pos)
     }
 
     /**
@@ -260,26 +258,37 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     /**
      * 선택한 UI 노출 및 애니메이션 처리
      */
-    private fun handleSelectedPickerAni() {
+    private fun handleSelectedPickerAni(clickPos: Int) {
         val rvSelected = rvSelected ?: return
         val rvContents = rvContents ?: return
         // 선택한 Picker 노출
         if (selectedList.isNotEmpty()) {
             if (rvSelected.translationY != 0F) {
-                ObjectAnimator.ofFloat(rvSelected, View.TRANSLATION_Y, (-70F).dp, 0F).apply {
+                ObjectAnimator.ofFloat(
+                    rvSelected,
+                    View.TRANSLATION_Y,
+                    rvSelected.translationY,
+                    0F
+                ).apply {
+                    interpolator = FastOutSlowInInterpolator()
+                    addUpdateListener {
+                        // -70 ~ 0
+                        val value = it.animatedValue as Float
+                        val paddingTop = 70.dp.plus(value)
+                        rvContents.updatePadding(top = paddingTop.toInt())
+                        if (clickPos != -1 && clickPos < 3) {
+                            rvContents.scrollToPosition(clickPos)
+                        }
+                    }
                     duration = 200
                     start()
                 }
             }
-            rvContents.updatePadding(top = 70.dp)
         } else {
             if (rvSelected.translationY != (-70F).dp) {
-                ObjectAnimator.ofFloat(rvSelected, View.TRANSLATION_Y, 0F.dp, (-70F).dp).apply {
-                    duration = 200
-                    start()
-                }
+                rvSelected.translationY = (-70F).dp
+                rvContents.updatePadding(top = 0.dp)
             }
-            rvContents.updatePadding(top = 0.dp)
         }
     }
 

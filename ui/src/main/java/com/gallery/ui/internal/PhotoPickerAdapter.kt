@@ -175,13 +175,13 @@ internal class PhotoPickerAdapter(
         private var data: PhotoPicker.Photo? = null
 
         init {
-            clSelectedNum.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT)
-            ).apply {
-                cornerRadius = 10F.dp
-            }
-            clSelectedNum.clipToOutline = true
+//            clSelectedNum.background = GradientDrawable(
+//                GradientDrawable.Orientation.BL_TR,
+//                intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT)
+//            ).apply {
+//                cornerRadius = 10F.dp
+//            }
+//            clSelectedNum.clipToOutline = true
 
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
