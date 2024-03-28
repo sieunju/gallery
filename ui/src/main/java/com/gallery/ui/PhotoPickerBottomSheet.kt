@@ -40,7 +40,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -77,12 +76,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoQueryParams.isLast && videoQueryParams.isLast
-    // [e] Core
-
-    private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this, coreProvider) }
-    private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
-        SelectedPhotoPickerAdapter(this, coreProvider)
+    private val photoAdapter: PhotoPickerAdapter by lazy {
+        PhotoPickerAdapter(this, coreProvider)
     }
+    private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
+        SelectedPhotoPickerAdapter(this)
+    }
+    // [e] Core
 
     // [s] View
     private val overrideSize: Int by lazy { requireContext().getDeviceWidth() / 3 }
@@ -209,10 +209,11 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         rvSelected?.scrollToPosition(selectedAdapter.itemCount.minus(1))
         reSortNumber()
         notifySelectionItem(selectedList)
-        lifecycleScope.launch {
-            delay(if (selectedList.size == 1) 200 else 0)
-            handleSelectedPickerAni(pos)
-        }
+        handleSelectedPickerAni(pos)
+//        lifecycleScope.launch {
+//            delay(if (selectedList.size == 1) 200 else 0)
+//            handleSelectedPickerAni(pos)
+//        }
     }
 
     override fun removePicker(pos: Int, item: PhotoPicker) {

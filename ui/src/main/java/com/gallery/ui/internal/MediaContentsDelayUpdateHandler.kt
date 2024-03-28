@@ -12,6 +12,7 @@ import com.gallery.ui.GalleryRecyclerView
  *
  * Created by juhongmin on 2022/11/27
  */
+@Deprecated("곧 삭제할 예정입니다.")
 internal class MediaContentsDelayUpdateHandler(
     private val view: GalleryRecyclerView,
     private val adapter: GalleryAdapter

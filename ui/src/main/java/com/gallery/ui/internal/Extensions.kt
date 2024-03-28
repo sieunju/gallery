@@ -20,16 +20,14 @@ internal fun View.changeVisible(changeVisible: Int) {
     }
 }
 
-internal val crossFadeFactory: DrawableCrossFadeFactory by lazy {
-    DrawableCrossFadeFactory
-        .Builder()
-        .setCrossFadeEnabled(true)
-        .build()
-}
-
 internal val crossFadeTransition: DrawableTransitionOptions by lazy {
     DrawableTransitionOptions
-        .withCrossFade(crossFadeFactory)
+        .withCrossFade(
+            DrawableCrossFadeFactory
+                .Builder()
+                .setCrossFadeEnabled(true)
+                .build()
+        )
 }
 
 internal val Int.dp: Int

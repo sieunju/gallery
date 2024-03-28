@@ -19,8 +19,7 @@ import com.gallery.ui.model.PhotoPicker
  * Created by juhongmin on 3/27/24
  */
 internal class SelectedPhotoPickerAdapter(
-    private val listener: PhotoPickerAdapter.Listener,
-    private val provider: GalleryProvider
+    private val listener: PhotoPickerAdapter.Listener
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
@@ -141,7 +140,9 @@ internal class SelectedPhotoPickerAdapter(
         init {
             clRemove.background = GradientDrawable(
                 GradientDrawable.Orientation.BL_TR,
-                intArrayOf(Color.parseColor("#4D222222"), Color.parseColor("#4D222222"))
+                intArrayOf(
+                    Color.parseColor("#4D222222"),
+                    Color.parseColor("#4D222222"))
             ).apply {
                 cornerRadius = 8F.dp
             }
