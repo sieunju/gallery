@@ -167,7 +167,6 @@ internal class PhotoPickerAdapter(
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
-        private val clSelectedNum: ConstraintLayout by lazy { itemView.findViewById(R.id.clSelectedNum) }
         private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
@@ -175,13 +174,27 @@ internal class PhotoPickerAdapter(
         private var data: PhotoPicker.Photo? = null
 
         init {
-//            clSelectedNum.background = GradientDrawable(
-//                GradientDrawable.Orientation.BL_TR,
-//                intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT)
-//            ).apply {
-//                cornerRadius = 10F.dp
-//            }
-//            clSelectedNum.clipToOutline = true
+            vBgSelected.background = GradientDrawable(
+                GradientDrawable.Orientation.BL_TR,
+                intArrayOf(
+                    Color.parseColor("#0091EA"),
+                    Color.parseColor("#0091EA")
+                )
+            ).apply {
+                cornerRadius = 10F.dp
+            }
+            vBgSelected.clipToOutline = true
+            vBgNotSelected.background = GradientDrawable(
+                GradientDrawable.Orientation.BL_TR,
+                intArrayOf(
+                    Color.parseColor("#83FFFFFF"),
+                    Color.parseColor("#83FFFFFF")
+                )
+            ).apply {
+                cornerRadius = 10F.dp
+                setStroke(1.dp, Color.parseColor("#82222222"))
+            }
+            vBgNotSelected.clipToOutline = true
 
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
@@ -237,11 +250,13 @@ internal class PhotoPickerAdapter(
             item: PhotoPicker.Photo
         ) {
             if (item.isSelected) {
+                vSelected.changeVisible(true)
                 tvSelectNum.changeVisible(true)
                 vBgSelected.changeVisible(true)
                 vBgNotSelected.changeVisible(false)
                 tvSelectNum.text = item.selectedNum
             } else {
+                vSelected.changeVisible(false)
                 tvSelectNum.changeVisible(false)
                 vBgSelected.changeVisible(false)
                 vBgNotSelected.changeVisible(true)

@@ -37,15 +37,15 @@
             android:id="@+id/vBgNotSelected"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#83FFFFFF"
-            android:visibility="visible" />
+            android:visibility="visible"
+            tools:background="#83FFFFFF" />
 
         <View
             android:id="@+id/vBgSelected"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#0091EA"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:background="#0091EA" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tvSelectNum"
