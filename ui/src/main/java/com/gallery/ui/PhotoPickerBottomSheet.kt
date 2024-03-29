@@ -31,6 +31,7 @@ import com.gallery.core.model.GalleryFilterData
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
 import com.gallery.ui.internal.PhotoPickerAdapter
+import com.gallery.ui.internal.PhotoPickerBridgeListener
 import com.gallery.ui.internal.PhotoPickerImageLoader
 import com.gallery.ui.internal.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.dp
@@ -40,6 +41,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -51,8 +53,7 @@ import kotlinx.coroutines.withContext
  *
  * Created by juhongmin on 3/21/24
  */
-class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
-    PhotoPickerAdapter.Listener {
+class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeListener {
 
     // [s] Core
     // CoreModule 의존성을 끊기 위해 ui 모듈 내에서 필요한 부분만 처리하도록 변경 예정
@@ -209,11 +210,12 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         rvSelected?.scrollToPosition(selectedAdapter.itemCount.minus(1))
         reSortNumber()
         notifySelectionItem(selectedList)
-        handleSelectedPickerAni(pos)
-//        lifecycleScope.launch {
-//            delay(if (selectedList.size == 1) 200 else 0)
-//            handleSelectedPickerAni(pos)
-//        }
+        if (selectedList.size == 1) {
+            lifecycleScope.launch {
+                delay(200)
+                handleSelectedPickerAni(pos)
+            }
+        }
     }
 
     override fun removePicker(pos: Int, item: PhotoPicker) {
@@ -226,7 +228,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         selectedAdapter.submitList(selectedList)
         reSortNumber()
         notifySelectionItem(selectedList + listOf(item))
-        handleSelectedPickerAni(pos)
+        if (selectedList.isEmpty()) {
+            handleSelectedPickerAni(pos)
+        }
     }
 
     /**
@@ -264,6 +268,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         val rvContents = rvContents ?: return
         // 선택한 Picker 노출
         if (selectedList.isNotEmpty()) {
+            val targetPadding = 70.dp
             if (rvSelected.translationY != 0F) {
                 ObjectAnimator.ofFloat(
                     rvSelected,
@@ -275,7 +280,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                     addUpdateListener {
                         // -70 ~ 0
                         val value = it.animatedValue as Float
-                        val paddingTop = 70.dp.plus(value)
+                        val paddingTop = targetPadding.plus(value)
                         rvContents.updatePadding(top = paddingTop.toInt())
                         if (clickPos != -1 && clickPos < 3) {
                             rvContents.scrollToPosition(clickPos)
@@ -363,6 +368,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
+                val list = coreProvider.fetchList(cursor,params)
+
                 coreProvider.fetchList(cursor, params).map { it.toUi() }
             } catch (ex: Exception) {
                 listOf()

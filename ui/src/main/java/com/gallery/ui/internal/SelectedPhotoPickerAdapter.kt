@@ -2,14 +2,13 @@ package com.gallery.ui.internal
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
 
@@ -19,7 +18,7 @@ import com.gallery.ui.model.PhotoPicker
  * Created by juhongmin on 3/27/24
  */
 internal class SelectedPhotoPickerAdapter(
-    private val listener: PhotoPickerAdapter.Listener
+    private val listener: PhotoPickerBridgeListener
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
@@ -102,15 +101,14 @@ internal class SelectedPhotoPickerAdapter(
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val clRemove: ConstraintLayout by lazy { itemView.findViewById(R.id.clRemove) }
+        private val vBorder: View by lazy { itemView.findViewById(R.id.vBorder) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Photo? = null
 
         init {
-            clRemove.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(Color.parseColor("#4D222222"), Color.parseColor("#4D222222"))
-            ).apply {
-                cornerRadius = 8F.dp
+            clRemove.setCornerAndBgColor("#4D222222", 8F.dp)
+            vBorder.setCornerAndBgColor("#00FFFFFF",0F) {
+                setStroke(1.dp,Color.parseColor("#EEEEEE"))
             }
             ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
             clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
@@ -119,6 +117,12 @@ internal class SelectedPhotoPickerAdapter(
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Photo) return
             data = item
+            bindThumbnail(item)
+        }
+
+        private fun bindThumbnail(
+            item: PhotoPicker.Photo
+        ) {
             PhotoPickerImageLoader.getCacheBitmap(item.imagePath)?.let {
                 requestManager.load(it)
                     .override(overrideSize)
@@ -134,17 +138,14 @@ internal class SelectedPhotoPickerAdapter(
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val clRemove: ConstraintLayout by lazy { itemView.findViewById(R.id.clRemove) }
+        private val vBorder: View by lazy { itemView.findViewById(R.id.vBorder) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Video? = null
 
         init {
-            clRemove.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(
-                    Color.parseColor("#4D222222"),
-                    Color.parseColor("#4D222222"))
-            ).apply {
-                cornerRadius = 8F.dp
+            clRemove.setCornerAndBgColor("#4D222222", 8F.dp)
+            vBorder.setCornerAndBgColor("#00FFFFFF",0F) {
+                setStroke(1.dp,Color.parseColor("#EEEEEE"))
             }
             ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
             clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
@@ -153,6 +154,12 @@ internal class SelectedPhotoPickerAdapter(
         override fun onBindView(item: PhotoPicker) {
             if (item !is PhotoPicker.Video) return
             data = item
+            bindThumbnail(item)
+        }
+
+        private fun bindThumbnail(
+            item: PhotoPicker.Video
+        ) {
             PhotoPickerImageLoader.getCacheBitmap(item.imagePath)?.let {
                 requestManager.load(it)
                     .override(overrideSize)

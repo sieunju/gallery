@@ -16,6 +16,15 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@tools:sample/avatars" />
 
+    <View
+        android:id="@+id/vBorder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/ivThumb"
+        app:layout_constraintLeft_toLeftOf="@+id/ivThumb"
+        app:layout_constraintRight_toRightOf="@+id/ivThumb"
+        app:layout_constraintTop_toTopOf="@+id/ivThumb" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clRemove"
         android:layout_width="15dp"

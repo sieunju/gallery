@@ -2,6 +2,8 @@ package com.gallery.ui.internal
 
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.util.DisplayMetrics
 import android.util.TypedValue
@@ -64,4 +66,24 @@ internal fun Context.getDeviceWidth(): Int {
  */
 internal fun isAndOperatorTrue(value: Int, compare: Int): Boolean {
     return value and compare == compare
+}
+
+/**
+ * View SetBackground
+ * @param colorHexCode Color HexCode ex.) #0091EA
+ * @param corner Radius
+ */
+internal fun View.setCornerAndBgColor(
+    colorHexCode: String,
+    corner: Float,
+    appendPredicate: (GradientDrawable.() -> Unit)? = null
+) {
+    val drawable = GradientDrawable(
+        GradientDrawable.Orientation.BL_TR,
+        intArrayOf(Color.parseColor(colorHexCode), Color.parseColor(colorHexCode))
+    )
+    drawable.cornerRadius = corner
+    appendPredicate?.invoke(drawable)
+    background = drawable
+    clipToOutline = true
 }

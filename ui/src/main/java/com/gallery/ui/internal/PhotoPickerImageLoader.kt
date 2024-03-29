@@ -3,6 +3,7 @@ package com.gallery.ui.internal
 import android.graphics.Bitmap
 import androidx.collection.LruCache
 import com.gallery.core.GalleryProvider
+import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

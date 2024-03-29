@@ -2,7 +2,6 @@ package com.gallery.ui.internal
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
@@ -11,11 +10,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
+import timber.log.Timber
 
 
 /**
@@ -24,46 +22,9 @@ import com.gallery.ui.model.PhotoPicker
  * Created by juhongmin on 3/23/24
  */
 internal class PhotoPickerAdapter(
-    private val listener: Listener,
+    private val listener: PhotoPickerBridgeListener,
     private val provider: GalleryProvider
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
-
-    interface Listener {
-
-        fun getRequestManager(): RequestManager
-
-        /**
-         * 비동기 캐싱 처리함수
-         * @param item 캐싱할 아이템
-         */
-        fun asyncSaveCache(item: PhotoPicker)
-
-        /**
-         * 선택 사진
-         * @param pos 선택한 위치값
-         * @param item
-         */
-        fun addPicker(pos: Int, item: PhotoPicker)
-
-        /**
-         * 선택 해제 사진
-         * @param pos 선택한 위치값
-         * @param item
-         */
-        fun removePicker(pos: Int, item: PhotoPicker)
-    }
-
-    private val crossFadeFactory: DrawableCrossFadeFactory by lazy {
-        DrawableCrossFadeFactory
-            .Builder()
-            .setCrossFadeEnabled(true)
-            .build()
-    }
-
-    private val crossFadeTransition: DrawableTransitionOptions by lazy {
-        DrawableTransitionOptions
-            .withCrossFade(crossFadeFactory)
-    }
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
 
@@ -170,31 +131,18 @@ internal class PhotoPickerAdapter(
         private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
+        private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Photo? = null
 
         init {
-            vBgSelected.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(
-                    Color.parseColor("#0091EA"),
-                    Color.parseColor("#0091EA")
-                )
-            ).apply {
-                cornerRadius = 10F.dp
+            vBgNotSelected.setCornerAndBgColor("#80FFFFFF", 10F.dp) {
+                setStroke(1.dp, Color.parseColor("#4D5F5C56"))
             }
-            vBgSelected.clipToOutline = true
-            vBgNotSelected.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(
-                    Color.parseColor("#83FFFFFF"),
-                    Color.parseColor("#83FFFFFF")
-                )
-            ).apply {
-                cornerRadius = 10F.dp
-                setStroke(1.dp, Color.parseColor("#82222222"))
+            vBgSelected.setCornerAndBgColor("#0091EA", 10F.dp)
+            ivExpandContent.setCornerAndBgColor("#33222222", 2F.dp) {
+                setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
             }
-            vBgNotSelected.clipToOutline = true
 
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
@@ -203,6 +151,9 @@ internal class PhotoPickerAdapter(
                 } else {
                     listener.addPicker(bindingAdapterPosition, data)
                 }
+            }
+            itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).setOnClickListener {
+                Timber.d("ExpandContent Click!!")
             }
         }
 
@@ -270,29 +221,23 @@ internal class PhotoPickerAdapter(
 
         private val ivThumb: AppCompatImageView by lazy { itemView.findViewById(R.id.ivThumb) }
         private val vSelected: View by lazy { itemView.findViewById(R.id.vSelected) }
-        private val clSelectedNum: ConstraintLayout by lazy { itemView.findViewById(R.id.clSelectedNum) }
         private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
+        private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
         private val tvDuration: AppCompatTextView by lazy { itemView.findViewById(R.id.tvDuration) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Video? = null
 
         init {
-            clSelectedNum.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT)
-            ).apply {
-                cornerRadius = 10F.dp
+            vBgNotSelected.setCornerAndBgColor("#80FFFFFF", 10F.dp) {
+                setStroke(1.dp, Color.parseColor("#4D5F5C56"))
             }
-            clSelectedNum.clipToOutline = true
-            tvDuration.background = GradientDrawable(
-                GradientDrawable.Orientation.BL_TR,
-                intArrayOf(
-                    Color.parseColor("#4D000000"),
-                    Color.parseColor("#4D000000")
-                )
-            ).apply { cornerRadius = 5F.dp }
+            vBgSelected.setCornerAndBgColor("#0091EA", 10F.dp)
+            ivExpandContent.setCornerAndBgColor("#33222222", 2F.dp) {
+                setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
+            }
+            tvDuration.setCornerAndBgColor("#33222222", 5F.dp)
 
             ivThumb.setOnClickListener {
                 val data = this.data ?: return@setOnClickListener
@@ -301,6 +246,9 @@ internal class PhotoPickerAdapter(
                 } else {
                     listener.addPicker(bindingAdapterPosition, data)
                 }
+            }
+            itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).setOnClickListener {
+                Timber.d("ExpandContent Click!!")
             }
         }
 
@@ -349,11 +297,13 @@ internal class PhotoPickerAdapter(
             item: PhotoPicker.Video
         ) {
             if (item.isSelected) {
+                vSelected.changeVisible(true)
                 tvSelectNum.changeVisible(true)
                 vBgSelected.changeVisible(true)
                 vBgNotSelected.changeVisible(false)
                 tvSelectNum.text = item.selectedNum
             } else {
+                vSelected.changeVisible(false)
                 tvSelectNum.changeVisible(false)
                 vBgSelected.changeVisible(false)
                 vBgNotSelected.changeVisible(true)
