@@ -3,12 +3,16 @@ package com.gallery.ui.internal
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.View
 import android.view.WindowManager
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 
@@ -30,6 +34,10 @@ internal val crossFadeTransition: DrawableTransitionOptions by lazy {
                 .setCrossFadeEnabled(true)
                 .build()
         )
+}
+
+internal val placeHolder: ColorDrawable by lazy {
+    ColorDrawable(Color.parseColor("#eeeeee"))
 }
 
 internal val Int.dp: Int

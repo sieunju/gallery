@@ -97,4 +97,14 @@ sealed interface PhotoPicker {
                 return field
             }
     }
+
+    companion object {
+        fun GalleryData.toUi(): PhotoPicker {
+            return if (getField<Int>(MediaStore.MediaColumns.DURATION) == null) {
+                Photo(this)
+            } else {
+                Video(this)
+            }
+        }
+    }
 }

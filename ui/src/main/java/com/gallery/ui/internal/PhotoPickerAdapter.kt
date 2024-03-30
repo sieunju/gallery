@@ -1,7 +1,6 @@
 package com.gallery.ui.internal
 
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
@@ -10,7 +9,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.gallery.core.GalleryProvider
 import com.gallery.ui.R
 import com.gallery.ui.model.PhotoPicker
 import timber.log.Timber
@@ -22,11 +20,8 @@ import timber.log.Timber
  * Created by juhongmin on 3/23/24
  */
 internal class PhotoPickerAdapter(
-    private val listener: PhotoPickerBridgeListener,
-    private val provider: GalleryProvider
+    private val listener: PhotoPickerBridgeListener
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
-
-    private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
 
     private val requestManager: RequestManager by lazy { listener.getRequestManager() }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
@@ -179,18 +174,19 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
-            // TODO UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
             val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
-            if (bitmap != null) {
-                requestManager.load(bitmap)
+            if (bitmap == null) {
+                Timber.d("캐싱 안된 이미지 입니다. ${item.imagePath}")
+                requestManager.load(item.imagePath)
                     .placeholder(placeHolder)
+                    .transition(crossFadeTransition)
+                    .override(overrideSize)
                     .into(ivThumb)
             } else {
-                requestManager.load(provider.getPhotoThumbnail(item.id, overrideSize))
+                requestManager.load(bitmap)
                     .placeholder(placeHolder)
+                    .transition(crossFadeTransition)
                     .into(ivThumb)
-                listener.asyncSaveCache(item)
             }
         }
 
@@ -275,18 +271,19 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            // TODO 여기서 좀더 디테일 하게 캐싱되어 있지 않는 경우
-            // TODO UI Thread 로 가져오는게 아닌 다른 방법으로 처리 하면 좋을거 같음
             val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
-            if (bitmap != null) {
-                requestManager.load(bitmap)
+            if (bitmap == null) {
+                Timber.d("캐싱 안된 이미지 입니다. ${item.imagePath}")
+                requestManager.load(item.imagePath)
                     .placeholder(placeHolder)
+                    .transition(crossFadeTransition)
+                    .override(overrideSize)
                     .into(ivThumb)
             } else {
-                requestManager.load(provider.getVideoThumbnail(item.id, overrideSize))
+                requestManager.load(bitmap)
                     .placeholder(placeHolder)
+                    .transition(crossFadeTransition)
                     .into(ivThumb)
-                listener.asyncSaveCache(item)
             }
         }
 

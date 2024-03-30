@@ -23,7 +23,7 @@ data class GalleryQueryParameter(
     var filterId: String = "", // bucket id
     var pageNo: Int = 1,
     val pageSize: Int = 100,
-    val order: String = "${MediaStore.MediaColumns.DATE_TAKEN} DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC",
+    val order: String = "${MediaStore.MediaColumns._ID} DESC, ${MediaStore.MediaColumns.DATE_TAKEN} DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC",
     var isLast: Boolean = false
 ) {
 

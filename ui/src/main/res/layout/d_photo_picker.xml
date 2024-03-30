@@ -20,13 +20,15 @@
             app:layout_constraintLeft_toLeftOf="parent" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/llSelectFilter"
+            android:id="@+id/llSelectedAlbum"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:layout_constraintLeft_toRightOf="@+id/ivClose">
+            android:visibility="gone"
+            app:layout_constraintLeft_toRightOf="@+id/ivClose"
+            tools:visibility="visible">
 
             <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tvSelectFilter"
+                android:id="@+id/tvSelectedAlbum"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
@@ -37,6 +39,7 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:paddingTop="2dp"
                 android:src="@drawable/ic_vertical_arrow" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

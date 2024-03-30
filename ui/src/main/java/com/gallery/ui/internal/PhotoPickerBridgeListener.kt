@@ -2,6 +2,7 @@ package com.gallery.ui.internal
 
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.model.PhotoPicker
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Description : PhotoPicker 전용 Adapter 에 필요한 리스너
@@ -15,11 +16,7 @@ interface PhotoPickerBridgeListener {
      */
     fun getRequestManager(): RequestManager
 
-    /**
-     * 비동기 캐싱 처리함수
-     * @param item 캐싱할 아이템
-     */
-    fun asyncSaveCache(item: PhotoPicker)
+    fun getCoroutineScope(): CoroutineScope
 
     /**
      * 선택 사진

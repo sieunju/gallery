@@ -1,11 +1,16 @@
 package com.gallery.ui.internal
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import androidx.collection.LruCache
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.gallery.core.GalleryProvider
 import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Description : Glide 처리하지 않고 직접 이미지 캐싱 처리하는 클래스
@@ -32,23 +37,47 @@ internal object PhotoPickerImageLoader {
         this.provider = provider
     }
 
-    suspend fun savePhotoThumbnail(
-        id: Long,
-        key: String,
+    suspend fun saveThumbnail(
+        requestManager: RequestManager,
+        data: PhotoPicker,
         size: Int
-    ) {
-        withContext(Dispatchers.IO) {
-            cache.put(key, provider.getPhotoThumbnail(id, size))
-        }
-    }
+    ): PhotoPicker {
+        if (data is PhotoPicker.Camera) return data
+        return withContext(Dispatchers.IO) {
+            try {
+                if (data is PhotoPicker.Photo) {
+                    cache.put(data.imagePath, provider.getPhotoThumbnail(data.id, size))
+                } else if (data is PhotoPicker.Video) {
+                    cache.put(data.imagePath, provider.getVideoThumbnail(data.id, size))
+                }
+                return@withContext data
+            } catch (ex: Exception) {
+                Timber.d("SaveThumbnail Error $ex")
+                // Failed to create thumbnail
+                val imagePath = when (data) {
+                    is PhotoPicker.Photo -> data.imagePath
+                    is PhotoPicker.Video -> data.imagePath
+                    else -> null
+                }
+                requestManager
+                    .asBitmap()
+                    .load(imagePath)
+                    .into(object : CustomTarget<Bitmap>(size, size) {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?
+                        ) {
+                            if (imagePath != null) {
+                                cache.put(imagePath, resource)
+                            }
+                        }
 
-    suspend fun saveVideoThumbnail(
-        id: Long,
-        key: String,
-        size: Int
-    ) {
-        withContext(Dispatchers.IO) {
-            cache.put(key, provider.getVideoThumbnail(id, size))
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                        }
+                    })
+
+                return@withContext data
+            }
         }
     }
 
