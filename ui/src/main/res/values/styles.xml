@@ -6,4 +6,8 @@
         <item name="android:colorEdgeEffect">#FFF</item>
     </style>
 
+    <style name="SelectionAlbumBottomSheet" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="android:background">@drawable/bg_selection_album</item>
+    </style>
+
 </resources>

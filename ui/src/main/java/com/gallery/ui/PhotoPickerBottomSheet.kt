@@ -49,13 +49,16 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Description : PhotoPicker BottomSheet
  *
  * Created by juhongmin on 3/21/24
  */
-class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeListener {
+class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
+    PhotoPickerBridgeListener,
+    SelectionAlbumBottomSheet.Listener {
 
     // [s] Core
     // CoreModule 의존성을 끊기 위해 ui 모듈 내에서 필요한 부분만 처리하도록 변경 예정
@@ -98,6 +101,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
     private var rvSelected: RecyclerView? = null
     private var llSelectedAlbum: LinearLayoutCompat? = null
     private var tvSelectedAlbum: AppCompatTextView? = null
+    private var llSubmit: LinearLayoutCompat? = null
+    private var tvSelectCount: AppCompatTextView? = null
     // [e] View
 
     // [s] Config
@@ -210,6 +215,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
         selectedAdapter.submitList(selectedList)
         rvSelected?.scrollToPosition(selectedAdapter.itemCount.minus(1))
         reSortNumber()
+        bindSelectCount()
         notifySelectionItem(selectedList)
         if (selectedList.size == 1) {
             lifecycleScope.launch {
@@ -228,12 +234,16 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
         selectedList.remove(item)
         selectedAdapter.submitList(selectedList)
         reSortNumber()
+        bindSelectCount()
         notifySelectionItem(selectedList + listOf(item))
         if (selectedList.isEmpty()) {
             handleSelectedPickerAni(pos)
         }
     }
 
+    override fun onSelectedAlbum(album: PickerAlbum) {
+        Timber.d("onSelectedAlbum $album")
+    }
 
     /**
      * init Main Contents
@@ -290,6 +300,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
             } else if (picker is PhotoPicker.Video) {
                 picker.selectedNum = "${index.plus(1)}"
             }
+        }
+    }
+
+    private fun bindSelectCount() {
+        if (selectedList.isNotEmpty()) {
+            llSubmit?.changeVisible(true)
+            tvSelectCount?.text = "${selectedList.size}"
+        } else {
+            llSubmit?.changeVisible(false)
         }
     }
 
@@ -503,6 +522,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
         initSelectedContents(view)
         llSelectedAlbum = view.findViewById(R.id.llSelectedAlbum)
         tvSelectedAlbum = view.findViewById(R.id.tvSelectedAlbum)
+        llSubmit = view.findViewById(R.id.llSubmit)
+        tvSelectCount = view.findViewById(R.id.tvSelectCount)
         view.findViewById<AppCompatImageView>(R.id.ivClose).setOnClickListener {
             dismiss()
         }
@@ -510,6 +531,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
             cancelListener = null
             submitListener?.callback()
             dismiss()
+        }
+        view.findViewById<LinearLayoutCompat>(R.id.llSelectedAlbum).setOnClickListener {
+            showSelectionAlbum()
         }
     }
 
@@ -548,5 +572,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(), PhotoPickerBridgeLis
         } catch (ex: Exception) {
             null
         }
+    }
+
+    private fun showSelectionAlbum() {
+        SelectionAlbumBottomSheet()
+            .setData(albumList)
+            .setSelectedItem(selectedAlbum)
+            .setListener(this)
+            .simpleShow(childFragmentManager)
     }
 }
