@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.ui.internal.BasePickerViewHolder
 import com.gallery.ui.model.PickerAlbum
@@ -25,6 +26,9 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
     private val dataList: MutableList<PickerAlbum> by lazy { mutableListOf() }
     private var selectedAlbum: PickerAlbum? = null
     private var listener: Listener? = null
+
+    // [s] View
+    private var rvContents: RecyclerView? = null
 
     fun setSelectedItem(item: PickerAlbum?) : SelectionAlbumBottomSheet {
         selectedAlbum = item
@@ -55,6 +59,19 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.d_selection_album, container)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView(view)
+    }
+
+    private fun initView(
+        view:View
+    ) {
+        rvContents = view.findViewById<RecyclerView?>(R.id.rvContents).apply {
+            layoutManager = LinearLayoutManager(context)
+        }
+    }
+
     /**
      * BottomSheet Show
      * @param fm FragmentManager
@@ -65,20 +82,6 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
             if (!isAdded) {
                 super.show(fm, "PhotoPickerBottomSheet")
             }
-        }
-    }
-
-    inner class Adapter : RecyclerView.Adapter<BasePickerViewHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BasePickerViewHolder {
-            TODO("Not yet implemented")
-        }
-
-        override fun onBindViewHolder(holder: BasePickerViewHolder, position: Int) {
-            TODO("Not yet implemented")
-        }
-
-        override fun getItemCount(): Int {
-            TODO("Not yet implemented")
         }
     }
 }

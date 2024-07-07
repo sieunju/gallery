@@ -445,6 +445,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         cursor: Cursor?,
         params: GalleryQueryParameter
     ): List<PhotoPicker> {
+        // TODO Cursor 에서 가져온다음에 섬네일 가져오는 로직 최적화로 처리할 방안 생각해볼것
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
@@ -492,7 +493,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private suspend fun reqAlbumList(): List<PickerAlbum> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
-                coreProvider.fetchDirectories().map { PickerAlbum(it) }
+                coreProvider.fetchDirectories().map { PickerAlbum.Normal(it) }
             } catch (ex: Exception) {
                 listOf()
             }

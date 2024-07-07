@@ -6,8 +6,16 @@
         <item name="android:colorEdgeEffect">#FFF</item>
     </style>
 
-    <style name="SelectionAlbumBottomSheet" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+    <style name="SelectionAlbumBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="behavior_peekHeight">400dp</item>
         <item name="android:background">@drawable/bg_selection_album</item>
+    </style>
+
+    <style name="SelectionAlbumBottomSheet" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="bottomSheetStyle">@style/SelectionAlbumBottomSheetStyle</item>
+        <item name="colorAccent">#000</item>
+        <item name="android:colorEdgeEffect">#FFF</item>
     </style>
 
 </resources>
