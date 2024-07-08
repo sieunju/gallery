@@ -2,10 +2,10 @@ package com.gallery.ui.internal
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.ui.R
 import com.gallery.ui.SelectionAlbumBottomSheet
-import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PickerAlbum
 
 /**
@@ -14,10 +14,9 @@ import com.gallery.ui.model.PickerAlbum
  * Created by juhongmin on 4/11/24
  */
 internal class SelectionAlbumAdapter(
-    private val listener: SelectionAlbumBottomSheet.Listener
+    private val bottomSheet: SelectionAlbumBottomSheet,
+    private val dataList: List<PickerAlbum>
 ) : RecyclerView.Adapter<SelectionAlbumAdapter.ViewHolder>() {
-
-    private val dataList: MutableList<PickerAlbum> by lazy { mutableListOf() }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -38,11 +37,22 @@ internal class SelectionAlbumAdapter(
         parent: ViewGroup
     ) : RecyclerView.ViewHolder(
         LayoutInflater.from(parent.context)
-            .inflate(R.layout.vh_child_selection_album,parent,false)
+            .inflate(R.layout.vh_child_selection_album, parent, false)
     ) {
 
-        fun onBindView(item: PickerAlbum) {
+        private val tvTitle: AppCompatTextView by lazy { itemView.findViewById(R.id.tvTitle) }
+        private var model: PickerAlbum? = null
 
+        init {
+            tvTitle.setOnClickListener {
+                val model = model ?: return@setOnClickListener
+                bottomSheet.onSelectedAlbum(model)
+            }
+        }
+
+        fun onBindView(item: PickerAlbum) {
+            model = item
+            tvTitle.text = item.getTitle()
         }
     }
 }

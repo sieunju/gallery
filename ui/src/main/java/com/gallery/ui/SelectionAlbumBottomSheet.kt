@@ -8,7 +8,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.gallery.ui.internal.BasePickerViewHolder
+import com.gallery.ui.internal.SelectionAlbumAdapter
 import com.gallery.ui.model.PickerAlbum
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -29,8 +29,10 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
 
     // [s] View
     private var rvContents: RecyclerView? = null
+    private val adapter: SelectionAlbumAdapter by lazy { SelectionAlbumAdapter(this, dataList) }
+    // [e] View
 
-    fun setSelectedItem(item: PickerAlbum?) : SelectionAlbumBottomSheet {
+    fun setSelectedItem(item: PickerAlbum?): SelectionAlbumBottomSheet {
         selectedAlbum = item
         return this
     }
@@ -65,10 +67,18 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initView(
-        view:View
+        view: View
     ) {
-        rvContents = view.findViewById<RecyclerView?>(R.id.rvContents).apply {
+        rvContents = view.findViewById<RecyclerView>(R.id.rvContents).apply {
             layoutManager = LinearLayoutManager(context)
+            adapter = this@SelectionAlbumBottomSheet.adapter
+        }
+    }
+
+    fun onSelectedAlbum(model: PickerAlbum) {
+        if (selectedAlbum != model) {
+            listener?.onSelectedAlbum(model)
+            dismiss()
         }
     }
 

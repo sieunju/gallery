@@ -243,6 +243,16 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     override fun onSelectedAlbum(album: PickerAlbum) {
         Timber.d("onSelectedAlbum $album")
+        when(album) {
+            is PickerAlbum.Normal -> {
+                photoQueryParams.initParams()
+                videoQueryParams.initParams()
+            }
+            is PickerAlbum.OtherApp -> {
+                // 다른 앱 연결
+            }
+        }
+
     }
 
     /**
@@ -389,6 +399,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     ) {
         this.albumList.clear()
         this.albumList.addAll(albumList)
+        this.albumList.add(PickerAlbum.OtherApp)
         this.dataList.clear()
         this.dataList.add(PhotoPicker.Camera)
         this.dataList.addAll(photoList)
