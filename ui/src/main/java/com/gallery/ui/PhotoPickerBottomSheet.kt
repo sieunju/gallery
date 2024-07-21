@@ -44,9 +44,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -243,16 +240,22 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     override fun onSelectedAlbum(album: PickerAlbum) {
         Timber.d("onSelectedAlbum $album")
-        when(album) {
+        when (album) {
             is PickerAlbum.Normal -> {
                 photoQueryParams.initParams()
+                photoQueryParams.filterId = album.id
+                photoCursor = coreProvider.fetchCursor(photoQueryParams)
                 videoQueryParams.initParams()
+                videoQueryParams.filterId = album.id
+                videoCursor = coreProvider.fetchCursor(videoQueryParams)
+                bindCurrentAlbum(album)
+                fetchAlbumPhotos()
             }
+
             is PickerAlbum.OtherApp -> {
                 // 다른 앱 연결
             }
         }
-
     }
 
     /**
@@ -295,7 +298,11 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         parentView: View
     ) {
         rvSelected = parentView.findViewById<RecyclerView>(R.id.rvSelected).apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
             adapter = selectedAdapter
         }
     }
@@ -316,7 +323,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private fun bindSelectCount() {
         if (selectedList.isNotEmpty()) {
             llSubmit?.changeVisible(true)
-            tvSelectCount?.text = "${selectedList.size}"
+            tvSelectCount?.text = selectedList.size.toString()
         } else {
             llSubmit?.changeVisible(false)
         }
@@ -374,39 +381,31 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
     }
 
+    private fun fetchAllAlbums() {
+        lifecycleScope.launch {
+            albumList.clear()
+            albumList.addAll(reqAlbumList())
+            albumList.getOrNull(0)?.let { bindCurrentAlbum(it) }
+        }
+    }
+
+    private fun fetchAlbumPhotos() {
+        lifecycleScope.launch {
+            isLoading = true
+            dataList.clear()
+            dataList.addAll(reqGalleryList())
+            photoAdapter.submitList(dataList)
+            isLoading = false
+        }
+    }
+
     /**
      * init Data Start
      */
     private fun initData() {
         // TODO Permissions Check
-        isLoading = true
-        val directoryJob = flow { emit(reqAlbumList()) }
-        val galleryJob = flow { emit(reqGalleryList()) }
-        directoryJob.combine(galleryJob) { directoryList, galleryList ->
-            handleInitSuccess(directoryList, galleryList)
-        }.launchIn(lifecycleScope)
-    }
-
-    /**
-     * Handle Init Data Response Success
-     *
-     * @param albumList Album List
-     * @param photoList PhotoList
-     */
-    private fun handleInitSuccess(
-        albumList: List<PickerAlbum>,
-        photoList: List<PhotoPicker>
-    ) {
-        this.albumList.clear()
-        this.albumList.addAll(albumList)
-        this.albumList.add(PickerAlbum.OtherApp)
-        this.dataList.clear()
-        this.dataList.add(PhotoPicker.Camera)
-        this.dataList.addAll(photoList)
-        photoAdapter.submitList(this.dataList)
-        isLoading = false
-
-        albumList.getOrNull(0)?.let { bindCurrentAlbum(it) }
+        fetchAllAlbums()
+        fetchAlbumPhotos()
     }
 
     /**
@@ -504,7 +503,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private suspend fun reqAlbumList(): List<PickerAlbum> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
-                coreProvider.fetchDirectories().map { PickerAlbum.Normal(it) }
+                coreProvider.fetchDirectories()
+                    .map { PickerAlbum.Normal(it) }
+                    .plus(PickerAlbum.OtherApp)
             } catch (ex: Exception) {
                 listOf()
             }
