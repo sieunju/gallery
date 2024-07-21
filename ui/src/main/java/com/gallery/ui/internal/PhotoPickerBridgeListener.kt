@@ -31,4 +31,10 @@ interface PhotoPickerBridgeListener {
      * @param item
      */
     fun removePicker(pos: Int, item: PhotoPicker)
+
+    /**
+     * 이전에 선택한 사진인지 체크하여 값을 변경처리하는 함수
+     * @param item 비교하고자 하는 사진
+     */
+    fun setSelectedGallery(item: PhotoPicker)
 }

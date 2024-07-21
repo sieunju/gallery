@@ -196,6 +196,7 @@ internal class PhotoPickerAdapter(
         private fun bindSelectionNum(
             item: PhotoPicker.Photo
         ) {
+            listener.setSelectedGallery(item)
             if (item.isSelected) {
                 vSelected.changeVisible(true)
                 tvSelectNum.changeVisible(true)
@@ -293,6 +294,7 @@ internal class PhotoPickerAdapter(
         private fun bindSelectionNum(
             item: PhotoPicker.Video
         ) {
+            listener.setSelectedGallery(item)
             if (item.isSelected) {
                 vSelected.changeVisible(true)
                 tvSelectNum.changeVisible(true)

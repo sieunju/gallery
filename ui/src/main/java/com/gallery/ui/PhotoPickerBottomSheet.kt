@@ -238,6 +238,25 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
     }
 
+    override fun setSelectedGallery(item: PhotoPicker) {
+        val findItem = selectedList.find {
+            if (it is PhotoPicker.Photo && item is PhotoPicker.Photo) {
+                it.id == item.id
+            } else if (it is PhotoPicker.Video && item is PhotoPicker.Video) {
+                it.id == item.id
+            } else {
+                false
+            }
+        } ?: return
+        if (findItem is PhotoPicker.Photo && item is PhotoPicker.Photo) {
+            item.isSelected = findItem.isSelected
+            item.selectedNum = findItem.selectedNum
+        } else if (findItem is PhotoPicker.Video && item is PhotoPicker.Video) {
+            item.isSelected = findItem.isSelected
+            item.selectedNum = findItem.selectedNum
+        }
+    }
+
     override fun onSelectedAlbum(album: PickerAlbum) {
         Timber.d("onSelectedAlbum $album")
         when (album) {
