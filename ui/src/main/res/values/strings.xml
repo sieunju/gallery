@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="txt_send">전송</string>
+    <string name="txt_other_app_gallery">작업선택</string>
 </resources>

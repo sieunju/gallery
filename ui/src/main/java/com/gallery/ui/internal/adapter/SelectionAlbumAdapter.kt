@@ -1,4 +1,4 @@
-package com.gallery.ui.internal
+package com.gallery.ui.internal.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

@@ -2,6 +2,7 @@ package com.gallery.ui
 
 import android.animation.ObjectAnimator
 import android.content.DialogInterface
+import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.provider.MediaStore
@@ -28,10 +29,11 @@ import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
-import com.gallery.ui.internal.PhotoPickerAdapter
-import com.gallery.ui.internal.PhotoPickerBridgeListener
+import com.gallery.ui.internal.adapter.PhotoPickerAdapter
+import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.PhotoPickerImageLoader
-import com.gallery.ui.internal.SelectedPhotoPickerAdapter
+import com.gallery.ui.internal.activity.InternalOtherGalleryActivity
+import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
@@ -189,6 +191,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         dialog?.setOnDismissListener { dismiss() }
     }
 
+
+
     override fun dismiss() {
         cancelListener?.callback()
         super.dismiss()
@@ -273,6 +277,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
             is PickerAlbum.OtherApp -> {
                 // 다른 앱 연결
+                Intent(context,InternalOtherGalleryActivity::class.java).apply {
+                    startActivity(this)
+                }
             }
         }
     }

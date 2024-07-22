@@ -1,4 +1,4 @@
-package com.gallery.ui.internal
+package com.gallery.ui.internal.adapter
 
 import android.graphics.Color
 import android.view.View
@@ -10,6 +10,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
+import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
+import com.gallery.ui.internal.PhotoPickerImageLoader
+import com.gallery.ui.internal.changeVisible
+import com.gallery.ui.internal.crossFadeTransition
+import com.gallery.ui.internal.dp
+import com.gallery.ui.internal.getDeviceWidth
+import com.gallery.ui.internal.placeHolder
+import com.gallery.ui.internal.setCornerAndBgColor
+import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
 import timber.log.Timber
 

@@ -1,4 +1,4 @@
-package com.gallery.ui.internal
+package com.gallery.ui.internal.listener
 
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.model.PhotoPicker
