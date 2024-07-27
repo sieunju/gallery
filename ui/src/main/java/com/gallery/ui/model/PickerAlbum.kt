@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
-import com.gallery.core.model.GalleryFilterData
 import java.text.DecimalFormat
 
 /**

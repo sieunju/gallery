@@ -30,19 +30,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.gallery.core.Factory
-import com.gallery.core.GalleryProvider
-import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
 import com.gallery.ui.internal.PhotoPickerImageLoader
 import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
+import com.gallery.ui.internal.core.GalleryParams
+import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.model.PhotoPicker
-import com.gallery.ui.model.PhotoPicker.Companion.toUi
 import com.gallery.ui.model.PickerAlbum
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -65,26 +63,18 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     // [s] Core
     // CoreModule 의존성을 끊기 위해 ui 모듈 내에서 필요한 부분만 처리하도록 변경 예정
-    private val coreProvider: GalleryProvider by lazy { Factory.create(requireContext()) }
+    private val coreProvider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
     private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
     private var photoCursor: Cursor? = null
-    private val photoQueryParams: GalleryQueryParameter by lazy {
-        GalleryQueryParameter(
-            pageSize = 30
-        ).apply {
-            addColumns(MediaColumns.DATE_ADDED)
-        }
-    }
+    private val photoQueryParams: GalleryParams by lazy { GalleryParams() }
     private var videoCursor: Cursor? = null
-    private val videoQueryParams: GalleryQueryParameter by lazy {
-        GalleryQueryParameter(
-            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            pageSize = 30
+    private val videoQueryParams: GalleryParams by lazy {
+        GalleryParams(
+            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).apply {
             addColumns(MediaColumns.DURATION)
-            addColumns(MediaColumns.DATE_ADDED)
         }
     }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
@@ -97,6 +87,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         SelectedPhotoPickerAdapter(this)
     }
     private lateinit var otherGalleryLauncher: ActivityResultLauncher<Intent>
+    private lateinit var permissionListener: ActivityResultLauncher<Array<String>>
     // [e] Core
 
     // [s] View
@@ -170,8 +161,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PhotoPickerBottomSheet)
-        photoCursor = coreProvider.fetchCursor(photoQueryParams)
-        videoCursor = coreProvider.fetchCursor(videoQueryParams)
+        photoCursor = coreProvider.retrieveCursor(photoQueryParams)
+        videoCursor = coreProvider.retrieveCursor(videoQueryParams)
         otherGalleryLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -180,6 +171,11 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                 submitListener?.callback(listOf(uri.toString()))
                 dismiss()
             }
+        }
+        permissionListener = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { result ->
+            Timber.d("Result ${result}")
         }
     }
 
@@ -279,10 +275,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             is PickerAlbum.Normal -> {
                 photoQueryParams.initParams()
                 photoQueryParams.filterId = album.id
-                photoCursor = coreProvider.fetchCursor(photoQueryParams)
+                photoCursor = coreProvider.retrieveCursor(photoQueryParams)
                 videoQueryParams.initParams()
                 videoQueryParams.filterId = album.id
-                videoCursor = coreProvider.fetchCursor(videoQueryParams)
+                videoCursor = coreProvider.retrieveCursor(videoQueryParams)
                 bindCurrentAlbum(album)
                 fetchAlbumPhotos()
             }
@@ -488,16 +484,16 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
      */
     private suspend fun reqPhotoList(
         cursor: Cursor?,
-        params: GalleryQueryParameter
+        params: GalleryParams
     ): List<PhotoPicker> {
         // TODO Cursor 에서 가져온다음에 섬네일 가져오는 로직 최적화로 처리할 방안 생각해볼것
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
-                coreProvider.fetchList(cursor, params).map {
+                coreProvider.retrieveList(cursor, params).onEach {
                     PhotoPickerImageLoader.saveThumbnail(
                         getRequestManager(),
-                        it.toUi(),
+                        it,
                         overrideSize
                     )
                 }
@@ -514,15 +510,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
      */
     private suspend fun reqVideoList(
         cursor: Cursor?,
-        params: GalleryQueryParameter
+        params: GalleryParams
     ): List<PhotoPicker> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 if (cursor == null) throw NullPointerException("Cursor is Null")
-                coreProvider.fetchList(cursor, params).map {
+                coreProvider.retrieveList(cursor, params).onEach {
                     PhotoPickerImageLoader.saveThumbnail(
                         getRequestManager(),
-                        it.toUi(),
+                        it,
                         overrideSize
                     )
                 }
@@ -538,7 +534,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private suspend fun reqAlbumList(): List<PickerAlbum> {
         return withContext(Dispatchers.IO) {
             return@withContext try {
-                coreProvider.fetchDirectories()
+                coreProvider.retrieveDirectories()
                     .map { PickerAlbum.Normal(it) }
                     .plus(PickerAlbum.OtherApp)
             } catch (ex: Exception) {
@@ -578,7 +574,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
             cancelListener = null
             val contentUris = selectedList.mapNotNull {
-                when(it) {
+                when (it) {
                     is PhotoPicker.Photo -> it.contentUri
                     is PhotoPicker.Video -> it.contentUri
                     else -> null

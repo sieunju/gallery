@@ -3,4 +3,5 @@
     <string name="txt_send">submit</string>
     <string name="txt_other_app_gallery">Select a Action</string>
     <string name="txt_other_app">Using a different app</string>
+    <string name="txt_album_all">All</string>
 </resources>

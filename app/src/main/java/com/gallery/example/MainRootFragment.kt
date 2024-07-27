@@ -45,6 +45,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
+                .setMaxCount(4)
                 .setSubmitListener {
                     Timber.d("Selected $it")
                 }
@@ -52,21 +53,21 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
                 .simpleShow(childFragmentManager)
         }
 
-        val permissions = mutableListOf<String>()
-        permissions.add(Manifest.permission.CAMERA)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
-            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
-            permissions.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
-            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
-        } else {
-            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        SPermission(this)
-            .addPermissions(permissions)
-            .build { b, map -> }
+//        val permissions = mutableListOf<String>()
+//        permissions.add(Manifest.permission.CAMERA)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+//            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+//            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+//            permissions.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+//        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+//            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+//        } else {
+//            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        }
+//        SPermission(this)
+//            .addPermissions(permissions)
+//            .build { b, map -> }
     }
 
     private fun initThumb(view: View) {

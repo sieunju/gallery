@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    // implementation(project(":core"))
 
     /**
      * Android X

@@ -6,7 +6,7 @@ import androidx.collection.LruCache
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.gallery.core.GalleryProvider
+import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

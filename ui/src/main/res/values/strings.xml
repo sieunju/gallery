@@ -3,4 +3,5 @@
     <string name="txt_send">전송</string>
     <string name="txt_other_app_gallery">작업선택</string>
     <string name="txt_other_app">다른 앱 사용하기</string>
+    <string name="txt_album_all">전체보기</string>
 </resources>

@@ -1,7 +1,8 @@
 package com.gallery.ui.model
 
+import android.database.Cursor
+import android.net.Uri
 import android.provider.MediaStore
-import com.gallery.core.model.GalleryData
 import java.util.Locale
 
 /**
@@ -31,14 +32,15 @@ sealed interface PhotoPicker {
     ) : PhotoPicker {
 
         constructor(
-            data: GalleryData
+            cursor: Cursor
         ) : this(
-            id = data.id,
-            contentUri = data.uri.toString(),
-            isSelected = false,
-            selectedNum = "1",
-            albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
-            dateTaken = data.getField(MediaStore.MediaColumns.DATE_TAKEN) ?: -1
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)),
+            contentUri = Uri.withAppendedPath(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+            ).toString(),
+            albumName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)),
+            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED))
         )
     }
 
@@ -62,15 +64,16 @@ sealed interface PhotoPicker {
     ) : PhotoPicker {
 
         constructor(
-            data: GalleryData
+            cursor: Cursor
         ) : this(
-            id = data.id,
-            contentUri = data.uri.toString(),
-            isSelected = false,
-            selectedNum = "1",
-            albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
-            duration = data.getField(MediaStore.MediaColumns.DURATION) ?: -1,
-            dateTaken = data.getField(MediaStore.MediaColumns.DATE_TAKEN) ?: -1
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)),
+            contentUri = Uri.withAppendedPath(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+            ).toString(),
+            albumName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)),
+            duration = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
+            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED))
         )
 
         var durationText: String? = null
@@ -100,15 +103,5 @@ sealed interface PhotoPicker {
                 }
                 return field
             }
-    }
-
-    companion object {
-        fun GalleryData.toUi(): PhotoPicker {
-            return if (getField<Int>(MediaStore.MediaColumns.DURATION) == null) {
-                Photo(this)
-            } else {
-                Video(this)
-            }
-        }
     }
 }
