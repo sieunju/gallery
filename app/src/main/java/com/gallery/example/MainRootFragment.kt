@@ -45,6 +45,9 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
+                .setSubmitListener {
+                    Timber.d("Selected $it")
+                }
                 .setCancelListener { Timber.d("Cancel") }
                 .simpleShow(childFragmentManager)
         }

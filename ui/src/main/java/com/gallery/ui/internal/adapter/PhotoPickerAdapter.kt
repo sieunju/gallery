@@ -102,9 +102,9 @@ internal class PhotoPickerAdapter(
             val oldItem = oldList[oldPosition]
             val newItem = newList[newPosition]
             return if (oldItem is PhotoPicker.Photo && newItem is PhotoPicker.Photo) {
-                oldItem.imagePath == newItem.imagePath
+                oldItem.contentUri == newItem.contentUri
             } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
-                oldItem.imagePath == newItem.imagePath
+                oldItem.contentUri == newItem.contentUri
             } else oldItem is PhotoPicker.Camera && newItem is PhotoPicker.Camera
         }
 
@@ -183,10 +183,10 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
+            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
-                Timber.d("캐싱 안된 이미지 입니다. ${item.imagePath}")
-                requestManager.load(item.imagePath)
+                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
+                requestManager.load(item.contentUri)
                     .placeholder(placeHolder)
                     .transition(crossFadeTransition)
                     .override(overrideSize)
@@ -281,10 +281,10 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.imagePath)
+            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
-                Timber.d("캐싱 안된 이미지 입니다. ${item.imagePath}")
-                requestManager.load(item.imagePath)
+                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
+                requestManager.load(item.contentUri)
                     .placeholder(placeHolder)
                     .transition(crossFadeTransition)
                     .override(overrideSize)

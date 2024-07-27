@@ -46,17 +46,17 @@ internal object PhotoPickerImageLoader {
         return withContext(Dispatchers.IO) {
             try {
                 if (data is PhotoPicker.Photo) {
-                    cache.put(data.imagePath, provider.getPhotoThumbnail(data.id, size))
+                    cache.put(data.contentUri, provider.getPhotoThumbnail(data.id, size))
                 } else if (data is PhotoPicker.Video) {
-                    cache.put(data.imagePath, provider.getVideoThumbnail(data.id, size))
+                    cache.put(data.contentUri, provider.getVideoThumbnail(data.id, size))
                 }
                 return@withContext data
             } catch (ex: Exception) {
                 Timber.d("SaveThumbnail Error $ex")
                 // Failed to create thumbnail
                 val imagePath = when (data) {
-                    is PhotoPicker.Photo -> data.imagePath
-                    is PhotoPicker.Video -> data.imagePath
+                    is PhotoPicker.Photo -> data.contentUri
+                    is PhotoPicker.Video -> data.contentUri
                     else -> null
                 }
                 requestManager

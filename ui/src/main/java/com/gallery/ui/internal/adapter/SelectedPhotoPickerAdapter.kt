@@ -84,9 +84,9 @@ internal class SelectedPhotoPickerAdapter(
             val oldItem = oldList[oldPosition]
             val newItem = newList[newPosition]
             return if (oldItem is PhotoPicker.Photo && newItem is PhotoPicker.Photo) {
-                oldItem.imagePath == newItem.imagePath
+                oldItem.contentUri == newItem.contentUri
             } else if (oldItem is PhotoPicker.Video && newItem is PhotoPicker.Video) {
-                oldItem.imagePath == newItem.imagePath
+                oldItem.contentUri == newItem.contentUri
             } else false
         }
 
@@ -129,7 +129,7 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            PhotoPickerImageLoader.getCacheBitmap(item.imagePath)?.let {
+            PhotoPickerImageLoader.getCacheBitmap(item.contentUri)?.let {
                 requestManager.load(it)
                     .override(overrideSize)
                     .placeholder(placeHolder)
@@ -166,7 +166,7 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            PhotoPickerImageLoader.getCacheBitmap(item.imagePath)?.let {
+            PhotoPickerImageLoader.getCacheBitmap(item.contentUri)?.let {
                 requestManager.load(it)
                     .override(overrideSize)
                     .placeholder(placeHolder)

@@ -1,11 +1,14 @@
 package com.gallery.ui.internal.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.ui.R
 import com.gallery.ui.SelectionAlbumBottomSheet
+import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.model.PickerAlbum
 
 /**
@@ -41,6 +44,8 @@ internal class SelectionAlbumAdapter(
     ) {
 
         private val tvTitle: AppCompatTextView by lazy { itemView.findViewById(R.id.tvTitle) }
+        private val vLine: View by lazy { itemView.findViewById(R.id.vLine) }
+        private val ivOtherApp: AppCompatImageView by lazy { itemView.findViewById(R.id.ivOtherApp) }
         private var model: PickerAlbum? = null
 
         init {
@@ -52,7 +57,15 @@ internal class SelectionAlbumAdapter(
 
         fun onBindView(item: PickerAlbum) {
             model = item
-            tvTitle.text = item.getTitle()
+            if (item is PickerAlbum.OtherApp) {
+                vLine.changeVisible(true)
+                ivOtherApp.changeVisible(true)
+                tvTitle.text = itemView.context.getString(R.string.txt_other_app)
+            } else {
+                vLine.changeVisible(false)
+                ivOtherApp.changeVisible(false)
+                tvTitle.text = item.getTitle()
+            }
         }
     }
 }

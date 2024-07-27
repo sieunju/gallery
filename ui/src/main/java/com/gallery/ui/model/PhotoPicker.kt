@@ -2,6 +2,7 @@ package com.gallery.ui.model
 
 import android.provider.MediaStore
 import com.gallery.core.model.GalleryData
+import java.util.Locale
 
 /**
  * Description : PhotoPicker 전용 클래스
@@ -14,7 +15,7 @@ sealed interface PhotoPicker {
 
     /**
      * Photo Data Model
-     * @param imagePath Photo Image Url
+     * @param contentUri Photo Image Url
      * @param isSelected Selected
      * @param selectedNum Selected Number
      * @param albumName Album Name
@@ -22,7 +23,7 @@ sealed interface PhotoPicker {
      */
     data class Photo(
         val id: Long,
-        val imagePath: String,
+        val contentUri: String,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
         val albumName: String,
@@ -33,7 +34,7 @@ sealed interface PhotoPicker {
             data: GalleryData
         ) : this(
             id = data.id,
-            imagePath = data.uri.toString(),
+            contentUri = data.uri.toString(),
             isSelected = false,
             selectedNum = "1",
             albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
@@ -43,7 +44,7 @@ sealed interface PhotoPicker {
 
     /**
      * Video Data Model
-     * @param imagePath Photo Image Url
+     * @param contentUri Video Content Url
      * @param isSelected Selected
      * @param selectedNum Selected Number
      * @param albumName Album Name
@@ -52,7 +53,7 @@ sealed interface PhotoPicker {
      */
     data class Video(
         val id: Long,
-        val imagePath: String,
+        val contentUri: String,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
         val albumName: String,
@@ -64,7 +65,7 @@ sealed interface PhotoPicker {
             data: GalleryData
         ) : this(
             id = data.id,
-            imagePath = data.uri.toString(),
+            contentUri = data.uri.toString(),
             isSelected = false,
             selectedNum = "1",
             albumName = data.getField(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME) ?: "",
@@ -83,14 +84,17 @@ sealed interface PhotoPicker {
                     val min = remainSec / 60
                     field = if (hour > 0) {
                         StringBuilder()
-                            .append(String.format("%02d", hour)).append(":")
-                            .append(String.format("%02d", min)).append(":")
-                            .append(String.format("%02d", remainSec))
+                            .append(String.format(Locale.getDefault(), "%02d", hour))
+                            .append(":")
+                            .append(String.format(Locale.getDefault(), "%02d", min))
+                            .append(":")
+                            .append(String.format(Locale.getDefault(), "%02d", remainSec))
                             .toString()
                     } else {
                         StringBuilder()
-                            .append(String.format("%02d", min)).append(":")
-                            .append(String.format("%02d", remainSec))
+                            .append(String.format(Locale.getDefault(), "%02d", min))
+                            .append(":")
+                            .append(String.format(Locale.getDefault(), "%02d", remainSec))
                             .toString()
                     }
                 }

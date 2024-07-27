@@ -1,8 +1,11 @@
 package com.gallery.ui
 
 import android.animation.ObjectAnimator
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.Intent.ACTION_GET_CONTENT
+import android.content.Intent.ACTION_PICK
 import android.database.Cursor
 import android.os.Bundle
 import android.provider.MediaStore
@@ -11,6 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
@@ -29,14 +34,13 @@ import com.gallery.core.Factory
 import com.gallery.core.GalleryProvider
 import com.gallery.core.model.GalleryQueryParameter
 import com.gallery.ui.internal.GridItemDecoration
-import com.gallery.ui.internal.adapter.PhotoPickerAdapter
-import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.PhotoPickerImageLoader
-import com.gallery.ui.internal.activity.InternalOtherGalleryActivity
+import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
+import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PhotoPicker.Companion.toUi
 import com.gallery.ui.model.PickerAlbum
@@ -92,6 +96,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
         SelectedPhotoPickerAdapter(this)
     }
+    private lateinit var otherGalleryLauncher: ActivityResultLauncher<Intent>
     // [e] Core
 
     // [s] View
@@ -111,7 +116,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     // [e] Config
 
     fun interface OnSubmitListener {
-        fun callback()
+        fun callback(selectedList: List<String>)
     }
 
     fun interface OnCancelListener {
@@ -167,6 +172,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PhotoPickerBottomSheet)
         photoCursor = coreProvider.fetchCursor(photoQueryParams)
         videoCursor = coreProvider.fetchCursor(videoQueryParams)
+        otherGalleryLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val uri = result.data?.data
+            if (result.resultCode == Activity.RESULT_OK && uri != null) {
+                submitListener?.callback(listOf(uri.toString()))
+                dismiss()
+            }
+        }
     }
 
     override fun onStart() {
@@ -190,8 +204,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         dialog?.setOnShowListener { onShow(it) }
         dialog?.setOnDismissListener { dismiss() }
     }
-
-
 
     override fun dismiss() {
         cancelListener?.callback()
@@ -276,10 +288,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             }
 
             is PickerAlbum.OtherApp -> {
-                // 다른 앱 연결
-                Intent(context,InternalOtherGalleryActivity::class.java).apply {
-                    startActivity(this)
-                }
+                moveToOtherApp()
             }
         }
     }
@@ -568,7 +577,14 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
             cancelListener = null
-            submitListener?.callback()
+            val contentUris = selectedList.mapNotNull {
+                when(it) {
+                    is PhotoPicker.Photo -> it.contentUri
+                    is PhotoPicker.Video -> it.contentUri
+                    else -> null
+                }
+            }
+            submitListener?.callback(contentUris)
             dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSelectedAlbum).setOnClickListener {
@@ -619,5 +635,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             .setSelectedItem(selectedAlbum)
             .setListener(this)
             .simpleShow(childFragmentManager)
+    }
+
+    private fun moveToOtherApp() {
+        val pickerIntent = Intent(ACTION_GET_CONTENT)
+        pickerIntent.type = "image/*"
+        Intent.createChooser(Intent(ACTION_PICK).apply {
+            type = "image/*"
+        }, getString(R.string.txt_other_app_gallery)).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickerIntent))
+        }.also { otherGalleryLauncher.launch(it) }
     }
 }

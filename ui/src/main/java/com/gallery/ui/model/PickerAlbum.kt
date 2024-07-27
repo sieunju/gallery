@@ -43,8 +43,7 @@ sealed interface PickerAlbum {
 
     object OtherApp : PickerAlbum {
         override fun getTitle(): SpannableStringBuilder {
-            val ssb = SpannableStringBuilder("다른앱 사용하기")
-            return ssb
+            return SpannableStringBuilder()
         }
     }
 
