@@ -12,6 +12,7 @@ import java.util.Locale
  */
 sealed interface PhotoPicker {
 
+
     object Camera : PhotoPicker
 
     /**
@@ -19,7 +20,6 @@ sealed interface PhotoPicker {
      * @param contentUri Photo Image Url
      * @param isSelected Selected
      * @param selectedNum Selected Number
-     * @param albumName Album Name
      * @param dateTaken Content Date (Sort)
      */
     data class Photo(
@@ -27,20 +27,18 @@ sealed interface PhotoPicker {
         val contentUri: String,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
-        val albumName: String,
         val dateTaken: Int
     ) : PhotoPicker {
 
         constructor(
             cursor: Cursor
         ) : this(
-            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)),
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)),
             contentUri = Uri.withAppendedPath(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
             ).toString(),
-            albumName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)),
-            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED))
+            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
         )
     }
 
@@ -49,7 +47,6 @@ sealed interface PhotoPicker {
      * @param contentUri Video Content Url
      * @param isSelected Selected
      * @param selectedNum Selected Number
-     * @param albumName Album Name
      * @param duration Video Duration
      * @param dateTaken Content Date (Sort)
      */
@@ -58,7 +55,6 @@ sealed interface PhotoPicker {
         val contentUri: String,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
-        val albumName: String,
         val duration: Int,
         val dateTaken: Int
     ) : PhotoPicker {
@@ -66,14 +62,13 @@ sealed interface PhotoPicker {
         constructor(
             cursor: Cursor
         ) : this(
-            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)),
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)),
             contentUri = Uri.withAppendedPath(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
             ).toString(),
-            albumName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)),
             duration = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED))
+            dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
         )
 
         var durationText: String? = null
@@ -103,5 +98,6 @@ sealed interface PhotoPicker {
                 }
                 return field
             }
+
     }
 }

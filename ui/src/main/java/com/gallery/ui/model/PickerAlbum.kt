@@ -20,13 +20,6 @@ sealed interface PickerAlbum {
         val count: Int
     ) : PickerAlbum {
 
-        constructor(data: GalleryFilterData) : this(
-            id = data.bucketId,
-            name = data.bucketName,
-            imagePath = data.photoUri,
-            count = data.count
-        )
-
         override fun getTitle(): SpannableStringBuilder {
             val ssb = SpannableStringBuilder()
             ssb.append(name)

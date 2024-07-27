@@ -15,7 +15,7 @@ import android.provider.MediaStore
  * Created by juhongmin on 2024. 7. 27.
  */
 internal data class GalleryParams(
-    val uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    val uri: Uri,
     var filterId: String = "", // bucket id
     var pageNo: Int = 1,
     val pageSize: Int = 30,

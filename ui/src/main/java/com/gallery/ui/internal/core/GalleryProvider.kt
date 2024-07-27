@@ -1,22 +1,34 @@
 package com.gallery.ui.internal.core
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.content.Intent.ACTION_GET_CONTENT
+import android.content.Intent.ACTION_PICK
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Size
+import androidx.activity.result.ActivityResultLauncher
+import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
-import com.gallery.ui.model.GalleryFilterData
+import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.model.PhotoPicker
+import com.gallery.ui.model.PickerAlbum
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
- * Description : Gallery Provider 구현체 클래스
+ * Description : Gallery 에 필요한 비즈니스 로직 처리 클래스
  *
  * Created by juhongmin on 2024. 7. 27.
  */
@@ -29,10 +41,13 @@ internal class GalleryProvider(
         const val ID = MediaStore.MediaColumns._ID
     }
 
-    @Throws(IllegalStateException::class, NullPointerException::class)
+    /**
+     * Get Cursor
+     */
     fun retrieveCursor(
         params: GalleryParams
     ): Cursor {
+        Timber.d("Params ${params.getColumns().contentToString()}")
         return contentResolver.query(
             params.uri,
             params.getColumns(),
@@ -45,7 +60,7 @@ internal class GalleryProvider(
     /**
      * Retrieve Gallery List
      */
-    fun retrieveList(
+    private fun retrieveList(
         cursor: Cursor,
         params: GalleryParams
     ): List<PhotoPicker> {
@@ -65,8 +80,8 @@ internal class GalleryProvider(
     /**
      * Retrieve Directories
      */
-    fun retrieveDirectories(): List<GalleryFilterData> {
-        val dataList = mutableListOf<GalleryFilterData>()
+    private fun retrieveDirectories(): List<PickerAlbum.Normal> {
+        val list = mutableListOf<PickerAlbum.Normal>()
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.BUCKET_ID,
@@ -118,26 +133,22 @@ internal class GalleryProvider(
                 if (prevBucketId.isNotEmpty()) {
                     val diffCount = prevCount - count
                     prevCount = count
-                    dataList.add(
-                        GalleryFilterData(
-                            bucketId = prevBucketId,
-                            bucketName = prevBucketName,
-                            photoUri = prevPhotoUri,
-                            count = diffCount
-                        )
-                    )
+                    PickerAlbum.Normal(
+                        id = prevBucketId,
+                        name = prevBucketName,
+                        imagePath = prevPhotoUri,
+                        count = diffCount
+                    ).run { list.add(this) }
                 }
 
                 if (prevCount == -1) {
                     prevCount = count
-                    dataList.add(
-                        GalleryFilterData(
-                            bucketId = "ALL",
-                            bucketName = context.getString(R.string.txt_album_all),
-                            photoUri = photoUri,
-                            count = count
-                        )
-                    )
+                    PickerAlbum.Normal(
+                        id = "ALL",
+                        name = context.getString(R.string.txt_album_all),
+                        imagePath = photoUri,
+                        count = count
+                    ).run { list.add(this) }
                 }
 
                 prevPhotoUri = photoUri
@@ -146,14 +157,12 @@ internal class GalleryProvider(
             } else {
                 // 맨 마지막 앨범 추가
                 if (prevCount != 0) {
-                    dataList.add(
-                        GalleryFilterData(
-                            bucketId = prevBucketId,
-                            bucketName = prevBucketName,
-                            photoUri = prevPhotoUri,
-                            count = prevCount
-                        )
-                    )
+                    PickerAlbum.Normal(
+                        id = prevBucketId,
+                        name = prevBucketName,
+                        imagePath = prevPhotoUri,
+                        count = prevCount
+                    ).run { list.add(this) }
                 }
 
                 if (!cursor.isClosed) {
@@ -162,10 +171,73 @@ internal class GalleryProvider(
                 break
             }
         }
-        return dataList
+        return list
     }
 
-    fun getPhotoThumbnail(imageId: Long, size: Int): Bitmap {
+    /**
+     * Request Album List UI
+     */
+    suspend fun reqAlbumList(): List<PickerAlbum> {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                retrieveDirectories()
+                    .plus(PickerAlbum.OtherApp)
+            } catch (ex: Exception) {
+                listOf()
+            }
+        }
+    }
+
+    /**
+     * Request GalleryList UI
+     *
+     * @param requestManager Glide RequestManager // 나중에 삭제할 예정
+     * @param scope Coroutine Scope
+     * @param overrideSize Thumbnail Size
+     * @param photoCursor Photo Cursor
+     * @param photoParams Photo Params
+     * @param videoCursor Video Cursor
+     * @param videoParams Video Params
+     */
+    suspend fun reqGalleryList(
+        scope: CoroutineScope,
+        requestManager: RequestManager,
+        overrideSize: Int,
+        photoCursor: Cursor,
+        photoParams: GalleryParams,
+        videoCursor: Cursor,
+        videoParams: GalleryParams
+    ): List<PhotoPicker> {
+        return try {
+            val photo = scope.async(Dispatchers.IO) {
+                return@async retrieveList(photoCursor, photoParams)
+                    .onEach { ImageLoader.saveThumbnail(requestManager, it, overrideSize) }
+            }
+            val video = scope.async(Dispatchers.IO) {
+                return@async retrieveList(videoCursor, videoParams)
+                    .onEach { ImageLoader.saveThumbnail(requestManager, it, overrideSize) }
+            }
+            photo.await().plus(video.await()).sortedByDescending { item ->
+                when (item) {
+                    is PhotoPicker.Photo -> item.id
+                    is PhotoPicker.Video -> item.id
+                    is PhotoPicker.Camera -> Long.MAX_VALUE
+                }
+            }
+        } catch (ex: Exception) {
+            listOf()
+        }
+    }
+
+    /**
+     * Getter Photo Thumbnail
+     * @param imageId Content ID
+     * @param size Thumbnail Size
+     */
+    fun getPhotoThumbnail(
+        imageId: Long,
+        size: Int
+    ): Bitmap {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             contentResolver.loadThumbnail(
                 ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId),
@@ -183,7 +255,15 @@ internal class GalleryProvider(
         }
     }
 
-    fun getVideoThumbnail(imageId: Long, size: Int): Bitmap {
+    /**
+     * Getter Video Thumbnail
+     * @param imageId Content Id
+     * @param size Thumbnail Size
+     */
+    fun getVideoThumbnail(
+        imageId: Long,
+        size: Int
+    ): Bitmap {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             contentResolver.loadThumbnail(
                 ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, imageId),
@@ -199,5 +279,52 @@ internal class GalleryProvider(
                 BitmapFactory.Options()
             )
         }
+    }
+
+    fun moveToOtherApp(launcher: ActivityResultLauncher<Intent>) {
+        val pickerIntent = Intent(ACTION_GET_CONTENT)
+        pickerIntent.type = "image/*"
+        Intent.createChooser(Intent(ACTION_PICK).apply {
+            type = "image/*"
+        }, context.getString(R.string.txt_other_app_gallery)).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickerIntent))
+        }.also { launcher.launch(it) }
+    }
+
+    fun getPermissions(): Array<String> {
+        val list = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            list.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            list.add(Manifest.permission.READ_MEDIA_IMAGES)
+            list.add(Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            list.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        return list.toTypedArray()
+    }
+
+    /**
+     * Move To Settings Screen
+     */
+    fun moveToSettings() {
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:${context.packageName}")
+            context.startActivity(this)
+        }
+    }
+
+    /**
+     * Getter Gallery Count
+     */
+    fun getContentCount(): Int {
+        val cursor = contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.MediaColumns._ID),
+            null,
+            null
+        )
+        return cursor?.count ?: 0
     }
 }

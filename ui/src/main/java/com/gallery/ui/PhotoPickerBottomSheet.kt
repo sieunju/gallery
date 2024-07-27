@@ -2,11 +2,12 @@ package com.gallery.ui
 
 import android.animation.ObjectAnimator
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.Intent.ACTION_GET_CONTENT
-import android.content.Intent.ACTION_PICK
 import android.database.Cursor
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.MediaStore.MediaColumns
@@ -31,7 +32,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.internal.GridItemDecoration
-import com.gallery.ui.internal.PhotoPickerImageLoader
+import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
@@ -46,10 +47,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -62,15 +61,18 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     SelectionAlbumBottomSheet.Listener {
 
     // [s] Core
-    // CoreModule 의존성을 끊기 위해 ui 모듈 내에서 필요한 부분만 처리하도록 변경 예정
-    private val coreProvider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
+    private val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
     private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
     private var photoCursor: Cursor? = null
-    private val photoQueryParams: GalleryParams by lazy { GalleryParams() }
+    private val photoParams: GalleryParams by lazy {
+        GalleryParams(
+            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        )
+    }
     private var videoCursor: Cursor? = null
-    private val videoQueryParams: GalleryParams by lazy {
+    private val videoParams: GalleryParams by lazy {
         GalleryParams(
             uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).apply {
@@ -81,13 +83,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private val selectedList: MutableList<PhotoPicker> by lazy { mutableListOf() }
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
-        get() = photoQueryParams.isLast && videoQueryParams.isLast
+        get() = photoParams.isLast && videoParams.isLast
     private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this) }
     private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
         SelectedPhotoPickerAdapter(this)
     }
     private lateinit var otherGalleryLauncher: ActivityResultLauncher<Intent>
-    private lateinit var permissionListener: ActivityResultLauncher<Array<String>>
+    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     // [e] Core
 
     // [s] View
@@ -161,8 +163,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PhotoPickerBottomSheet)
-        photoCursor = coreProvider.retrieveCursor(photoQueryParams)
-        videoCursor = coreProvider.retrieveCursor(videoQueryParams)
+        photoCursor = provider.retrieveCursor(photoParams)
+        videoCursor = provider.retrieveCursor(videoParams)
         otherGalleryLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -172,11 +174,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                 dismiss()
             }
         }
-        permissionListener = registerForActivityResult(
+        permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) { result ->
-            Timber.d("Result ${result}")
-        }
+        ) { handlePermissions(it) }
+        permissionLauncher.launch(provider.getPermissions())
     }
 
     override fun onStart() {
@@ -194,9 +195,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        PhotoPickerImageLoader.setCoreProvider(coreProvider)
+        ImageLoader.setCoreProvider(provider)
         initView(view)
-        initData()
         dialog?.setOnShowListener { onShow(it) }
         dialog?.setOnDismissListener { dismiss() }
     }
@@ -273,18 +273,18 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         Timber.d("onSelectedAlbum $album")
         when (album) {
             is PickerAlbum.Normal -> {
-                photoQueryParams.initParams()
-                photoQueryParams.filterId = album.id
-                photoCursor = coreProvider.retrieveCursor(photoQueryParams)
-                videoQueryParams.initParams()
-                videoQueryParams.filterId = album.id
-                videoCursor = coreProvider.retrieveCursor(videoQueryParams)
+                photoParams.initParams()
+                photoParams.filterId = album.id
+                photoCursor = provider.retrieveCursor(photoParams)
+                videoParams.initParams()
+                videoParams.filterId = album.id
+                videoCursor = provider.retrieveCursor(videoParams)
                 bindCurrentAlbum(album)
                 fetchAlbumPhotos()
             }
 
             is PickerAlbum.OtherApp -> {
-                moveToOtherApp()
+                provider.moveToOtherApp(otherGalleryLauncher)
             }
         }
     }
@@ -415,7 +415,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private fun fetchAllAlbums() {
         lifecycleScope.launch {
             albumList.clear()
-            albumList.addAll(reqAlbumList())
+            albumList.addAll(provider.reqAlbumList())
             albumList.getOrNull(0)?.let { bindCurrentAlbum(it) }
         }
     }
@@ -424,7 +424,17 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         lifecycleScope.launch {
             isLoading = true
             dataList.clear()
-            dataList.addAll(reqGalleryList())
+            if (photoCursor != null && videoCursor != null) {
+                provider.reqGalleryList(
+                    this,
+                    getRequestManager(),
+                    overrideSize,
+                    photoCursor!!,
+                    photoParams,
+                    videoCursor!!,
+                    videoParams
+                ).run { dataList.addAll(this) }
+            }
             photoAdapter.submitList(dataList)
             isLoading = false
         }
@@ -434,7 +444,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
      * init Data Start
      */
     private fun initData() {
-        // TODO Permissions Check
         fetchAllAlbums()
         fetchAlbumPhotos()
     }
@@ -454,102 +463,20 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     }
 
     /**
-     * 갤러리 리스트 가져오는 함수
-     * @return PhotoPicker List (Photo or Video)
-     */
-    private suspend fun reqGalleryList(): List<PhotoPicker> {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                val list = mutableListOf<PhotoPicker>()
-                list.addAll(reqPhotoList(photoCursor, photoQueryParams))
-                list.addAll(reqVideoList(videoCursor, videoQueryParams))
-                list.sortByDescending { item ->
-                    when (item) {
-                        is PhotoPicker.Photo -> item.id
-                        is PhotoPicker.Video -> item.id
-                        is PhotoPicker.Camera -> Long.MAX_VALUE
-                    }
-                }
-                list
-            } catch (ex: Exception) {
-                listOf()
-            }
-        }
-    }
-
-    /**
-     * Request PhotoList
-     * @param cursor Photo Cursor
-     * @param params Photo QueryParams
-     */
-    private suspend fun reqPhotoList(
-        cursor: Cursor?,
-        params: GalleryParams
-    ): List<PhotoPicker> {
-        // TODO Cursor 에서 가져온다음에 섬네일 가져오는 로직 최적화로 처리할 방안 생각해볼것
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                if (cursor == null) throw NullPointerException("Cursor is Null")
-                coreProvider.retrieveList(cursor, params).onEach {
-                    PhotoPickerImageLoader.saveThumbnail(
-                        getRequestManager(),
-                        it,
-                        overrideSize
-                    )
-                }
-            } catch (ex: Exception) {
-                listOf()
-            }
-        }
-    }
-
-    /**
-     * Request VideoList
-     * @param cursor Video Cursor
-     * @param params Video QueryParams
-     */
-    private suspend fun reqVideoList(
-        cursor: Cursor?,
-        params: GalleryParams
-    ): List<PhotoPicker> {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                if (cursor == null) throw NullPointerException("Cursor is Null")
-                coreProvider.retrieveList(cursor, params).onEach {
-                    PhotoPickerImageLoader.saveThumbnail(
-                        getRequestManager(),
-                        it,
-                        overrideSize
-                    )
-                }
-            } catch (ex: Exception) {
-                listOf()
-            }
-        }
-    }
-
-    /**
-     * Request Directory
-     */
-    private suspend fun reqAlbumList(): List<PickerAlbum> {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                coreProvider.retrieveDirectories()
-                    .map { PickerAlbum.Normal(it) }
-                    .plus(PickerAlbum.OtherApp)
-            } catch (ex: Exception) {
-                listOf()
-            }
-        }
-    }
-
-    /**
      * Load Next Page
      */
     private fun onLoadPage() {
         lifecycleScope.launch {
             isLoading = true
-            dataList.addAll(reqGalleryList())
+            provider.reqGalleryList(
+                this,
+                getRequestManager(),
+                overrideSize,
+                photoCursor!!,
+                photoParams,
+                videoCursor!!,
+                videoParams
+            ).run { dataList.addAll(this) }
             photoAdapter.submitList(dataList)
             isLoading = false
         }
@@ -573,14 +500,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
             cancelListener = null
-            val contentUris = selectedList.mapNotNull {
+            submitListener?.callback(selectedList.mapNotNull {
                 when (it) {
                     is PhotoPicker.Photo -> it.contentUri
                     is PhotoPicker.Video -> it.contentUri
                     else -> null
                 }
-            }
-            submitListener?.callback(contentUris)
+            })
             dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSelectedAlbum).setOnClickListener {
@@ -633,13 +559,29 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             .simpleShow(childFragmentManager)
     }
 
-    private fun moveToOtherApp() {
-        val pickerIntent = Intent(ACTION_GET_CONTENT)
-        pickerIntent.type = "image/*"
-        Intent.createChooser(Intent(ACTION_PICK).apply {
-            type = "image/*"
-        }, getString(R.string.txt_other_app_gallery)).apply {
-            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickerIntent))
-        }.also { otherGalleryLauncher.launch(it) }
+    private fun handlePermissions(permissionResult: Map<String, Boolean>) {
+        if (permissionResult.all { it.value }) {
+            initData()
+            return
+        }
+        if (SDK_INT >= UPSIDE_DOWN_CAKE && provider.getContentCount() == 0) {
+            AlertDialog.Builder(context)
+                .setMessage(R.string.txt_visual_user_selected_permission_denied)
+                .setPositiveButton(R.string.txt_confirm) { _, _ ->
+                    provider.moveToSettings()
+                    dismiss()
+                }
+                .setNegativeButton(R.string.txt_cancel) { _, _ -> dismiss() }
+                .show()
+        } else {
+            AlertDialog.Builder(context)
+                .setMessage(R.string.txt_storage_permission_denied)
+                .setPositiveButton(R.string.txt_move_to_setting) { _, _ ->
+                    provider.moveToSettings()
+                    dismiss()
+                }
+                .setNegativeButton(R.string.txt_cancel) { _, _ -> dismiss() }
+                .show()
+        }
     }
 }

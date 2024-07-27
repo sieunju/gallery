@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
-import com.gallery.ui.internal.PhotoPickerImageLoader
+import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.setCornerAndBgColor
@@ -129,7 +129,7 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            PhotoPickerImageLoader.getCacheBitmap(item.contentUri)?.let {
+            ImageLoader.getCacheBitmap(item.contentUri)?.let {
                 requestManager.load(it)
                     .override(overrideSize)
                     .placeholder(placeHolder)
@@ -166,7 +166,7 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            PhotoPickerImageLoader.getCacheBitmap(item.contentUri)?.let {
+            ImageLoader.getCacheBitmap(item.contentUri)?.let {
                 requestManager.load(it)
                     .override(overrideSize)
                     .placeholder(placeHolder)

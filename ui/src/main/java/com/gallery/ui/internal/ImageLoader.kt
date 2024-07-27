@@ -17,7 +17,7 @@ import timber.log.Timber
  *
  * Created by juhongmin on 3/27/24
  */
-internal object PhotoPickerImageLoader {
+internal object ImageLoader {
 
     private val cache: LruCache<String, Bitmap> by lazy { initCache() }
     private lateinit var provider: GalleryProvider

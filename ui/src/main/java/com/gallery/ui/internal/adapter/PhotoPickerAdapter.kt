@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
-import com.gallery.ui.internal.PhotoPickerImageLoader
+import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.dp
@@ -183,7 +183,7 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.contentUri)
+            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
                 Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
                 requestManager.load(item.contentUri)
@@ -281,7 +281,7 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            val bitmap = PhotoPickerImageLoader.getCacheBitmap(item.contentUri)
+            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
                 Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
                 requestManager.load(item.contentUri)
