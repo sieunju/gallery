@@ -25,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Description : Gallery 에 필요한 비즈니스 로직 처리 클래스
@@ -47,7 +46,6 @@ internal class GalleryProvider(
     fun retrieveCursor(
         params: GalleryParams
     ): Cursor {
-        Timber.d("Params ${params.getColumns().contentToString()}")
         return contentResolver.query(
             params.uri,
             params.getColumns(),
