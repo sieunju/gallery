@@ -16,7 +16,6 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Size
 import androidx.activity.result.ActivityResultLauncher
-import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
 import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.model.PhotoPicker
@@ -25,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.io.IOException
 
 /**
  * Description : Gallery 에 필요한 비즈니스 로직 처리 클래스
@@ -189,7 +190,6 @@ internal class GalleryProvider(
     /**
      * Request GalleryList UI
      *
-     * @param requestManager Glide RequestManager // 나중에 삭제할 예정
      * @param scope Coroutine Scope
      * @param overrideSize Thumbnail Size
      * @param photoCursor Photo Cursor
@@ -199,7 +199,6 @@ internal class GalleryProvider(
      */
     suspend fun reqGalleryList(
         scope: CoroutineScope,
-        requestManager: RequestManager,
         overrideSize: Int,
         photoCursor: Cursor,
         photoParams: GalleryParams,
@@ -209,11 +208,15 @@ internal class GalleryProvider(
         return try {
             val photo = scope.async(Dispatchers.IO) {
                 return@async retrieveList(photoCursor, photoParams)
-                    .onEach { ImageLoader.saveThumbnail(requestManager, it, overrideSize) }
+                    .onEach {
+                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
+                    }
             }
             val video = scope.async(Dispatchers.IO) {
                 return@async retrieveList(videoCursor, videoParams)
-                    .onEach { ImageLoader.saveThumbnail(requestManager, it, overrideSize) }
+                    .onEach {
+                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
+                    }
             }
             photo.await().plus(video.await()).sortedByDescending { item ->
                 when (item) {
@@ -228,6 +231,85 @@ internal class GalleryProvider(
     }
 
     /**
+     * Uri에 따라서 썸네일 가져오는 함수
+     * @param uri MediaStore.Images.Media.EXTERNAL_CONTENT_URI or MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+     * @param size 썸네일 사이즈
+     */
+    private fun getThumbnail(
+        uri: Uri,
+        id: Long,
+        size: Int
+    ): Bitmap? {
+        var bitmap: Bitmap? = null
+        try {
+            bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentResolver.loadThumbnail(
+                    ContentUris.withAppendedId(uri, id),
+                    Size(size, size),
+                    null
+                )
+            } else {
+                if (uri == MediaStore.Images.Media.EXTERNAL_CONTENT_URI) {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Images.Thumbnails.getThumbnail(
+                        contentResolver,
+                        id,
+                        MediaStore.Images.Thumbnails.MINI_KIND,
+                        BitmapFactory.Options().also { it.inSampleSize = 4 }
+                    )
+                } else if (uri == MediaStore.Video.Media.EXTERNAL_CONTENT_URI) {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Video.Thumbnails.getThumbnail(
+                        contentResolver,
+                        id,
+                        MediaStore.Video.Thumbnails.MINI_KIND,
+                        BitmapFactory.Options().also { it.inSampleSize = 4 }
+                    )
+                } else {
+                    null
+                }
+
+            }
+        } catch (ex: IOException) {
+            Timber.d("Error $ex $id")
+             bitmap = getOriginThumbnail(uri, id)
+        }
+        return bitmap
+    }
+
+    private fun getOriginThumbnail(
+        uri: Uri,
+        id: Long
+    ): Bitmap? {
+        return contentResolver.openInputStream(ContentUris.withAppendedId(uri, id))?.use {
+            val options = BitmapFactory.Options()
+            options.inSampleSize = 8
+            BitmapFactory.decodeStream(
+                it,
+                null,
+                options
+            )
+        }
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, size: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > size || width > size) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            while (halfHeight / inSampleSize >= size && halfWidth / inSampleSize >= size) {
+                inSampleSize *= 2
+            }
+        }
+        Timber.d("SampleSize ${inSampleSize}")
+
+        return inSampleSize
+    }
+
+    /**
      * Getter Photo Thumbnail
      * @param imageId Content ID
      * @param size Thumbnail Size
@@ -236,21 +318,11 @@ internal class GalleryProvider(
         imageId: Long,
         size: Int
     ): Bitmap {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            contentResolver.loadThumbnail(
-                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId),
-                Size(size, size),
-                null
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Thumbnails.getThumbnail(
-                contentResolver,
-                imageId,
-                MediaStore.Images.Thumbnails.MINI_KIND,
-                BitmapFactory.Options()
-            )
-        }
+        return getThumbnail(
+            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            id = imageId,
+            size = size
+        )!!
     }
 
     /**
@@ -262,21 +334,11 @@ internal class GalleryProvider(
         imageId: Long,
         size: Int
     ): Bitmap {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            contentResolver.loadThumbnail(
-                ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, imageId),
-                Size(size, size),
-                null
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Video.Thumbnails.getThumbnail(
-                contentResolver,
-                imageId,
-                MediaStore.Video.Thumbnails.MINI_KIND,
-                BitmapFactory.Options()
-            )
-        }
+        return getThumbnail(
+            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            id = imageId,
+            size = size
+        )!!
     }
 
     fun moveToOtherApp(launcher: ActivityResultLauncher<Intent>) {

@@ -1,26 +1,22 @@
 package com.gallery.ui.internal
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import androidx.collection.LruCache
-import com.bumptech.glide.RequestManager
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Description : Glide 처리하지 않고 직접 이미지 캐싱 처리하는 클래스
  *
  * Created by juhongmin on 3/27/24
  */
+@SuppressLint("StaticFieldLeak")
 internal object ImageLoader {
 
     private val cache: LruCache<String, Bitmap> by lazy { initCache() }
-    private lateinit var provider: GalleryProvider
 
     /**
      * init Cache 10mib
@@ -33,51 +29,25 @@ internal object ImageLoader {
         }
     }
 
-    fun setCoreProvider(provider: GalleryProvider) {
-        this.provider = provider
-    }
-
+    /**
+     * 썸네일 온메모리에 저장하는 함수
+     * @param provider Core
+     * @param data Picker Data
+     * @param size Thumbnail Size
+     */
     suspend fun saveThumbnail(
-        requestManager: RequestManager,
+        provider: GalleryProvider,
         data: PhotoPicker,
         size: Int
     ): PhotoPicker {
         if (data is PhotoPicker.Camera) return data
         return withContext(Dispatchers.IO) {
-            try {
-                if (data is PhotoPicker.Photo) {
-                    cache.put(data.contentUri, provider.getPhotoThumbnail(data.id, size))
-                } else if (data is PhotoPicker.Video) {
-                    cache.put(data.contentUri, provider.getVideoThumbnail(data.id, size))
-                }
-                return@withContext data
-            } catch (ex: Exception) {
-                Timber.d("SaveThumbnail Error $ex")
-                // Failed to create thumbnail
-                val imagePath = when (data) {
-                    is PhotoPicker.Photo -> data.contentUri
-                    is PhotoPicker.Video -> data.contentUri
-                    else -> null
-                }
-                requestManager
-                    .asBitmap()
-                    .load(imagePath)
-                    .into(object : CustomTarget<Bitmap>(size, size) {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            if (imagePath != null) {
-                                cache.put(imagePath, resource)
-                            }
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                        }
-                    })
-
-                return@withContext data
+            if (data is PhotoPicker.Photo) {
+                cache.put(data.contentUri, provider.getPhotoThumbnail(data.id, size))
+            } else if (data is PhotoPicker.Video) {
+                cache.put(data.contentUri, provider.getVideoThumbnail(data.id, size))
             }
+            data
         }
     }
 

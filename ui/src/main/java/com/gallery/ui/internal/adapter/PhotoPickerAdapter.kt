@@ -3,6 +3,7 @@ package com.gallery.ui.internal.adapter
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -186,16 +187,20 @@ internal class PhotoPickerAdapter(
             val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
                 Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-                requestManager.load(item.contentUri)
-                    .placeholder(placeHolder)
-                    .transition(crossFadeTransition)
-                    .override(overrideSize)
-                    .into(ivThumb)
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                ivThumb.setImageResource(R.drawable.ic_broken_image)
+//                requestManager.load(item.contentUri)
+//                    .placeholder(placeHolder)
+//                    .transition(crossFadeTransition)
+//                    .override(overrideSize)
+//                    .into(ivThumb)
             } else {
-                requestManager.load(bitmap)
-                    .placeholder(placeHolder)
-                    .transition(crossFadeTransition)
-                    .into(ivThumb)
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
+                ivThumb.setImageBitmap(bitmap)
+//                requestManager.load(bitmap)
+//                    .placeholder(placeHolder)
+//                    .transition(crossFadeTransition)
+//                    .into(ivThumb)
             }
         }
 

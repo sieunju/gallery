@@ -195,7 +195,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ImageLoader.setCoreProvider(provider)
         initView(view)
         dialog?.setOnShowListener { onShow(it) }
         dialog?.setOnDismissListener { dismiss() }
@@ -427,7 +426,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             if (photoCursor != null && videoCursor != null) {
                 provider.reqGalleryList(
                     this,
-                    getRequestManager(),
                     overrideSize,
                     photoCursor!!,
                     photoParams,
@@ -470,7 +468,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             isLoading = true
             provider.reqGalleryList(
                 this,
-                getRequestManager(),
                 overrideSize,
                 photoCursor!!,
                 photoParams,
