@@ -240,7 +240,7 @@ internal class GalleryProvider(
         id: Long,
         size: Int
     ): Bitmap? {
-        var bitmap: Bitmap? = null
+        var bitmap: Bitmap?
         try {
             bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentResolver.loadThumbnail(
@@ -249,30 +249,36 @@ internal class GalleryProvider(
                     null
                 )
             } else {
-                if (uri == MediaStore.Images.Media.EXTERNAL_CONTENT_URI) {
-                    @Suppress("DEPRECATION")
-                    MediaStore.Images.Thumbnails.getThumbnail(
-                        contentResolver,
-                        id,
-                        MediaStore.Images.Thumbnails.MINI_KIND,
-                        BitmapFactory.Options().also { it.inSampleSize = 4 }
-                    )
-                } else if (uri == MediaStore.Video.Media.EXTERNAL_CONTENT_URI) {
-                    @Suppress("DEPRECATION")
-                    MediaStore.Video.Thumbnails.getThumbnail(
-                        contentResolver,
-                        id,
-                        MediaStore.Video.Thumbnails.MINI_KIND,
-                        BitmapFactory.Options().also { it.inSampleSize = 4 }
-                    )
-                } else {
-                    null
+                when (uri) {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI -> {
+                        @Suppress("DEPRECATION")
+                        MediaStore.Images.Thumbnails.getThumbnail(
+                            contentResolver,
+                            id,
+                            MediaStore.Images.Thumbnails.MINI_KIND,
+                            null
+                        )
+                    }
+
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI -> {
+                        @Suppress("DEPRECATION")
+                        MediaStore.Video.Thumbnails.getThumbnail(
+                            contentResolver,
+                            id,
+                            MediaStore.Video.Thumbnails.MINI_KIND,
+                            null
+                        )
+                    }
+
+                    else -> {
+                        null
+                    }
                 }
 
             }
         } catch (ex: IOException) {
             Timber.d("Error $ex $id")
-             bitmap = getOriginThumbnail(uri, id)
+            bitmap = getOriginThumbnail(uri, id)
         }
         return bitmap
     }
@@ -383,8 +389,11 @@ internal class GalleryProvider(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             arrayOf(MediaStore.MediaColumns._ID),
             null,
+            null,
             null
         )
-        return cursor?.count ?: 0
+        val count = cursor?.count ?: 0
+        cursor?.close()
+        return count
     }
 }
