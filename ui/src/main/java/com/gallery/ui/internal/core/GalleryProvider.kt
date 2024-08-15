@@ -180,7 +180,6 @@ internal class GalleryProvider(
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 retrieveDirectories()
-                    .plus(PickerAlbum.OtherApp)
             } catch (ex: Exception) {
                 listOf()
             }

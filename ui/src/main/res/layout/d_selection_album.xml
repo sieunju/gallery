@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -9,8 +11,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:focusable="false"
-        android:minHeight="300dp"
         android:paddingTop="20dp"
-        android:splitMotionEvents="false" />
+        android:splitMotionEvents="false"
+        app:layout_constraintBottom_toTopOf="@+id/vLine"
+        tools:itemCount="3"
+        tools:listitem="@layout/vh_child_selection_album" />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+    <View
+        android:id="@+id/vLine"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#eeeeee"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/tvOtherApp" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tvOtherApp"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:drawableStart="@drawable/ic_other_app"
+        android:drawablePadding="10dp"
+        android:drawableTint="#827F7F"
+        android:gravity="center_vertical"
+        android:paddingLeft="16dp"
+        android:text="@string/txt_other_app"
+        android:textColor="#222"
+        android:textSize="16dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

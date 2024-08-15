@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -72,6 +73,9 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
         rvContents = view.findViewById<RecyclerView>(R.id.rvContents).apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@SelectionAlbumBottomSheet.adapter
+        }
+        view.findViewById<AppCompatTextView>(R.id.tvOtherApp).setOnClickListener {
+            listener?.onSelectedAlbum(PickerAlbum.OtherApp)
         }
     }
 

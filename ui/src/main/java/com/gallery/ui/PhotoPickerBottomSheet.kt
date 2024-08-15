@@ -170,6 +170,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         ) { result ->
             val uri = result.data?.data
             if (result.resultCode == Activity.RESULT_OK && uri != null) {
+                cancelListener = null
                 submitListener?.callback(listOf(uri.toString()))
                 dismiss()
             }
