@@ -1,5 +1,6 @@
 package com.gallery.ui
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.ui.internal.adapter.SelectionAlbumAdapter
 import com.gallery.ui.model.PickerAlbum
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
@@ -49,6 +52,19 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
         return this
     }
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.setOnShowListener { dialogInterface ->
+            val bottomSheetDialog = dialogInterface as BottomSheetDialog
+            val bottomSheet = bottomSheetDialog
+                .findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as View
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+        }
+        return dialog
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.SelectionAlbumBottomSheet)
@@ -75,7 +91,7 @@ internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
             adapter = this@SelectionAlbumBottomSheet.adapter
         }
         view.findViewById<AppCompatTextView>(R.id.tvOtherApp).setOnClickListener {
-            listener?.onSelectedAlbum(PickerAlbum.OtherApp)
+            onSelectedAlbum(PickerAlbum.OtherApp)
         }
     }
 
