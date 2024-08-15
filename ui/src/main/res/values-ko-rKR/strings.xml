@@ -7,6 +7,7 @@
     <string name="txt_other_app_gallery">작업선택</string>
     <string name="txt_other_app">다른 앱 사용하기</string>
     <string name="txt_album_all">전체보기</string>
+    <string name="txt_selected">선택</string>
     <string name="txt_storage_permission_denied">접근 허용된 사진/동영상이 없습니다.\n권한 설정을 변경해주세요.</string>
     <string name="txt_visual_user_selected_permission_denied">접근 허용된 사진/동영상이 없습니다.\n권한 설정을 변경하시거나, 사진을 선택해주세요.</string>
 </resources>

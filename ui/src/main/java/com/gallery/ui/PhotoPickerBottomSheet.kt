@@ -32,7 +32,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.internal.GridItemDecoration
-import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
@@ -41,6 +40,7 @@ import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
+import com.gallery.ui.internal.view.SelectionAlbumBottomSheet
 import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PickerAlbum
 import com.google.android.material.bottomsheet.BottomSheetBehavior

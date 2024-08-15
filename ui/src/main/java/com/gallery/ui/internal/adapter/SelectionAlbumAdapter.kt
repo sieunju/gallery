@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.ui.R
-import com.gallery.ui.SelectionAlbumBottomSheet
+import com.gallery.ui.internal.view.SelectionAlbumBottomSheet
 import com.gallery.ui.model.PickerAlbum
 
 /**

@@ -7,6 +7,7 @@
     <string name="txt_other_app_gallery">Select a Action</string>
     <string name="txt_other_app">Using a different app</string>
     <string name="txt_album_all">All</string>
+    <string name="txt_selected">Selected</string>
     <string name="txt_storage_permission_denied">No photos/video allowed access.\nPlease change the permission settings.</string>
     <string name="txt_visual_user_selected_permission_denied">No photos/video allowed access.\nChange permission settings, or select a photo.</string>
 </resources>
