@@ -1,15 +1,19 @@
 package com.gallery.ui.internal.view
 
 import android.app.Dialog
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import com.gallery.ui.R
+import com.gallery.ui.internal.core.GalleryProvider
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
 
 /**
  * Description : Photo Detail Screen
@@ -18,11 +22,17 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
  */
 internal class DetailPickerBottomSheet : BottomSheetDialogFragment() {
 
+    private lateinit var provider: GalleryProvider
     private var imageUrl: String = ""
 
     // [s] View
     private var ivEdit: FlexibleImageEditView? = null
     // [e] View
+
+    fun setImage(uri: Uri, id: Long) : DetailPickerBottomSheet {
+
+        return this
+    }
 
     fun setImageUrl(url: String): DetailPickerBottomSheet {
         imageUrl = url
@@ -60,6 +70,9 @@ internal class DetailPickerBottomSheet : BottomSheetDialogFragment() {
         view: View
     ) {
         ivEdit = view.findViewById<FlexibleImageEditView>(R.id.ivEdit).also {
+
+        }
+        lifecycleScope.launch {
 
         }
     }
