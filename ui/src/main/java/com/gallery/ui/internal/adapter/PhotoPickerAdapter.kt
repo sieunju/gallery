@@ -11,12 +11,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
-import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
+import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.placeHolder
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
@@ -137,7 +137,6 @@ internal class PhotoPickerAdapter(
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
         private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
-        private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Photo? = null
 
         init {
@@ -158,7 +157,8 @@ internal class PhotoPickerAdapter(
                 }
             }
             itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).setOnClickListener {
-                Timber.d("ExpandContent Click!!")
+                val data = data ?: return@setOnClickListener
+                listener.onShowExpandPhoto(data)
             }
         }
 
@@ -235,7 +235,7 @@ internal class PhotoPickerAdapter(
         private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
-        private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
+        // private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
         private val tvDuration: AppCompatTextView by lazy { itemView.findViewById(R.id.tvDuration) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Video? = null
@@ -245,9 +245,9 @@ internal class PhotoPickerAdapter(
                 setStroke(1.dp, Color.parseColor("#4D5F5C56"))
             }
             vBgSelected.setCornerAndBgColor("#0091EA", 10F.dp)
-            ivExpandContent.setCornerAndBgColor("#33222222", 2F.dp) {
-                setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
-            }
+//            ivExpandContent.setCornerAndBgColor("#33222222", 2F.dp) {
+//                setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
+//            }
             tvDuration.setCornerAndBgColor("#33222222", 5F.dp)
 
             ivThumb.setOnClickListener {
@@ -257,9 +257,6 @@ internal class PhotoPickerAdapter(
                 } else {
                     listener.addPicker(bindingAdapterPosition, data)
                 }
-            }
-            itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).setOnClickListener {
-                Timber.d("ExpandContent Click!!")
             }
         }
 

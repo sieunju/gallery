@@ -37,4 +37,6 @@ interface PhotoPickerBridgeListener {
      * @param item 비교하고자 하는 사진
      */
     fun setSelectedGallery(item: PhotoPicker)
+
+    fun onShowExpandPhoto(item: PhotoPicker)
 }

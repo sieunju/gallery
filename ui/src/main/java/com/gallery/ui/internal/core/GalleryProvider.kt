@@ -234,7 +234,7 @@ internal class GalleryProvider(
      * @param uri MediaStore.Images.Media.EXTERNAL_CONTENT_URI or MediaStore.Video.Media.EXTERNAL_CONTENT_URI
      * @param size 썸네일 사이즈
      */
-    private fun getThumbnail(
+    fun getThumbnail(
         uri: Uri,
         id: Long,
         size: Int

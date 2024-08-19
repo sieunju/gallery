@@ -40,6 +40,7 @@ import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
+import com.gallery.ui.internal.view.DetailPickerBottomSheet
 import com.gallery.ui.internal.view.SelectionAlbumBottomSheet
 import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PickerAlbum
@@ -61,7 +62,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     SelectionAlbumBottomSheet.Listener {
 
     // [s] Core
-    private val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
+    internal val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
     private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
@@ -84,7 +85,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoParams.isLast && videoParams.isLast
-    private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this) }
+    private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter( this) }
     private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
         SelectedPhotoPickerAdapter(this)
     }
@@ -267,6 +268,15 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             item.isSelected = findItem.isSelected
             item.selectedNum = findItem.selectedNum
         }
+    }
+
+    override fun onShowExpandPhoto(item: PhotoPicker) {
+        if (item is PhotoPicker.Camera) return
+        DetailPickerBottomSheet()
+            .setProvider(provider)
+            .setPhoto(item)
+            .setListener { addPicker(0,it) }
+            .simpleShow(childFragmentManager)
     }
 
     override fun onSelectedAlbum(album: PickerAlbum) {
