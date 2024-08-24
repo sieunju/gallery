@@ -47,7 +47,7 @@ import java.util.*
  * Created by juhongmin on 2022/09/13
  */
 @Suppress("unused")
-internal class GalleryProviderImpl constructor(
+internal class GalleryProviderImpl(
     private val context: Context
 ) : GalleryProvider {
 
@@ -55,16 +55,16 @@ internal class GalleryProviderImpl constructor(
 
     companion object {
         val CONTENT_URI: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        const val ID = MediaStore.Images.Media._ID
+        const val ID = MediaStore.MediaColumns._ID
         const val DEFAULT_GALLERY_FILTER_ID = "ALL"
-        const val DEFAULT_GALLERY_FILTER_NAME = "최근 항목"
-        const val DISPLAY_NAME = MediaStore.Images.Media.DISPLAY_NAME
+        const val DEFAULT_GALLERY_FILTER_NAME = "전체보기"
+        const val DISPLAY_NAME = MediaStore.MediaColumns.DISPLAY_NAME
 
         @SuppressLint("InlinedApi")
-        private val BUCKET_ID = MediaStore.Images.Media.BUCKET_ID
+        private val BUCKET_ID = MediaStore.MediaColumns.BUCKET_ID
 
         @SuppressLint("InlinedApi")
-        private val BUCKET_NAME = MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+        private val BUCKET_NAME = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
     }
 
     /**
@@ -73,7 +73,6 @@ internal class GalleryProviderImpl constructor(
      */
     @Throws(IllegalStateException::class, Exception::class)
     override fun fetchDirectories(): List<GalleryFilterData> {
-        // Permissions Check
         val dataList = mutableListOf<GalleryFilterData>()
         val projection = arrayOf(
             ID,
@@ -175,13 +174,12 @@ internal class GalleryProviderImpl constructor(
     }
 
     override fun fetchCursor(params: GalleryQueryParameter): Cursor {
-        val order = "$ID ${params.order}"
         return contentResolver.query(
             params.uri,
             params.getColumns(),
             if (params.isAll) null else "$BUCKET_ID ==?",
             params.selectionArgs,
-            order
+            params.order
         ) ?: throw NullPointerException("Cursor NullPointerException")
     }
 
@@ -697,11 +695,15 @@ internal class GalleryProviderImpl constructor(
         }
     }
 
-    override fun getThumbnail(imageId: Long): Bitmap {
-        return getThumbnail(imageId, 300, 300)
+    override fun getPhotoThumbnail(imageId: Long): Bitmap {
+        return getPhotoThumbnail(imageId, 300, 300)
     }
 
-    override fun getThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
+    override fun getPhotoThumbnail(imageId: Long, size: Int): Bitmap {
+        return getPhotoThumbnail(imageId,size,size)
+    }
+
+    override fun getPhotoThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             contentResolver.loadThumbnail(
                 ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId),
@@ -714,6 +716,35 @@ internal class GalleryProviderImpl constructor(
                 contentResolver,
                 imageId,
                 MediaStore.Images.Thumbnails.MINI_KIND,
+                BitmapFactory.Options()
+            )
+        }
+    }
+
+    override fun getVideoThumbnail(imageId: Long): Bitmap {
+        return getVideoThumbnail(imageId, 300, 300)
+    }
+
+    override fun getVideoThumbnail(
+        imageId: Long,
+        size: Int
+    ): Bitmap {
+        return getVideoThumbnail(imageId, size, size)
+    }
+
+    override fun getVideoThumbnail(imageId: Long, width: Int, height: Int): Bitmap {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentResolver.loadThumbnail(
+                ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, imageId),
+                Size(width, height),
+                null
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            MediaStore.Video.Thumbnails.getThumbnail(
+                contentResolver,
+                imageId,
+                MediaStore.Video.Thumbnails.MINI_KIND,
                 BitmapFactory.Options()
             )
         }

@@ -15,7 +15,9 @@ import com.bumptech.glide.integration.webp.decoder.WebpDrawable
 import com.bumptech.glide.integration.webp.decoder.WebpDrawableTransformation
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.resource.bitmap.FitCenter
-import hmju.permissions.core.SPermissions
+import com.gallery.ui.PhotoPickerBottomSheet
+import com.hmju.permission.SPermission
+import timber.log.Timber
 
 
 class MainRootFragment : Fragment(R.layout.f_main_root) {
@@ -41,21 +43,31 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             findNavController().navigate(R.id.action_root_to_editCropImage)
         }
 
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(
-                Manifest.permission.READ_MEDIA_IMAGES,
-                Manifest.permission.READ_MEDIA_VIDEO,
-                Manifest.permission.CAMERA
-            )
-        } else {
-            arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA
-            )
+        view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
+            PhotoPickerBottomSheet()
+                .setMaxCount(4)
+                .setSubmitListener {
+                    Timber.d("Selected $it")
+                }
+                .setCancelListener { Timber.d("Cancel") }
+                .simpleShow(childFragmentManager)
         }
-        SPermissions(this)
-            .requestPermissions(*permissions)
-            .build { b, strings -> }
+
+//        val permissions = mutableListOf<String>()
+//        permissions.add(Manifest.permission.CAMERA)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+//            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+//            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+//            permissions.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+//        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+//            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+//        } else {
+//            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        }
+//        SPermission(this)
+//            .addPermissions(permissions)
+//            .build { b, map -> }
     }
 
     private fun initThumb(view: View) {

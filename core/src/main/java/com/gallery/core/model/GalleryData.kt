@@ -15,10 +15,12 @@ class GalleryData(
 ) {
     val uri: Uri
     val fields: HashMap<String, Any> = hashMapOf()
+    val id: Long
 
     init {
-        val contentId = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-        uri = Uri.withAppendedPath(params.uri, cursor.getString(contentId))
+        val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+        uri = Uri.withAppendedPath(params.uri, cursor.getString(idIndex))
+        id = cursor.getLong(idIndex)
         params.getColumns().forEach { columnName ->
             try {
                 val columnIdx = cursor.getColumnIndexOrThrow(columnName)

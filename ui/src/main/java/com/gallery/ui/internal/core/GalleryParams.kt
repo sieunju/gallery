@@ -1,37 +1,32 @@
-package com.gallery.core.model
+package com.gallery.ui.internal.core
 
 import android.net.Uri
 import android.provider.MediaStore
-import com.gallery.core.impl.GalleryProviderImpl
 
 /**
  * Description : Gallery Query Data Model
  *
- * Created by juhongmin on 2022/09/13
- */
-/**
  * @param uri ContentUri [MediaStore.Images.Media.EXTERNAL_CONTENT_URI], [MediaStore.Video.Media.EXTERNAL_CONTENT_URI]
  * @param filterId Bucket ID
  * @param pageNo Page Number
  * @param pageSize PageSize
  * @param order Query Order
  * @param isLast Paging is Last
+ * Created by juhongmin on 2024. 7. 27.
  */
-@Suppress("unused", "MemberVisibilityCanBePrivate")
-data class GalleryQueryParameter(
-    val uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+internal data class GalleryParams(
+    val uri: Uri,
     var filterId: String = "", // bucket id
     var pageNo: Int = 1,
-    val pageSize: Int = 100,
+    val pageSize: Int = 30,
     val order: String = "${MediaStore.MediaColumns._ID} DESC, ${MediaStore.MediaColumns.DATE_TAKEN} DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC",
     var isLast: Boolean = false
 ) {
-
     val selectionArgs: Array<String>?
         get() = if (isAll) null else arrayOf(filterId)
 
     val isAll: Boolean
-        get() = filterId == GalleryProviderImpl.DEFAULT_GALLERY_FILTER_ID || filterId.isEmpty()
+        get() = filterId == "ALL" || filterId.isEmpty()
 
     private val columns: MutableSet<String> = mutableSetOf()
 
@@ -52,6 +47,7 @@ data class GalleryQueryParameter(
         columns.add(MediaStore.MediaColumns._ID)
         columns.add(MediaStore.MediaColumns.BUCKET_ID)
         columns.add(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+        columns.add(MediaStore.MediaColumns.DATE_ADDED)
     }
 
     fun initParams() {

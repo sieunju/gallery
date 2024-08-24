@@ -1,0 +1,118 @@
+package com.gallery.ui.internal.view
+
+import android.app.Dialog
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.appcompat.widget.AppCompatTextView
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.gallery.ui.R
+import com.gallery.ui.internal.adapter.SelectionAlbumAdapter
+import com.gallery.ui.model.PickerAlbum
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+
+/**
+ * Description : Selection Album BottomSheet
+ *
+ * Created by juhongmin on 4/11/24
+ */
+internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
+
+    interface Listener {
+        fun onSelectedAlbum(album: PickerAlbum)
+    }
+
+    private val dataList: MutableList<PickerAlbum> by lazy { mutableListOf() }
+    private var selectedAlbum: PickerAlbum? = null
+    private var listener: Listener? = null
+
+    // [s] View
+    private var rvContents: RecyclerView? = null
+    private val adapter: SelectionAlbumAdapter by lazy { SelectionAlbumAdapter(this, dataList) }
+    // [e] View
+
+    fun setSelectedItem(item: PickerAlbum?): SelectionAlbumBottomSheet {
+        selectedAlbum = item
+        return this
+    }
+
+    fun setData(list: List<PickerAlbum>): SelectionAlbumBottomSheet {
+        dataList.clear()
+        dataList.addAll(list)
+        return this
+    }
+
+    fun setListener(l: Listener): SelectionAlbumBottomSheet {
+        listener = l
+        return this
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.setOnShowListener { dialogInterface ->
+            val bottomSheetDialog = dialogInterface as BottomSheetDialog
+            val bottomSheet = bottomSheetDialog
+                .findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as View
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+        }
+        return dialog
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.SelectionAlbumBottomSheet)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.d_selection_album, container)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView(view)
+    }
+
+    private fun initView(
+        view: View
+    ) {
+        rvContents = view.findViewById<RecyclerView>(R.id.rvContents).apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = this@SelectionAlbumBottomSheet.adapter
+        }
+        view.findViewById<AppCompatTextView>(R.id.tvOtherApp).setOnClickListener {
+            onSelectedAlbum(PickerAlbum.OtherApp)
+        }
+    }
+
+    fun onSelectedAlbum(model: PickerAlbum) {
+        if (selectedAlbum != model) {
+            listener?.onSelectedAlbum(model)
+            dismiss()
+        }
+    }
+
+    /**
+     * BottomSheet Show
+     * @param fm FragmentManager
+     */
+    fun simpleShow(fm: FragmentManager) {
+        runCatching {
+            // 이미 보여지고 있는 Dialog 인경우 스킵
+            if (!isAdded) {
+                super.show(fm, "PhotoPickerBottomSheet")
+            }
+        }
+    }
+}
