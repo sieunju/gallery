@@ -85,7 +85,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     private var isLoading: Boolean = false
     private val isAllLast: Boolean
         get() = photoParams.isLast && videoParams.isLast
-    private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter( this) }
+    private val photoAdapter: PhotoPickerAdapter by lazy { PhotoPickerAdapter(this) }
     private val selectedAdapter: SelectedPhotoPickerAdapter by lazy {
         SelectedPhotoPickerAdapter(this)
     }
@@ -216,6 +216,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     }
 
     override fun addPicker(pos: Int, item: PhotoPicker) {
+        if (selectedList.find { it.uid == item.uid } != null) return
         if (item is PhotoPicker.Photo) {
             item.isSelected = true
         } else if (item is PhotoPicker.Video) {
@@ -275,7 +276,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         DetailPickerBottomSheet()
             .setProvider(provider)
             .setPhoto(item)
-            .setListener { addPicker(0,it) }
+            .setListener { addPicker(0, it) }
             .simpleShow(childFragmentManager)
     }
 
