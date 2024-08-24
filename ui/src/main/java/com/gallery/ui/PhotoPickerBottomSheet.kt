@@ -29,8 +29,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
 import com.gallery.ui.internal.GridItemDecoration
 import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
@@ -63,7 +61,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     // [s] Core
     internal val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
-    private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
     private var photoCursor: Cursor? = null
@@ -205,10 +202,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     override fun dismiss() {
         cancelListener?.callback()
         super.dismiss()
-    }
-
-    override fun getRequestManager(): RequestManager {
-        return _requestManager
     }
 
     override fun getCoroutineScope(): CoroutineScope {

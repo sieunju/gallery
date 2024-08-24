@@ -2,6 +2,7 @@ package com.gallery.ui.internal
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.collection.LruCache
 import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.model.PhotoPicker
@@ -53,5 +54,9 @@ internal object ImageLoader {
 
     fun getCacheBitmap(key: String): Bitmap? {
         return cache.get(key)
+    }
+
+    fun loadImage(iv: AppCompatImageView) {
+
     }
 }
