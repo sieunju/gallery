@@ -12,8 +12,12 @@ import java.util.Locale
  */
 sealed interface PhotoPicker {
 
+    val uid: Long
 
-    object Camera : PhotoPicker
+    object Camera : PhotoPicker {
+        override val uid: Long
+            get() = -1
+    }
 
     /**
      * Photo Data Model
@@ -29,6 +33,9 @@ sealed interface PhotoPicker {
         var selectedNum: String = "1",
         val dateTaken: Int
     ) : PhotoPicker {
+
+        override val uid: Long
+            get() = id
 
         constructor(
             cursor: Cursor
@@ -58,6 +65,9 @@ sealed interface PhotoPicker {
         val duration: Int,
         val dateTaken: Int
     ) : PhotoPicker {
+
+        override val uid: Long
+            get() = id
 
         constructor(
             cursor: Cursor
@@ -98,6 +108,5 @@ sealed interface PhotoPicker {
                 }
                 return field
             }
-
     }
 }
