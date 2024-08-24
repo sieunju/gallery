@@ -4,19 +4,20 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
-import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
+import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
+import timber.log.Timber
 
 /**
  * Description : Selected Photo Picker Adapter
@@ -28,7 +29,6 @@ internal class SelectedPhotoPickerAdapter(
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
 
     private val placeHolder: ColorDrawable by lazy { ColorDrawable(Color.parseColor("#eeeeee")) }
-    private val requestManager: RequestManager by lazy { listener.getRequestManager() }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
 
     /**
@@ -113,8 +113,8 @@ internal class SelectedPhotoPickerAdapter(
 
         init {
             clRemove.setCornerAndBgColor("#4D222222", 8F.dp)
-            vBorder.setCornerAndBgColor("#00FFFFFF",0F) {
-                setStroke(1.dp,Color.parseColor("#EEEEEE"))
+            vBorder.setCornerAndBgColor("#00FFFFFF", 0F) {
+                setStroke(1.dp, Color.parseColor("#EEEEEE"))
             }
             ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
             clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
@@ -129,11 +129,14 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-            ImageLoader.getCacheBitmap(item.contentUri)?.let {
-                requestManager.load(it)
-                    .override(overrideSize)
-                    .placeholder(placeHolder)
-                    .into(ivThumb)
+            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
+            if (bitmap == null) {
+                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                ivThumb.setImageResource(R.drawable.ic_broken_image)
+            } else {
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
+                ivThumb.setImageBitmap(bitmap)
             }
         }
     }
@@ -150,8 +153,8 @@ internal class SelectedPhotoPickerAdapter(
 
         init {
             clRemove.setCornerAndBgColor("#4D222222", 8F.dp)
-            vBorder.setCornerAndBgColor("#00FFFFFF",0F) {
-                setStroke(1.dp,Color.parseColor("#EEEEEE"))
+            vBorder.setCornerAndBgColor("#00FFFFFF", 0F) {
+                setStroke(1.dp, Color.parseColor("#EEEEEE"))
             }
             ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
             clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
@@ -166,11 +169,14 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-            ImageLoader.getCacheBitmap(item.contentUri)?.let {
-                requestManager.load(it)
-                    .override(overrideSize)
-                    .placeholder(placeHolder)
-                    .into(ivThumb)
+            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
+            if (bitmap == null) {
+                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                ivThumb.setImageResource(R.drawable.ic_broken_image)
+            } else {
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
+                ivThumb.setImageBitmap(bitmap)
             }
         }
     }

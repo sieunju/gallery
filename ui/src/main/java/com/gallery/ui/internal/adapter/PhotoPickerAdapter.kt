@@ -9,15 +9,12 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.RequestManager
 import com.gallery.ui.R
 import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.changeVisible
-import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
-import com.gallery.ui.internal.placeHolder
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
@@ -33,7 +30,6 @@ internal class PhotoPickerAdapter(
     private val listener: PhotoPickerBridgeListener
 ) : RecyclerView.Adapter<BasePickerViewHolder>() {
 
-    private val requestManager: RequestManager by lazy { listener.getRequestManager() }
     private val dataList: MutableList<PhotoPicker> by lazy { mutableListOf() }
 
     /**
@@ -235,6 +231,7 @@ internal class PhotoPickerAdapter(
         private val vBgNotSelected: View by lazy { itemView.findViewById(R.id.vBgNotSelected) }
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
+
         // private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
         private val tvDuration: AppCompatTextView by lazy { itemView.findViewById(R.id.tvDuration) }
         private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
@@ -286,16 +283,20 @@ internal class PhotoPickerAdapter(
             val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
             if (bitmap == null) {
                 Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-                requestManager.load(item.contentUri)
-                    .placeholder(placeHolder)
-                    .transition(crossFadeTransition)
-                    .override(overrideSize)
-                    .into(ivThumb)
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                ivThumb.setImageResource(R.drawable.ic_broken_image)
+//                requestManager.load(item.contentUri)
+//                    .placeholder(placeHolder)
+//                    .transition(crossFadeTransition)
+//                    .override(overrideSize)
+//                    .into(ivThumb)
             } else {
-                requestManager.load(bitmap)
-                    .placeholder(placeHolder)
-                    .transition(crossFadeTransition)
-                    .into(ivThumb)
+                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
+                ivThumb.setImageBitmap(bitmap)
+//                requestManager.load(bitmap)
+//                    .placeholder(placeHolder)
+//                    .transition(crossFadeTransition)
+//                    .into(ivThumb)
             }
         }
 
