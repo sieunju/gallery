@@ -28,7 +28,7 @@ sealed interface PhotoPicker {
      */
     data class Photo(
         val id: Long,
-        val contentUri: String,
+        val contentUri: Uri,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
         val dateTaken: Int
@@ -44,7 +44,7 @@ sealed interface PhotoPicker {
             contentUri = Uri.withAppendedPath(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-            ).toString(),
+            ),
             dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
         )
     }
@@ -59,7 +59,7 @@ sealed interface PhotoPicker {
      */
     data class Video(
         val id: Long,
-        val contentUri: String,
+        val contentUri: Uri,
         var isSelected: Boolean = false,
         var selectedNum: String = "1",
         val duration: Int,
@@ -76,7 +76,7 @@ sealed interface PhotoPicker {
             contentUri = Uri.withAppendedPath(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-            ).toString(),
+            ),
             duration = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
             dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
         )

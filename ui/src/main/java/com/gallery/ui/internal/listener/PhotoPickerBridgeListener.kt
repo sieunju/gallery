@@ -1,5 +1,6 @@
 package com.gallery.ui.internal.listener
 
+import com.bumptech.glide.RequestManager
 import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.CoroutineScope
 
@@ -9,6 +10,11 @@ import kotlinx.coroutines.CoroutineScope
  * Created by juhongmin on 3/29/24
  */
 interface PhotoPickerBridgeListener {
+
+    /**
+     * Glide ImageManager
+     */
+    fun getRequestManager(): RequestManager
 
     fun getCoroutineScope(): CoroutineScope
 
