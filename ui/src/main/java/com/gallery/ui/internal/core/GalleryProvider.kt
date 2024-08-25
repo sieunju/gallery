@@ -207,15 +207,15 @@ internal class GalleryProvider(
         return try {
             val photo = scope.async(Dispatchers.IO) {
                 return@async retrieveList(photoCursor, photoParams)
-                    .onEach {
-                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
-                    }
+//                    .onEach {
+//                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
+//                    }
             }
             val video = scope.async(Dispatchers.IO) {
                 return@async retrieveList(videoCursor, videoParams)
-                    .onEach {
-                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
-                    }
+//                    .onEach {
+//                        ImageLoader.saveThumbnail(this@GalleryProvider, it, overrideSize)
+//                    }
             }
             photo.await().plus(video.await()).sortedByDescending { item ->
                 when (item) {

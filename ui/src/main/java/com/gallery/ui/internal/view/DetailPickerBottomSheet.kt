@@ -128,11 +128,11 @@ internal class DetailPickerBottomSheet : BottomSheetDialogFragment() {
             val data = data as? PhotoPicker.Photo ?: return null
             val contentResolver = requireContext().contentResolver
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(contentResolver, data.contentUri.toUri())
+                val source = ImageDecoder.createSource(contentResolver, data.contentUri)
                 ImageDecoder.decodeBitmap(source)
             } else {
                 @Suppress("DEPRECATION")
-                MediaStore.Images.Media.getBitmap(contentResolver, data.contentUri.toUri())
+                MediaStore.Images.Media.getBitmap(contentResolver, data.contentUri)
             }
         } catch (ex: Exception) {
             null

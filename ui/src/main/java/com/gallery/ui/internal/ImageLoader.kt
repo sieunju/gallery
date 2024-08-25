@@ -8,6 +8,9 @@ import com.gallery.ui.internal.core.GalleryProvider
 import com.gallery.ui.model.PhotoPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 
 /**
  * Description : Glide 처리하지 않고 직접 이미지 캐싱 처리하는 클래스
@@ -17,6 +20,7 @@ import kotlinx.coroutines.withContext
 @SuppressLint("StaticFieldLeak")
 internal object ImageLoader {
 
+    private val threadPool: ExecutorService by lazy { Executors.newCachedThreadPool() }
     private val cache: LruCache<String, Bitmap> by lazy { initCache() }
 
     /**
@@ -43,11 +47,11 @@ internal object ImageLoader {
     ): PhotoPicker {
         if (data is PhotoPicker.Camera) return data
         return withContext(Dispatchers.IO) {
-            if (data is PhotoPicker.Photo) {
-                cache.put(data.contentUri, provider.getPhotoThumbnail(data.id, size))
-            } else if (data is PhotoPicker.Video) {
-                cache.put(data.contentUri, provider.getVideoThumbnail(data.id, size))
-            }
+//            if (data is PhotoPicker.Photo) {
+//                cache.put(data.contentUri, provider.getPhotoThumbnail(data.id, size))
+//            } else if (data is PhotoPicker.Video) {
+//                cache.put(data.contentUri, provider.getVideoThumbnail(data.id, size))
+//            }
             data
         }
     }

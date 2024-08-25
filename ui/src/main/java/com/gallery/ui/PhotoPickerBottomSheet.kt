@@ -6,6 +6,8 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 import android.os.Bundle
@@ -29,7 +31,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.gallery.ui.internal.GridItemDecoration
+import com.gallery.ui.internal.ThumbnailModelLoader
 import com.gallery.ui.internal.adapter.PhotoPickerAdapter
 import com.gallery.ui.internal.adapter.SelectedPhotoPickerAdapter
 import com.gallery.ui.internal.changeVisible
@@ -61,6 +66,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     // [s] Core
     internal val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
+    private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
     private var photoCursor: Cursor? = null
@@ -177,6 +183,11 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             ActivityResultContracts.RequestMultiplePermissions()
         ) { handlePermissions(it) }
         permissionLauncher.launch(provider.getPermissions())
+        Glide.get(requireContext()).registry.prepend(
+            Uri::class.java,
+            Bitmap::class.java,
+            ThumbnailModelLoader.Factory(requireContext())
+        )
     }
 
     override fun onStart() {
@@ -202,6 +213,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     override fun dismiss() {
         cancelListener?.callback()
         super.dismiss()
+    }
+
+    override fun getRequestManager(): RequestManager {
+        return _requestManager
     }
 
     override fun getCoroutineScope(): CoroutineScope {
@@ -504,8 +519,8 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             cancelListener = null
             submitListener?.callback(selectedList.mapNotNull {
                 when (it) {
-                    is PhotoPicker.Photo -> it.contentUri
-                    is PhotoPicker.Video -> it.contentUri
+                    is PhotoPicker.Photo -> it.contentUri.toString()
+                    is PhotoPicker.Video -> it.contentUri.toString()
                     else -> null
                 }
             })
