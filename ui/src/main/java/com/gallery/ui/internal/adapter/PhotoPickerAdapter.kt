@@ -10,8 +10,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.gallery.ui.R
-import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.changeVisible
 import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.dp
@@ -137,6 +137,7 @@ internal class PhotoPickerAdapter(
         private val vBgSelected: View by lazy { itemView.findViewById(R.id.vBgSelected) }
         private val tvSelectNum: AppCompatTextView by lazy { itemView.findViewById(R.id.tvSelectNum) }
         private val ivExpandContent: AppCompatImageView by lazy { itemView.findViewById(R.id.ivExpandContent) }
+        private val overrideSize: Int by lazy { itemView.context.getDeviceWidth() / 3 }
         private var data: PhotoPicker.Photo? = null
 
         init {
@@ -184,18 +185,11 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-//            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
-//            if (bitmap == null) {
-//                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
-//                ivThumb.setImageResource(R.drawable.ic_broken_image)
-//            } else {
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
-//                ivThumb.setImageBitmap(bitmap)
-//            }
             requestManager.load(item.contentUri)
                 .placeholder(placeHolder)
                 .transition(crossFadeTransition)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .override(overrideSize)
                 .into(ivThumb)
         }
 
@@ -279,23 +273,10 @@ internal class PhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-//            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
-//            if (bitmap == null) {
-//                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-//                requestManager.load(item.contentUri)
-//                    .placeholder(placeHolder)
-//                    .transition(crossFadeTransition)
-//                    .override(overrideSize)
-//                    .into(ivThumb)
-//            } else {
-//                requestManager.load(bitmap)
-//                    .placeholder(placeHolder)
-//                    .transition(crossFadeTransition)
-//                    .into(ivThumb)
-//            }
             requestManager.load(item.contentUri)
                 .placeholder(placeHolder)
                 .transition(crossFadeTransition)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .override(overrideSize)
                 .into(ivThumb)
         }

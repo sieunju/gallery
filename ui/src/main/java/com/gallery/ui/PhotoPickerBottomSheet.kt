@@ -3,6 +3,7 @@ package com.gallery.ui
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.database.Cursor
@@ -65,7 +66,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     SelectionAlbumBottomSheet.Listener {
 
     // [s] Core
-    internal val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
+    private val provider: GalleryProvider by lazy { GalleryProvider(requireContext()) }
     private val _requestManager: RequestManager by lazy { Glide.with(this) }
     private var selectedAlbum: PickerAlbum? = null
     private val albumList: MutableList<PickerAlbum> by lazy { mutableListOf() }
@@ -164,6 +165,16 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         }
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // init Glide
+        Glide.get(context).registry.prepend(
+            Uri::class.java,
+            Bitmap::class.java,
+            ThumbnailModelLoader.Factory(context)
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PhotoPickerBottomSheet)
@@ -183,11 +194,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             ActivityResultContracts.RequestMultiplePermissions()
         ) { handlePermissions(it) }
         permissionLauncher.launch(provider.getPermissions())
-        Glide.get(requireContext()).registry.prepend(
-            Uri::class.java,
-            Bitmap::class.java,
-            ThumbnailModelLoader.Factory(requireContext())
-        )
     }
 
     override fun onStart() {

@@ -4,21 +4,17 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.gallery.ui.R
-import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
-import timber.log.Timber
 
 /**
  * Description : Selected Photo Picker Adapter
@@ -130,17 +126,9 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Photo
         ) {
-//            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
-//            if (bitmap == null) {
-//                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
-//                ivThumb.setImageResource(R.drawable.ic_broken_image)
-//            } else {
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
-//                ivThumb.setImageBitmap(bitmap)
-//            }
             listener.getRequestManager()
                 .load(item.contentUri)
+                .override(overrideSize)
                 .into(ivThumb)
         }
     }
@@ -173,19 +161,9 @@ internal class SelectedPhotoPickerAdapter(
         private fun bindThumbnail(
             item: PhotoPicker.Video
         ) {
-//            val bitmap = ImageLoader.getCacheBitmap(item.contentUri)
-//            if (bitmap == null) {
-//                Timber.d("캐싱 안된 이미지 입니다. ${item.contentUri}")
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
-//                ivThumb.setImageResource(R.drawable.ic_broken_image)
-//            } else {
-//                ivThumb.scaleType = ImageView.ScaleType.CENTER_CROP
-//                ivThumb.setImageBitmap(bitmap)
-//            }
-
             listener.getRequestManager()
                 .load(item.contentUri)
-
+                .override(overrideSize)
                 .into(ivThumb)
         }
     }

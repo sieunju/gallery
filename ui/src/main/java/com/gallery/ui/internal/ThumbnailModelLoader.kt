@@ -67,23 +67,37 @@ class ThumbnailModelLoader(
             priority: Priority,
             callback: DataFetcher.DataCallback<in Bitmap>
         ) {
-            Timber.d("LoadData $uri ${width},${height}")
-            val thumbnail = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentResolver.loadThumbnail(
                     uri,
                     Size(width, height),
                     CancellationSignal()
                 )
             } else {
-                @Suppress("DEPRECATION")
-                MediaStore.Images.Thumbnails.getThumbnail(
-                    contentResolver,
-                    uri.lastPathSegment!!.toLong(),
-                    MediaStore.Images.Thumbnails.MINI_KIND,
+                val legacyType = contentResolver.getType(uri) ?: return
+                val legacyContentId = uri.lastPathSegment?.toLongOrNull() ?: return
+                if (legacyType.startsWith("image")) {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Images.Thumbnails.getThumbnail(
+                        contentResolver,
+                        legacyContentId,
+                        MediaStore.Images.Thumbnails.MINI_KIND,
+                        null
+                    )
+                } else if (legacyType.startsWith("video")) {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Video.Thumbnails.getThumbnail(
+                        contentResolver,
+                        legacyContentId,
+                        MediaStore.Video.Thumbnails.MINI_KIND,
+                        null
+                    )
+                } else {
                     null
-                )
+                }
             }
-            callback.onDataReady(thumbnail)
+            if (bitmap == null) return
+            callback.onDataReady(bitmap)
         }
 
         override fun cleanup() {
