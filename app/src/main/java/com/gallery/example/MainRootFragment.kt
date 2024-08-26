@@ -45,11 +45,15 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
-                .setMaxCount(4)
+                .setEnableCamera(true)
+                .setMaxCount(20)
                 .setSubmitListener {
                     Timber.d("Selected $it")
                 }
                 .setCancelListener { Timber.d("Cancel") }
+                .setMaxSelectedListener {
+                    Timber.d("선택 가능한 사진들을 다 선택했습니다.")
+                }
                 .simpleShow(childFragmentManager)
         }
 

@@ -3,7 +3,6 @@ package com.gallery.ui.internal.adapter
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -17,11 +16,11 @@ import com.gallery.ui.internal.crossFadeTransition
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
+import com.gallery.ui.internal.listener.onClick
 import com.gallery.ui.internal.placeHolder
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
-import timber.log.Timber
 
 
 /**
@@ -149,16 +148,16 @@ internal class PhotoPickerAdapter(
                 setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
             }
 
-            ivThumb.setOnClickListener {
-                val data = this.data ?: return@setOnClickListener
+            ivThumb.onClick {
+                val data = this.data ?: return@onClick
                 if (data.isSelected) {
                     listener.removePicker(bindingAdapterPosition, data)
                 } else {
                     listener.addPicker(bindingAdapterPosition, data)
                 }
             }
-            itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).setOnClickListener {
-                val data = data ?: return@setOnClickListener
+            itemView.findViewById<ConstraintLayout>(R.id.clExpandContent).onClick {
+                val data = data ?: return@onClick
                 listener.onShowExpandPhoto(data)
             }
         }
@@ -239,9 +238,8 @@ internal class PhotoPickerAdapter(
 //                setStroke(1.dp, Color.parseColor("#4D9C9C9C"))
 //            }
             tvDuration.setCornerAndBgColor("#33222222", 5F.dp)
-
-            ivThumb.setOnClickListener {
-                val data = this.data ?: return@setOnClickListener
+            ivThumb.onClick {
+                val data = this.data ?: return@onClick
                 if (data.isSelected) {
                     listener.removePicker(bindingAdapterPosition, data)
                 } else {
