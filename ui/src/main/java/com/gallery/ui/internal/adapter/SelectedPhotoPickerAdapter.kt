@@ -12,6 +12,7 @@ import com.gallery.ui.R
 import com.gallery.ui.internal.dp
 import com.gallery.ui.internal.getDeviceWidth
 import com.gallery.ui.internal.listener.PhotoPickerBridgeListener
+import com.gallery.ui.internal.listener.onClick
 import com.gallery.ui.internal.setCornerAndBgColor
 import com.gallery.ui.internal.viewholder.BasePickerViewHolder
 import com.gallery.ui.model.PhotoPicker
@@ -113,8 +114,8 @@ internal class SelectedPhotoPickerAdapter(
             vBorder.setCornerAndBgColor("#00FFFFFF", 0F) {
                 setStroke(1.dp, Color.parseColor("#EEEEEE"))
             }
-            ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
-            clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
+            ivThumb.onClick { data?.let { listener.removePicker(-1, it) } }
+            clRemove.onClick { data?.let { listener.removePicker(-1, it) } }
         }
 
         override fun onBindView(item: PhotoPicker) {
@@ -148,8 +149,8 @@ internal class SelectedPhotoPickerAdapter(
             vBorder.setCornerAndBgColor("#00FFFFFF", 0F) {
                 setStroke(1.dp, Color.parseColor("#EEEEEE"))
             }
-            ivThumb.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
-            clRemove.setOnClickListener { data?.let { listener.removePicker(-1, it) } }
+            ivThumb.onClick { data?.let { listener.removePicker(-1, it) } }
+            clRemove.onClick { data?.let { listener.removePicker(-1, it) } }
         }
 
         override fun onBindView(item: PhotoPicker) {

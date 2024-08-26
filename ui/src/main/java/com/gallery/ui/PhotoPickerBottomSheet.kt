@@ -17,7 +17,6 @@ import android.provider.MediaStore.MediaColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.AppCompatImageView
@@ -108,9 +107,11 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     // [e] View
 
     // [s] Config
+    private var isCamera: Boolean = false
     private var maxCount: Int = 3
     private var submitListener: OnSubmitListener? = null
     private var cancelListener: OnCancelListener? = null
+    private var maxSelectedListener: OnMaxSelectedListener? = null
     // [e] Config
 
     fun interface OnSubmitListener {
@@ -119,6 +120,18 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     fun interface OnCancelListener {
         fun callback()
+    }
+
+    fun interface OnMaxSelectedListener {
+        fun callback(macCount: Int)
+    }
+
+    /**
+     * Camera Button Enable
+     */
+    fun setEnableCamera(isEnable: Boolean): PhotoPickerBottomSheet {
+        isCamera = isEnable
+        return this
     }
 
     /**
@@ -140,6 +153,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         l: OnCancelListener
     ): PhotoPickerBottomSheet {
         cancelListener = l
+        return this
+    }
+
+    fun setMaxSelectedListener(
+        l: OnMaxSelectedListener
+    ): PhotoPickerBottomSheet {
+        maxSelectedListener = l
         return this
     }
 
@@ -196,11 +216,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         permissionLauncher.launch(provider.getPermissions())
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -231,6 +246,10 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     override fun addPicker(pos: Int, item: PhotoPicker) {
         if (selectedList.find { it.uid == item.uid } != null) return
+        if (selectedList.size >= maxCount) {
+            maxSelectedListener?.callback(maxCount)
+            return
+        }
         if (item is PhotoPicker.Photo) {
             item.isSelected = true
         } else if (item is PhotoPicker.Video) {
