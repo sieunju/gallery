@@ -17,7 +17,6 @@ import android.provider.Settings
 import android.util.Size
 import androidx.activity.result.ActivityResultLauncher
 import com.gallery.ui.R
-import com.gallery.ui.internal.ImageLoader
 import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PickerAlbum
 import kotlinx.coroutines.CoroutineScope
