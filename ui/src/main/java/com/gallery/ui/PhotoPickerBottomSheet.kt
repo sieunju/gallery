@@ -48,6 +48,8 @@ import com.gallery.ui.internal.view.DetailPickerBottomSheet
 import com.gallery.ui.internal.view.SelectionAlbumBottomSheet
 import com.gallery.ui.model.PhotoPicker
 import com.gallery.ui.model.PickerAlbum
+import com.gallery.ui.model.PickerModel
+import com.gallery.ui.model.PickerModel.Companion.toModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -117,7 +119,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     // [e] Config
 
     fun interface OnSubmitListener {
-        fun callback(selectedList: List<String>)
+        fun callback(selectedList: List<PickerModel>)
     }
 
     fun interface OnCancelListener {
@@ -208,7 +210,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         ) { result ->
             val uri = result.data?.data
             if (result.resultCode == Activity.RESULT_OK && uri != null) {
-                handleOnSubmit(listOf(uri.toString()))
+                handleOnSubmit(listOf(PickerModel.Photo(uri)))
             }
         }
         galleryPermissionLauncher = registerForActivityResult(
@@ -222,7 +224,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             ActivityResultContracts.TakePicture()
         ) { result ->
             if (result && cameraUri != null) {
-                handleOnSubmit(listOf("$cameraUri"))
+                handleOnSubmit(listOf(PickerModel.Camera(cameraUri!!)))
             }
         }
     }
@@ -552,13 +554,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
-            handleOnSubmit(selectedList.mapNotNull {
-                when (it) {
-                    is PhotoPicker.Photo -> "${it.contentUri}"
-                    is PhotoPicker.Video -> "${it.contentUri}"
-                    else -> null
-                }
-            })
+            handleOnSubmit(selectedList.mapNotNull { it.toModel() })
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSelectedAlbum).setOnClickListener {
             showSelectionAlbum()
@@ -610,7 +606,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             .simpleShow(childFragmentManager)
     }
 
-    private fun handleOnSubmit(list: List<String>) {
+    private fun handleOnSubmit(list: List<PickerModel>) {
         cancelListener = null
         submitListener?.callback(list)
         dismiss()
@@ -663,7 +659,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                 provider.moveToSettings()
                 dismiss()
             }
-            .setNegativeButton(R.string.txt_cancel) { _, _ ->  }
+            .setNegativeButton(R.string.txt_cancel) { _, _ -> }
             .show()
     }
 }

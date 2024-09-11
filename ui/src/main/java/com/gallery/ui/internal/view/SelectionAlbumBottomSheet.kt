@@ -24,7 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
  */
 internal class SelectionAlbumBottomSheet : BottomSheetDialogFragment() {
 
-    interface Listener {
+    internal interface Listener {
         fun onSelectedAlbum(album: PickerAlbum)
     }
 
