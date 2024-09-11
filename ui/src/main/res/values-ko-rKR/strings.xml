@@ -10,4 +10,5 @@
     <string name="txt_selected">선택</string>
     <string name="txt_storage_permission_denied">접근 허용된 사진/동영상이 없습니다.\n권한 설정을 변경해주세요.</string>
     <string name="txt_visual_user_selected_permission_denied">접근 허용된 사진/동영상이 없습니다.\n권한 설정을 변경하시거나, 사진을 선택해주세요.</string>
+    <string name="txt_camera_permission_denied">사진 촬영을 하려면 카메라 접근 권한이 필요합니다.</string>
 </resources>

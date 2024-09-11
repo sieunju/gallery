@@ -123,6 +123,10 @@ internal class PhotoPickerAdapter(
         parent: ViewGroup
     ) : BasePickerViewHolder(parent, R.layout.vh_child_camera) {
 
+        init {
+            itemView.onClick { listener.moveToCamera() }
+        }
+
         override fun onBindView(item: PhotoPicker) {}
     }
 

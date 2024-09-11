@@ -1,23 +1,21 @@
 package com.gallery.example
 
-import android.Manifest
-import android.graphics.Bitmap
-import android.os.Build
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.cardview.widget.CardView
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.integration.webp.decoder.WebpDrawable
 import com.bumptech.glide.integration.webp.decoder.WebpDrawableTransformation
-import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.gallery.ui.PhotoPickerBottomSheet
-import com.hmju.permission.SPermission
 import timber.log.Timber
+import java.io.File
 
 
 class MainRootFragment : Fragment(R.layout.f_main_root) {
@@ -45,7 +43,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
 
         view.findViewById<CardView>(R.id.cvPhotoPickerBottomSheet).setOnClickListener {
             PhotoPickerBottomSheet()
-                .setEnableCamera(true)
+                .setCameraUri(getCameraUri())
                 .setMaxCount(20)
                 .setSubmitListener {
                     Timber.d("Selected $it")
@@ -87,6 +85,14 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             .optionalTransform(FitCenter())
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
             .into(ivEditCrop)
+    }
 
+    private fun getCameraUri(): Uri {
+        val imageName = "temp_image_${System.currentTimeMillis() / 1000}.jpg"
+        return FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.provider",
+            File(requireContext().cacheDir, imageName)
+        )
     }
 }
