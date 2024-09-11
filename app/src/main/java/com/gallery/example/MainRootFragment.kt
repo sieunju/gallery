@@ -24,6 +24,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
     private val requestManager: RequestManager by lazy { Glide.with(this) }
     private val imgEditFlexibleUrl = "${baseImagePath}/example_edit_flexible_image.webp"
     private val imgEditCropUrl = "${baseImagePath}/example_edit_crop_image.webp"
+    private val imgPhotoPickerBottomSheetUrl = "${baseImagePath}/example_photo_picker_bottom_sheet.webp"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,6 +76,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
     private fun initThumb(view: View) {
         val ivEditFlexible = view.findViewById<AppCompatImageView>(R.id.ivEditFlexible)
         val ivEditCrop = view.findViewById<AppCompatImageView>(R.id.ivEditCrop)
+        val ivPickerBottomSheet = view.findViewById<AppCompatImageView>(R.id.ivPhotoPickerBottomSheet)
         requestManager
             .load(imgEditFlexibleUrl)
             .optionalTransform(FitCenter())
@@ -85,6 +87,11 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             .optionalTransform(FitCenter())
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
             .into(ivEditCrop)
+        requestManager
+            .load(imgPhotoPickerBottomSheetUrl)
+            .optionalTransform(FitCenter())
+            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
+            .into(ivPickerBottomSheet)
     }
 
     private fun getCameraUri(): Uri {
