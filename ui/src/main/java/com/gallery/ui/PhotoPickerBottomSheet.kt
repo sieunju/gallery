@@ -1,5 +1,6 @@
 package com.gallery.ui
 
+import android.Manifest
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.app.AlertDialog
@@ -50,10 +51,8 @@ import com.gallery.ui.model.PickerAlbum
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Description : PhotoPicker BottomSheet
@@ -93,7 +92,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         SelectedPhotoPickerAdapter(this)
     }
     private lateinit var otherGalleryLauncher: ActivityResultLauncher<Intent>
-    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var galleryPermissionLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var cameraLauncher: ActivityResultLauncher<Uri>
     // [e] Core
 
     // [s] View
@@ -108,6 +109,7 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
 
     // [s] Config
     private var isCamera: Boolean = false
+    private var cameraUri: Uri? = null
     private var maxCount: Int = 3
     private var submitListener: OnSubmitListener? = null
     private var cancelListener: OnCancelListener? = null
@@ -129,8 +131,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     /**
      * Camera Button Enable
      */
-    fun setEnableCamera(isEnable: Boolean): PhotoPickerBottomSheet {
-        isCamera = isEnable
+    fun setCameraUri(fileUri: Uri): PhotoPickerBottomSheet {
+        isCamera = true
+        cameraUri = fileUri
         return this
     }
 
@@ -205,15 +208,23 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         ) { result ->
             val uri = result.data?.data
             if (result.resultCode == Activity.RESULT_OK && uri != null) {
-                cancelListener = null
-                submitListener?.callback(listOf(uri.toString()))
-                dismiss()
+                handleOnSubmit(listOf(uri.toString()))
             }
         }
-        permissionLauncher = registerForActivityResult(
+        galleryPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { handlePermissions(it) }
-        permissionLauncher.launch(provider.getPermissions())
+        galleryPermissionLauncher.launch(provider.getPermissions())
+        cameraPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { handleCameraPermissions(it) }
+        cameraLauncher = registerForActivityResult(
+            ActivityResultContracts.TakePicture()
+        ) { result ->
+            if (result && cameraUri != null) {
+                handleOnSubmit(listOf("$cameraUri"))
+            }
+        }
     }
 
     override fun onCreateView(
@@ -240,8 +251,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
         return _requestManager
     }
 
-    override fun getCoroutineScope(): CoroutineScope {
-        return lifecycleScope
+    override fun moveToCamera() {
+        // 카메라 페이지 이동
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
     override fun addPicker(pos: Int, item: PhotoPicker) {
@@ -314,7 +326,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
     }
 
     override fun onSelectedAlbum(album: PickerAlbum) {
-        Timber.d("onSelectedAlbum $album")
         when (album) {
             is PickerAlbum.Normal -> {
                 photoParams.initParams()
@@ -357,9 +368,6 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                     if (pos >= updatePosition) {
                         onLoadPage()
                     }
-//                    if (itemCount.minus(1) <= pos) {
-//                        onLoadPage()
-//                    }
                 }
             })
         }
@@ -478,6 +486,9 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                     videoParams
                 ).run { dataList.addAll(this) }
             }
+            if (isCamera) {
+                dataList.add(0, PhotoPicker.Camera)
+            }
             photoAdapter.submitList(dataList)
             isLoading = false
         }
@@ -541,15 +552,13 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSubmit).setOnClickListener {
-            cancelListener = null
-            submitListener?.callback(selectedList.mapNotNull {
+            handleOnSubmit(selectedList.mapNotNull {
                 when (it) {
-                    is PhotoPicker.Photo -> it.contentUri.toString()
-                    is PhotoPicker.Video -> it.contentUri.toString()
+                    is PhotoPicker.Photo -> "${it.contentUri}"
+                    is PhotoPicker.Video -> "${it.contentUri}"
                     else -> null
                 }
             })
-            dismiss()
         }
         view.findViewById<LinearLayoutCompat>(R.id.llSelectedAlbum).setOnClickListener {
             showSelectionAlbum()
@@ -601,7 +610,19 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
             .simpleShow(childFragmentManager)
     }
 
-    private fun handlePermissions(permissionResult: Map<String, Boolean>) {
+    private fun handleOnSubmit(list: List<String>) {
+        cancelListener = null
+        submitListener?.callback(list)
+        dismiss()
+    }
+
+    /**
+     * 갤러리 접근에 필요한 권한들 처리 함수
+     * @param permissionResult 권한 요청 결과
+     */
+    private fun handlePermissions(
+        permissionResult: Map<String, Boolean>
+    ) {
         if (permissionResult.all { it.value }) {
             initData()
             return
@@ -625,5 +646,24 @@ class PhotoPickerBottomSheet : BottomSheetDialogFragment(),
                 .setNegativeButton(R.string.txt_cancel) { _, _ -> dismiss() }
                 .show()
         }
+    }
+
+    /**
+     * 카메라 권한 결과
+     * @param isGranted true 허용, false 거부
+     */
+    private fun handleCameraPermissions(isGranted: Boolean) {
+        if (isGranted) {
+            cameraLauncher.launch(cameraUri)
+            return
+        }
+        AlertDialog.Builder(context)
+            .setMessage(R.string.txt_camera_permission_denied)
+            .setPositiveButton(R.string.txt_confirm) { _, _ ->
+                provider.moveToSettings()
+                dismiss()
+            }
+            .setNegativeButton(R.string.txt_cancel) { _, _ ->  }
+            .show()
     }
 }

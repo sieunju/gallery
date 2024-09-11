@@ -15,8 +15,7 @@ interface PhotoPickerBridgeListener {
      * Glide ImageManager
      */
     fun getRequestManager(): RequestManager
-
-    fun getCoroutineScope(): CoroutineScope
+    fun moveToCamera()
 
     /**
      * 선택 사진

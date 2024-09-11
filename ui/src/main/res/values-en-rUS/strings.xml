@@ -10,4 +10,5 @@
     <string name="txt_selected">Selected</string>
     <string name="txt_storage_permission_denied">No photos/video allowed access.\nPlease change the permission settings.</string>
     <string name="txt_visual_user_selected_permission_denied">No photos/video allowed access.\nChange permission settings, or select a photo.</string>
+    <string name="txt_camera_permission_denied">You need access to the camera to take a photo.</string>
 </resources>
