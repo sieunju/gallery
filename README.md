@@ -50,32 +50,6 @@ internal class CoreModule {
 }
 ```
 
-## Core-rx Module
-This module is converted from core module to ReactiveX and processed.
-
-#### How To
-
-```groovy
-dependencies {
-  implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
-  implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
-  implementation 'com.github.sieunju.gallery:core-rx:$latestVersion' // optional
-}
-```
-
-## Core-coroutines Module
-This module is converted from core module to Coroutines and processed.
-
-#### How To
-
-```groovy
-dependencies {
-  implementation 'com.github.sieunju.gallery:core:$$latestVersion' // required
-  implementation 'com.github.sieunju.gallery:model:$$latestVersion' // required
-  implementation 'com.github.sieunju.gallery:core-coroutines:$latestVersion' // optional
-}
-```
-
 #### java.lang.ClassCastException Error?!
 [Issue Link](https://youtrack.jetbrains.com/issue/KT-27105).
 
@@ -124,10 +98,19 @@ dependencies {
   implementation 'com.github.sieunju.gallery:ui:$latestVersion'
 }
 ```
-
-#### Simple Description.
-
-- GalleryRecyclerView.   
-  ![gallery_recyclerview_example](https://user-images.githubusercontent.com/33802191/205474967-a3146c32-35b7-40cf-98e5-7ed2d380357c.gif)
-
-    
+- Simple is Best
+```kotlin
+PhotoPickerBottomSheet()
+    .setCameraUri(getCameraUri())
+    .setMaxCount(5)
+    .setSubmitListener {
+        // submit callback
+    }
+    .setCancelListener {
+        // cancel callback
+    }
+    .setMaxSelectedListener {
+        // max selected callback
+    }
+    .simpleShow(childFragmentManager)
+```
