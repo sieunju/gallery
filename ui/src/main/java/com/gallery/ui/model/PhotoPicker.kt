@@ -47,6 +47,18 @@ sealed interface PhotoPicker {
             ),
             dateTaken = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
         )
+
+        override fun equals(other: Any?): Boolean {
+            return if (other is Photo) {
+                contentUri == other.contentUri
+            } else {
+                false
+            }
+        }
+
+        override fun hashCode(): Int {
+            return contentUri.hashCode()
+        }
     }
 
     /**
@@ -108,5 +120,17 @@ sealed interface PhotoPicker {
                 }
                 return field
             }
+
+        override fun equals(other: Any?): Boolean {
+            return if (other is Video) {
+                contentUri == other.contentUri
+            } else {
+                false
+            }
+        }
+
+        override fun hashCode(): Int {
+            return contentUri.hashCode()
+        }
     }
 }
