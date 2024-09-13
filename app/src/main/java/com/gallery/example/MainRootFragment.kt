@@ -24,7 +24,7 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
     private val requestManager: RequestManager by lazy { Glide.with(this) }
     private val imgEditFlexibleUrl = "${baseImagePath}/example_edit_flexible_image.webp"
     private val imgEditCropUrl = "${baseImagePath}/example_edit_crop_image.webp"
-    private val imgPhotoPickerBottomSheetUrl = "${baseImagePath}/example_photo_picker_bottom_sheet.webp"
+    private val imgPhotoPickerBottomSheetUrl = "${baseImagePath}/example_photo_picker_bottom_sheet.gif"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -88,9 +88,8 @@ class MainRootFragment : Fragment(R.layout.f_main_root) {
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
             .into(ivEditCrop)
         requestManager
+            .asGif()
             .load(imgPhotoPickerBottomSheetUrl)
-            .optionalTransform(FitCenter())
-            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(FitCenter()))
             .into(ivPickerBottomSheet)
     }
 
